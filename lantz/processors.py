@@ -359,15 +359,18 @@ def check_membership(container):
     :param container:
     :return:
 
-        >>> checker = check_membership([1, 2, 3])
-        >>> checker(1), checker(1.5), checker(0)
-        (True, False, False)
+        >>> checker = check_membership((1, 2, 3))
+        >>> checker(1)
+        1
+        >>> checker(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: 0 not in (1, 2, 3)
 
     """
 
     def _inner(value):
-        if value in container:
-            return True
-        else:
-            return False
+        if value not in container:
+            return KeyError('{} not in {}'.format(value, container))
+        return value
     return _inner
