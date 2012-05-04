@@ -25,7 +25,7 @@ class SerialTemplate(SerialDriver):
     def a_read_only_property(self):
         """Help for a a_read_only_property
         """
-        return self.query('?IDN')
+        return self.query('*IDN?')
 
     @Feat(units='V', range=(10,))
     def a_read_write_property(self):

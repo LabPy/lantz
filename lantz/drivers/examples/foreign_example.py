@@ -21,7 +21,7 @@ class ForeignExample(LibraryDriver):
 
     @Feat()
     def idn(self):
-        return self.query('?IDN')
+        return self.query('*IDN?')
 
     @Feat(units='V', range=(10,))
     def amplitude(self):
