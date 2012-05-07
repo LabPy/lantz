@@ -22,14 +22,14 @@ from serial import SerialTimeoutException
 class LantzSerialTimeoutError(SerialTimeoutException, LantzTimeoutError):
     pass
 
+
 BYTESIZE = {5: serial.FIVEBITS, 6: serial.SIXBITS,
             7: serial.SEVENBITS, 8: serial.EIGHTBITS}
 
-PARITY = {'None': serial.PARITY_NONE, 'Even': serial.PARITY_EVEN,
-          'Odd': serial.PARITY_ODD, 'Mark': serial.PARITY_MARK,
-          'Space': serial.PARITY_SPACE}
+PARITY = {'none': serial.PARITY_NONE, 'even': serial.PARITY_EVEN,
+          'odd': serial.PARITY_ODD, 'mark': serial.PARITY_MARK,
+          'space': serial.PARITY_SPACE}
 
-#:
 STOPBITS = {1: serial.STOPBITS_ONE, 1.5: serial.STOPBITS_ONE_POINT_FIVE,
             2: serial.STOPBITS_TWO}
 
@@ -43,7 +43,9 @@ class SerialDriver(TextualMixin, Driver):
     :param bytesize: Number of data bits. Possible values = (5, 6, 7, 8)
     :param parity: Enable parity checking. Possible values = ('None', 'Even', 'Odd', 'Mark', 'Space')
     :param stopbits: Number of stop bits. Possible values = (1, 1.5, 2)
-    :param flow: Bitflag for flow control mode (0 = None, 1 = xonoff, 2 = rtscts, 3 = dsrdtr)
+    :param xonoff: xonoff flow control enabled.
+    :param rtscts: rtscts flow control enabled.
+    :param dsrdtr: dsrdtr flow control enabled
     :param timeout: value in seconds, None to wait for ever or 0 for non-blocking mode
     :param write_timeout: see timeout
 
@@ -53,18 +55,31 @@ class SerialDriver(TextualMixin, Driver):
     SEND_TERMINATION = ''
     ENCODING = 'ascii'
 
-    def __init__(self, port=1, baudrate=9600, bytesize=8, parity='None',
-                 stopbits=1, flow=0, timeout=None, write_timeout=None,
-                 *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        bytesize = BYTESIZE[bytesize]
-        parity = PARITY[parity]
-        stopbits = STOPBITS[stopbits]
+    #: comunication parameters
+    BAUDRATE = 9600
+    BYTESIZE = 8
+    PARITY = 'none'
+    STOPBITS = 1
+
+    #: flow control flags
+    RTSCTS = False
+    DSRDTR = False
+    XONXOFF = False
+
+    def __init__(self, port=1, timeout=1, write_timeout=1, **kwargs):
+        super().__init__(**kwargs)
         self.timeout = timeout
-        self.serial = serial.Serial(None, baudrate,
-                                    stopbits, timeout,
-                                    bool(flow & 1), bool(flow & 2),
-                                    write_timeout, bool(flow & 3))
+
+        for key in ('baudrate', 'bytesize', 'parity', 'stopbits',
+                    'rtscts', 'dsrdtr', 'xonxoff'):
+            kwargs.setdefault(key, getattr(self, key.upper()))
+
+        kwargs['bytesize'] = BYTESIZE[kwargs['bytesize']]
+        kwargs['parity'] = PARITY[kwargs['parity']]
+        kwargs['stopbits'] = STOPBITS[kwargs['stopbits']]
+
+        self.serial = serial.Serial(None, timeout=timeout, writeTimeout=write_timeout, **kwargs)
+
         self.serial.port = port
 
         self.log_debug('Created pyserial port {}'.format(self.serial))
