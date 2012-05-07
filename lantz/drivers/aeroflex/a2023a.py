@@ -144,7 +144,7 @@ class A2023a(SerialDriver):
     def offset(self, value):
         self.query('RFLV:OFFS:VALUE {0:f}'.format(value))
 
-    @Feat(map={True: 'ENABLED', False: 'DISABLED'})
+    @Feat(values={True: 'ENABLED', False: 'DISABLED'})
     def output_enabled(self):
         """Enable or disable the RF output
         """
@@ -167,7 +167,7 @@ class A2023a(SerialDriver):
         """
         self.send('CFRQ:PHASE {}'.format(value))
 
-    @Feat(map={'INT', 'EXT10DIR', 'EXTIND', 'EXT10IND', 'INT10OUT'})
+    @Feat(values={'INT', 'EXT10DIR', 'EXTIND', 'EXT10IND', 'INT10OUT'})
     def frequency_standard(self):
         """Get internal or external frequency standard.
         """
@@ -187,7 +187,7 @@ class A2023a(SerialDriver):
     def rflimit(self, value):
         self.query('RFLV:LIMIT {}'.format(value))
 
-    @Feat(map={True: 'ENABLED', False: 'DISABLED'})
+    @Feat(values={True: 'ENABLED', False: 'DISABLED'})
     def rflimit_enabled(self):
         return self.query('*RFLV:LIMIT?')
 
@@ -205,7 +205,7 @@ class A2023a(SerialDriver):
     def expose(self, exposure_time=1):
         self.send('EXPOSE {}'.format(exposure_time))
 
-    @Feat(map={True: 'on', False: 'off'})
+    @Feat(values={True: 'on', False: 'off'})
     def time(self):
         self.send()
         return self.recv()

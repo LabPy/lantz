@@ -31,31 +31,31 @@ class MDSnC(SerialDriver):
 
     CHANNELS = list(range(8))
 
-    @Feat(None, map={True: 1, False: 0})
+    @Feat(None, values={True: 1, False: 0})
     def main_enabled(self, value):
         """Enable the
         """
         self.send("I{}".format(value))
 
-    @DictFeat(None, valid_keys=CHANNELS)
+    @DictFeat(None, keys=CHANNELS)
     def enabled(self, channel, value):
         """Enable single channels.
         """
         self.send("L{}O{}".format(channel, value))
 
-    @DictFeat(None, valid_keys=CHANNELS)
+    @DictFeat(None, keys=CHANNELS)
     def frequency(self, channel, value):
         """RF frequency for a given channel.
         """
         self.send("L{}F{}".format(channel, value))
 
-    @DictFeat(None, valid_keys=CHANNELS)
+    @DictFeat(None, keys=CHANNELS)
     def powerdb(self, channel, value):
         """Power for a given channel (in db).
         """
         self.send("L{}D{}".format(channel, value))
 
-    @DictFeat(None, valid_keys=CHANNELS, range=(0, 1023, 1))
+    @DictFeat(None, keys=CHANNELS, limits=(0, 1023, 1))
     def power(self, channel, value):
         """Power for a given channel (in digital units).
         """

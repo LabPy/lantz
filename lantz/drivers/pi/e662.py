@@ -35,7 +35,7 @@ class E662(SerialDriver):
             raise InstrumentError('{} ({})'.format(ret_value, _ERRORS[ret_value]))
         return ret_value
 
-    @Feat(map={True: 'REM', False: 'LOC'})
+    @Feat(values={True: 'REM', False: 'LOC'})
     def remote(self):
         """Computer control mode
         """

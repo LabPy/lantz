@@ -19,11 +19,16 @@ class ForeignExample(LibraryDriver):
 
     LIBRARY_NAME = 'mylibrary.dll'
 
+    def _return_handler(self, func_name, ret_value):
+        if ret_value != 0:
+            raise InstrumentError('{} ({})'.format(ret_value, _ERRORS[ret_value]))
+        return ret_value
+
     @Feat()
     def idn(self):
         return self.query('*IDN?')
 
-    @Feat(units='V', range=(10,))
+    @Feat(units='V', limits=(10,))
     def amplitude(self):
         """Amplitude.
         """
@@ -33,7 +38,7 @@ class ForeignExample(LibraryDriver):
     def amplitude(self, value):
         self.query('!AMP {:.1f}'.format(value))
 
-    @DictFeat(map={True: '1', False: '0'}, valid_keys=list(range(1,9)))
+    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1,9)))
     def dout(self, key):
         """Digital output state.
         """

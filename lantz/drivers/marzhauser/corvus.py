@@ -24,11 +24,11 @@ class Corvus(SerialDriver):
     WRITE_TERMINATION = ' '
     READ_TERMINATION = '\r\n'
 
-    @Feat(None, map={True: 0, False: 1}) #TODO: Check
+    @Feat(None, values={True: 0, False: 1}) #TODO: Check
     def remote(self, value):
         self.query('{0:d} mode'.format(value))
 
-    @Feat(map={1, 2, })
+    @Feat(values={1, 2, })
     def dimensions(self):
         """Number of dimensions used.
         """
@@ -38,8 +38,8 @@ class Corvus(SerialDriver):
     def dimensions(self, value):
         return self.query('{0:d} setdim'.format(value))
 
-    @DictFeat(valid_keys=range(4),
-              map={'microstep':1, 'um': 2, 'mm': 3, 'cm': 3, 'm': 5, 'inch': 6,  'mil': 7})
+    @DictFeat(keys=limits(4),
+              values={'microstep':1, 'um': 2, 'mm': 3, 'cm': 3, 'm': 5, 'inch': 6,  'mil': 7})
     def units(self, axis):
         """Input and output units for each axis
         """

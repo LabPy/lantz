@@ -23,7 +23,7 @@ class Feat(object):
 
     Processors can registered for each arguments to modify their values before
     they are passed to the body of the method. Two standard processors are
-    defined: `map` and `units` and others can be given as callables in the
+    defined: `values` and `units` and others can be given as callables in the
     `procs` parameter.
 
     If a method contains multiple arguments, use a tuple. None can be used as
@@ -33,16 +33,17 @@ class Feat(object):
     :param fset: setter function.
     :param doc: docstring, if missing fget or fset docstring will be used.
 
-    :param map: A dictionary to map key to values.
-                If a list/tuple instead of a dict is given, the value is not
-                changed but only tested to belong to the container.
+    :param values: A dictionary to map key to values.
+                   A set to restrict the values.
+                   If a list/tuple instead of a dict is given, the value is not
+                   changed but only tested to belong to the container.
     :param units: `Quantity` or string that can be interpreted as units.
     :param procs: Other callables to be applied to input arguments.
 
     """
 
     def __init__(self, fget=MISSING, fset=None, doc=None, *,
-                 map=None, units=None, range=None, procs=None,
+                 values=None, units=None, limits=None, procs=None,
                  read_once=False):
         self.fget = fget
         self.fset = fset
@@ -54,26 +55,26 @@ class Feat(object):
         if fset and fset.__doc__ and not self.__doc__:
             self.__doc__ = fset.__doc__
 
-        self.map = map
+        self.values = values
         self.units = units
-        self.range = range
+        self.limits = limits
         self.processors = procs
         self.read_once = read_once
 
     def rebuild(self):
         self.get_processors = []
         self.set_processors = []
-        if self.map:
-            self.get_processors.append(ReverseMapProcessor(self.map))
-            self.set_processors.append(MapProcessor(self.map))
+        if self.values:
+            self.get_processors.append(ReverseMapProcessor(self.values))
+            self.set_processors.append(MapProcessor(self.values))
         if self.units:
             self.get_processors.insert(0, ToQuantityProcessor(self.units))
             self.set_processors.append(FromQuantityProcessor(self.units))
-        if self.range:
-            if isinstance(self.range[0], (list, tuple)):
-                self.set_processors.append(RangeProcessor(self.range))
+        if self.limits:
+            if isinstance(self.limits[0], (list, tuple)):
+                self.set_processors.append(RangeProcessor(self.limits))
             else:
-                self.set_processors.append(RangeProcessor((self.range, )))
+                self.set_processors.append(RangeProcessor((self.limits, )))
         if self.processors:
             for getp, setp in self.processors:
                 if getp is not None:
@@ -226,36 +227,36 @@ class DictFeat(Feat):
 
     Takes the same parameters as `Feat`, plus:
 
-    :param valid_keys: List/tuple restricts the keys to the specified ones.
+    :param keys: List/tuple restricts the keys to the specified ones.
 
     """
 
     def __init__(self, fget=MISSING, fset=None, doc=None, *,
-                 valid_keys=None, **kwargs):
+                 keys=None, **kwargs):
         self.instance = None
-        self.valid_keys = valid_keys
-        if self.valid_keys:
-            self._internal = {key: MISSING for key in self.valid_keys}
+        self.keys = keys
+        if self.keys:
+            self._internal = {key: MISSING for key in self.keys}
         else:
             self._internal = {}
 
         super().__init__(fget, fset, doc, **kwargs)
 
     def getitem(self, key):
-        if self.valid_keys and not key in self.valid_keys:
+        if self.keys and not key in self.keys:
             raise KeyError('{} is not valid key for {} {}'.format(key, self.name,
-                                                                    self.valid_keys))
-        if isinstance(self.valid_keys, dict):
-            key = self.valid_keys[key]
+                                                                    self.keys))
+        if isinstance(self.keys, dict):
+            key = self.keys[key]
 
         return self.get(self.instance, self.instance.__class__, key)
 
     def setitem(self, key, value, force=False):
-        if self.valid_keys and not key in self.valid_keys:
+        if self.keys and not key in self.keys:
             raise KeyError('{} is not valid key for {} {}'.format(key, self.name,
-                                                                    self.valid_keys))
-        if isinstance(self.valid_keys, dict):
-            key = self.valid_keys[key]
+                                                                    self.keys))
+        if isinstance(self.keys, dict):
+            key = self.keys[key]
 
         self.set(self.instance, value, force, key)
 
@@ -286,7 +287,7 @@ class DictFeat(Feat):
         return repr(self._internal)
 
     def get_cache(self, instance, key):
-        if not self.valid_keys and not key in self._internal:
+        if not self.keys and not key in self._internal:
             return None
         return self._internal.get(key, MISSING)
 
@@ -306,15 +307,15 @@ def _dochelper(feat):
     predoc = ''
 
     if isinstance(feat, DictFeat):
-        predoc = ':valid keys: {}\n\n'.format(feat.valid_keys or 'ANY')
+        predoc = ':keys: {}\n\n'.format(feat.keys or 'ANY')
 
 
-    if feat.map:
-        doc += ':map: {}\n'.format(feat.map)
+    if feat.values:
+        doc += ':values: {}\n'.format(feat.values)
     if feat.units:
         doc += ':units: {}\n'.format(feat.units)
-    if feat.range:
-        doc += ':range: {}\n'.format(feat.range)
+    if feat.limits:
+        doc += ':limits: {}\n'.format(feat.limits)
     if feat.processors:
         docpg = []
         docps = []

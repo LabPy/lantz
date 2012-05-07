@@ -103,9 +103,9 @@ class Innova300C(SerialDriver):
     echo_enabled = make_feat('ECHO',
                              writeonly=True,
                              doc='Echo mode of the serial interface.',
-                             map={True: 1, False: 0})
+                             values={True: 1, False: 0})
 
-    baudrate = Feat(map={110, 300, 1200, 2400, 4800, 9600, 19200})
+    baudrate = Feat(values={110, 300, 1200, 2400, 4800, 9600, 19200})
 
     @baudrate.setter
     def baudrate(self, value):
@@ -119,26 +119,26 @@ class Innova300C(SerialDriver):
 
     analog_relative = make_feat('ANALOG MODE',
                                 doc='Analog Interface input mode.',
-                                map={True: 1, False: 0})
+                                values={True: 1, False: 0})
 
     analog_enabled = make_feat('ANALOGINT',
                                doc='Analog Interface input state.',
-                               map={True: 1, False: 0})
+                               values={True: 1, False: 0})
 
     current_range = make_feat('CURRENT RANGE',
                               doc='Current corresponding to 5 Volts at the input'\
                                   ' or output lines of the Analog Interface.',
                               units='A',
-                              range=(10, 100, 1))
+                              limits=(10, 100, 1))
 
     control_pin_high = make_feat('CONTROL',
                                  readonly=True,
                                  doc='State of the input pin 10 of the Analog Interface.',
-                                 map={True: 1, False: 0})
+                                 values={True: 1, False: 0})
 
     output_pin_high = make_feat('STATUS',
                                 doc='State of the output pin 24 and 25 of the Analog Interface.',
-                                map={(False, False): 0, (True, False): 1,
+                                values={(False, False): 0, (True, False): 1,
                                      (False, True): 2, (True, True): 3})
 
     # Diagnostics
@@ -157,7 +157,7 @@ class Innova300C(SerialDriver):
     autofill_needed = make_feat('AUTOFILL STATUS',
                                 readonly=True,
                                 doc='Is the autofill needed (wheter fill is enabled or not)',
-                                map={True: 1, False: 0})
+                                values={True: 1, False: 0})
 
     remaining_time = make_feat('HRSTILSHUTDOWN',
                                readonly=True,
@@ -215,12 +215,12 @@ class Innova300C(SerialDriver):
 
     autofill_mode = make_feat('AUTOFILL',
                               doc='Autofill mode.',
-                              map={'disabled': 0, 'enabled': 1,
+                              values={'disabled': 0, 'enabled': 1,
                                    'enabled until next autofill': 2})
 
     laser_enabled = make_feat('LASER',
                               doc='Energize the power supply.',
-                              map={True: 2, False: 0})
+                              values={True: 2, False: 0})
 
     magnet_current = make_feat('MAGNET CURRENT',
                                readonly=True,
@@ -230,7 +230,7 @@ class Innova300C(SerialDriver):
     operating_mode = make_feat('MODE',
                                readonly=True,
                                doc='Laser operating mode.',
-                               map={'current regulation': 0,
+                               values={'current regulation': 0,
                                     'reduced bandwidth light regulation': 1,
                                     'standard light regulation': 2,
                                     'current regulation, light regulation out of range': 3})
@@ -239,14 +239,14 @@ class Innova300C(SerialDriver):
 
     etalon_mode = make_feat('EMODE',
                             doc='Etalon mode.',
-                            map={'manual': 0, 'modetrack': 1, 'modetune': 2})
+                            values={'manual': 0, 'modetrack': 1, 'modetune': 2})
 
     etalon_temperature = make_feat('ETALON',
                                    readonly=True,
                                    doc='Etalon temperature.',
                                    units='degC')
 
-    @Feat(units='degC', range=(51.5, 54, 0.001))
+    @Feat(units='degC', limits=(51.5, 54, 0.001))
     def etalon_temperature_setpoint(self):
         """Setpoint for the etalon temperature.
         """
@@ -261,9 +261,9 @@ class Innova300C(SerialDriver):
 
     magnetic_field_high = make_feat('FIELD',
                                     doc='Magnetic field.',
-                                    map={True: 1, False: 0})
+                                    values={True: 1, False: 0})
 
-    @Feat(map={True: 1, False: 0})
+    @Feat(values={True: 1, False: 0})
     def magnetic_field_setpoint_high(self):
         """Setpoint for magnetic field setting.
         """
@@ -278,9 +278,9 @@ class Innova300C(SerialDriver):
 
     powertrack_mode_enabled = make_feat('PT',
                                         doc='PowerTrack.',
-                                        map={True: 1, False: 0})
+                                        values={True: 1, False: 0})
 
-    @DictFeat(valid_keys=('A', 'B'), range=(0, 255))
+    @DictFeat(keys=('A', 'B'), limits=(0, 255))
     def powertrack_position(self, key):
         """Relative position of the PowerTrack solenoids.
         """
@@ -308,7 +308,7 @@ class Innova300C(SerialDriver):
                         doc='Current regulation mode.',
                         units='A')
 
-    @Feat(units='A', range=(0, 50, 0.01))
+    @Feat(units='A', limits=(0, 50, 0.01))
     def current_setpoint(self):
         """Current setpoint when using the current regulation mode.
         """
@@ -324,7 +324,7 @@ class Innova300C(SerialDriver):
                       doc='Current power output.',
                       units='A')
 
-    @Feat(units='W', range=(0, 50, 0.0001))
+    @Feat(units='W', limits=(0, 50, 0.0001))
     def power_setpoint(self):
         """Setpoint for the light regulation.
         """
@@ -337,14 +337,14 @@ class Innova300C(SerialDriver):
 
     auto_light_cal_enabled = make_feat('AUTOLTCAL',
                                        doc='Automatic light regulation calibration flag.',
-                                       map={True: 1, False: 0})
+                                       values={True: 1, False: 0})
 
     current_change_limit = make_feat('PCTCHGTILRECAL',
                                      doc='Percent tube change before an automatic '\
                                          'light regulation recalibration becomes '\
                                          'necessary.',
                                      units='', #TODO: %
-                                     range=(5, 100, 1))
+                                     limits=(5, 100, 1))
 
 
 class ArgonInnova300C(Innova300C):
@@ -353,7 +353,7 @@ class ArgonInnova300C(Innova300C):
 
     wavelength = make_feat('WAVELENGTH',
                            doc='Wavelength for the internal power meter calibration',
-                           map={351, 364, 454, 457, 465, 472, 476, 488, 496, 501,
+                           values={351, 364, 454, 457, 465, 472, 476, 488, 496, 501,
                                  514, 528, 1090, 'MLVS', 'MLUV', 'MLDUV'})
 
 
@@ -362,7 +362,7 @@ class KryptonInnova300C(Innova300C):
     """
     wavelength = make_feat('WAVELENGTH',
                            doc='Wavelength for the internal power meter calibration',
-                           map={476, 482, 520, 530, 568, 647, 676, 752, 'MLVS',
+                           values={476, 482, 520, 530, 568, 647, 676, 752, 'MLVS',
                                  'MLUV', 'MLVI', 'MLBG', 'MLRD', 'MLIR'})
 
 if __name__ == '__main__':

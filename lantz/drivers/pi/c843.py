@@ -186,7 +186,7 @@ class C843(LibraryDriver):
         print("LIM? -> %s" %  _ERRORS[error])
 
 
-    @DictFeat(map=((True, False),))
+    @DictFeat(values=((True, False),))
     def servo_control_enabled(self, axis):
         """Query servo-control state.
         """

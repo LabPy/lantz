@@ -33,7 +33,7 @@ class Lambda103(SerialDriver):
 
         self.speed = 1
 
-    @Feat(None, map={True: chr(170), False: chr(172)})
+    @Feat(None, values={True: chr(170), False: chr(172)})
     def open_A(self, value):
         """Open shutter A.
         """
@@ -48,7 +48,7 @@ class Lambda103(SerialDriver):
         self.serial.flush()
 
     # TODO: WTF 2 values for the same wheel
-    @DictFeat(None, valid_keys={'A': 0, 'B': 1})
+    @DictFeat(None, keys={'A': 0, 'B': 1})
     def position(self, key, value):
         """Set filter wheel position and speed.
 
@@ -68,7 +68,7 @@ class Lambda103(SerialDriver):
     def status(self):
         return "Status {}".format(self.query(chr(204)))
 
-    @Feat(None, map={True: chr(238), False: chr(239)})
+    @Feat(None, values={True: chr(238), False: chr(239)})
     def remote(self, value):
         """Set Local-Mode."""
         self.send(value)

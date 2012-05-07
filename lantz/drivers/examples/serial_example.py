@@ -27,7 +27,7 @@ class SerialTemplate(SerialDriver):
         """
         return self.query('*IDN?')
 
-    @Feat(units='V', range=(10,))
+    @Feat(units='V', limits=(10,))
     def a_read_write_property(self):
         """Help for a_read_write_property
         """
@@ -37,7 +37,7 @@ class SerialTemplate(SerialDriver):
     def amplitude(self, value):
         self.query('!AMP {:.1f}'.format(value))
 
-    @DictFeat(map={True: '1', False: '0'}, valid_keys=list(range(1,9)))
+    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1,9)))
     def a_read_write_dictionary_property(self, key):
         """Help for a_read_write_dictionary_property
         """

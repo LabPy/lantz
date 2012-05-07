@@ -33,7 +33,7 @@ class LantzSignalGenerator(TCPDriver):
     def idn(self):
         return self.query('?IDN')
 
-    @Feat(units='V', range=(10,))
+    @Feat(units='V', limits=(10,))
     def amplitude(self):
         """Amplitude.
         """
@@ -43,7 +43,7 @@ class LantzSignalGenerator(TCPDriver):
     def amplitude(self, value):
         self.query('!AMP {:.1f}'.format(value))
 
-    @Feat(units='V', range=(-5, 5, .01))
+    @Feat(units='V', limits=(-5, 5, .01))
     def offset(self):
         """Offset.
         """
@@ -53,7 +53,7 @@ class LantzSignalGenerator(TCPDriver):
     def offset(self, value):
         self.query('!OFF {:.1f}'.format(value))
 
-    @Feat(units='Hz', range=(1, 1e+5))
+    @Feat(units='Hz', limits=(1, 1e+5))
     def frequency(self):
         """Frequency.
         """
@@ -63,7 +63,7 @@ class LantzSignalGenerator(TCPDriver):
     def frequency(self, value):
         self.query('!FRE {:.2f}'.format(value))
 
-    @Feat(map={True: 1, False: 0})
+    @Feat(values={True: 1, False: 0})
     def output_enabled(self):
         """Analog output enabled.
         """
@@ -73,7 +73,7 @@ class LantzSignalGenerator(TCPDriver):
     def output_enabled(self, value):
         self.query('!OUT {}'.format(value))
 
-    @Feat(map={'sine': '0', 'square': '1', 'triangular': '2', 'ramp': '3'})
+    @Feat(values={'sine': '0', 'square': '1', 'triangular': '2', 'ramp': '3'})
     def waveform(self):
         return self.query('?WVF')
 
@@ -81,7 +81,7 @@ class LantzSignalGenerator(TCPDriver):
     def waveform(self, value):
         self.query('!WVF {}'.format(value))
 
-    @DictFeat(map={True: '1', False: '0'}, valid_keys=list(range(1,9)))
+    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1,9)))
     def dout(self, key):
         """Digital output state.
         """
@@ -91,7 +91,7 @@ class LantzSignalGenerator(TCPDriver):
     def dout(self, key, value):
         self.query('!DOU {} {}'.format(key, value))
 
-    @DictFeat(map={True: '1', False: '0'}, valid_keys=list(range(1,9)))
+    @DictFeat(values={True: '1', False: '0'}, keys=list(range(1,9)))
     def din(self, key):
         """Digital input state.
         """

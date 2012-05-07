@@ -274,7 +274,7 @@ Run the script and notice how Lantz will do the conversion for you. This allows 
 Ranges
 ======
 
-When the communication round-trip to the instrument is too long, you might want to catch some of the errors before hand. You can use `range` to check::
+When the communication round-trip to the instrument is too long, you might want to catch some of the errors before hand. You can use `limits` to check::
 
 
     from lantz import Feat,
@@ -300,7 +300,7 @@ When the communication round-trip to the instrument is too long, you might want 
         def idn(self):
             return self.query('?IDN')
 
-        @Feat(units='V', range=(10,)) # This means 0 to 10
+        @Feat(units='V', limits=(10,)) # This means 0 to 10
         def amplitude(self):
             """Amplitude.
             """
@@ -310,7 +310,7 @@ When the communication round-trip to the instrument is too long, you might want 
         def amplitude(self, value):
             self.query('!AMP {:.1f}'.format(value))
 
-        @Feat(units='V', range=(-5, 5, .01)) # This means -5 to 5 with step 0.01
+        @Feat(units='V', limits=(-5, 5, .01)) # This means -5 to 5 with step 0.01
         def offset(self):
             """Offset
             """
@@ -320,7 +320,7 @@ When the communication round-trip to the instrument is too long, you might want 
         def offset(self, value):
             self.query('!OFF {:.1f}'.format(value))
 
-        @Feat(units='Hz', range=(1, 1e+5)) # This means 1 to 1e+5
+        @Feat(units='Hz', limits=(1, 1e+5)) # This means 1 to 1e+5
         def frequency(self):
             """Frequency
             """
@@ -360,7 +360,7 @@ We will define offset and frequency like we did with amplitude, and we will also
         def idn(self):
             return self.query('?IDN')
 
-        @Feat(units='V', range=(10,))
+        @Feat(units='V', limits=(10,))
         def amplitude(self):
             """Amplitude.
             """
@@ -370,7 +370,7 @@ We will define offset and frequency like we did with amplitude, and we will also
         def amplitude(self, value):
             self.query('!AMP {:.1f}'.format(value))
 
-        @Feat(units='V', range=(-5, 5, .01))
+        @Feat(units='V', limits=(-5, 5, .01))
         def offset(self):
             """Offset.
             """
@@ -380,7 +380,7 @@ We will define offset and frequency like we did with amplitude, and we will also
         def offset(self, value):
             self.query('!OFF {:.1f}'.format(value))
 
-        @Feat(units='Hz', range=(1, 1e+5))
+        @Feat(units='Hz', limits=(1, 1e+5))
         def frequency(self):
             """Frequency.
             """
@@ -390,7 +390,7 @@ We will define offset and frequency like we did with amplitude, and we will also
         def frequency(self, value):
             self.query('!FRE {:.2f}'.format(value))
 
-        @Feat(map={True: 1, False: 0})
+        @Feat(values={True: 1, False: 0})
         def output_enabled(self):
             """Analog output enabled.
             """
@@ -400,7 +400,7 @@ We will define offset and frequency like we did with amplitude, and we will also
         def output_enabled(self, value):
             self.query('!OUT {}'.format(value))
 
-        @Feat(map={'sine': 0, 'square': 1, 'triangular': 2, 'ramp': 3})
+        @Feat(values={'sine': 0, 'square': 1, 'triangular': 2, 'ramp': 3})
         def waveform(self):
             return int(self.query('?WVF'))
 
@@ -427,7 +427,7 @@ We will define offset and frequency like we did with amplitude, and we will also
         inst.waveform = 'sine'
 
 
-We have provided `output_enabled` a mapping table through the `map` argument. This has two functions:
+We have provided `output_enabled` a mapping table through the `values` argument. This has two functions:
 
     - Restricts the input to True or False.
     - For the setter converts True and False to 1 and 0; and vice versa for the getter.
@@ -441,7 +441,7 @@ Properties with items: DictFeat
 It is quite common that scientific equipment has many of certain features (such as axes, channels, etc). For example, this signal generator has 8 digital outputs. A simple solution would be to access them as feats named dout1, dout2 and so on. But this is not elegant (consider a DAQ with 32 digital inputs) and makes coding to programatically access to channel N very annoying. To solve this Lantz provides a dictionary like feature named :class:`DictFeat`. Let's see this in Action::
 
 
-        @DictFeat(map={True: 1, False: 0})
+        @DictFeat(values={True: 1, False: 0})
         def dout(self, key):
             """Digital output state.
             """
@@ -458,11 +458,11 @@ You will use this in the following way::
 
         inst.dout[4] = True
 
-By the default, any key (in this case, channel) is valid and Lantz leaves to the underlying instrument to reject invalid ones. In some cases, for example when the instrument does not deal properly with unexpected parameters, you might want to restrict them using the optional parameter `valid_keys` ::
-By the default, any key (in this case, channel) is valid and Lantz leaves to the underlying instrument to reject invalid ones. In some cases, for example when the instrument does not deal properly with unexpected parameters, you might want to restrict them using the optional parameter `valid_keys`::
+By the default, any key (in this case, channel) is valid and Lantz leaves to the underlying instrument to reject invalid ones. In some cases, for example when the instrument does not deal properly with unexpected parameters, you might want to restrict them using the optional parameter `keys` ::
+By the default, any key (in this case, channel) is valid and Lantz leaves to the underlying instrument to reject invalid ones. In some cases, for example when the instrument does not deal properly with unexpected parameters, you might want to restrict them using the optional parameter `keys`::
 
 
-        @DictFeat(map={True: 1, False: 0}, valid_keys=list(range(1,9)))
+        @DictFeat(values={True: 1, False: 0}, keys=list(range(1,9)))
         def dout(self, key):
             """Digital output state.
             """
@@ -481,7 +481,7 @@ Remember that range(1, 9) excludes 9. In this way, Lantz will Raise an exception
 
 We will create now a read-read only DictFeat for the digital input::
 
-        @DictFeat(map={True: 1, False: 0}, valid_keys=list(range(1,9)))
+        @DictFeat(values={True: 1, False: 0}, keys=list(range(1,9)))
         def din(self, key):
             """Digital input state.
             """

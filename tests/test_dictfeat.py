@@ -42,7 +42,7 @@ class DictFeatTest(unittest.TestCase):
 
             _eggs = {'answer': 42}
 
-            @DictFeat
+            @DictFeat()
             def eggs(self_, key):
                 return self_._eggs[key]
 
@@ -87,7 +87,7 @@ class DictFeatTest(unittest.TestCase):
 
             _eggs = {'answer': 42}
 
-            @DictFeat
+            @DictFeat()
             def eggs(self_, key):
                 return self_._eggs[key]
 
@@ -108,7 +108,7 @@ class DictFeatTest(unittest.TestCase):
 
             _eggs = {'answer': 42}
 
-            @DictFeat
+            @DictFeat()
             def eggs(self_, key):
                 return self_._eggs[key]
 
@@ -141,7 +141,7 @@ class DictFeatTest(unittest.TestCase):
 
             _eggs = {'answer': 42}
 
-            @DictFeat
+            @DictFeat()
             def eggs(self_, key):
                 return self_._eggs[key]
 
@@ -192,7 +192,7 @@ class DictFeatTest(unittest.TestCase):
         class Spam(Driver):
             _eggs = {'answer': 42}
 
-            @DictFeat(valid_keys=('answer', ))
+            @DictFeat(keys=('answer', ))
             def eggs(self_, key):
                 return self_._eggs[key]
 
@@ -215,7 +215,7 @@ class DictFeatTest(unittest.TestCase):
         class Spam(Driver):
             _eggs = {'answer': 42}
 
-            @DictFeat(valid_keys={28: 'answer'})
+            @DictFeat(keys={28: 'answer'})
             def eggs(self_, key):
                 return self_._eggs[key]
 

@@ -1,30 +1,29 @@
 import ctypes as ct
 
-from lantz import Driver
-from lantz.foreign import Library
+from lantz.foreign import ForeignDriver
+from lantz.errors import InstrumentError
 
 from lantz.drivers.mcc import param
 
 def logged(func):
     return func
 
-class Usb3103(Driver):
+class Usb3103(ForeignDriver):
     """8-Channel, 16-Bit Analog Voltage Output Device
     """
+
+    LIBRARY_NAME = 'cbw32.dll'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.RevLevel = param.CURRENTREVNUM
-        self.lib = Library('cbw32.dll', None)
-        # Initiate error handling
-        #   Parameters:
-        #      PRINTALL :all warnings and errors encountered will be printed
-        #      DONTSTOP :program will continue even if error occurs.
-        #                Note that STOPALL and STOPFATAL are only effective in
-        #                Windows applications, not Console applications.
-        self.BoardNum = ct.c_int(0)
         self.status = self.lib.cbErrHandling(param.PRINTALL, param.DONTSTOP)
+
+    def _return_handler(self, func_name, ret_value):
+        if ret_value != 0:
+            raise InstrumentError('{} ({})'.format(ret_value, _ERRORS[ret_value]))
+        return ret_value
 
     @logged
     def getDeclareRevision(self):

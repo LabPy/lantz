@@ -22,7 +22,7 @@ class Neo(Andor):
         self.imagesizebytes = self.getint("ImageSizeBytes")
         self.userbuffer = ct.create_string_buffer(' ' * self.imagesizebytes)
 
-    @Feat(None, map={32: 'Mono32', 64: 'Mono64'})
+    @Feat(None, values={32: 'Mono32', 64: 'Mono64'})
     def pixel_encoding(self, value):
         """Pixel encoding.
         """
@@ -34,7 +34,7 @@ class Neo(Andor):
         height = self.getint("SensorHeight")        
         return width, height
 
-    @Feat(None, map={100: '100 MHz', 200: '200 MHz', 280: '280 MHz'})
+    @Feat(None, values={100: '100 MHz', 200: '200 MHz', 280: '280 MHz'})
     def clock_rate(self, value):
         """Pixel clock rate
         """

@@ -26,7 +26,7 @@ from socketserver import (ThreadingUDPServer, DatagramRequestHandler,
 
 from colorama import Fore, Back, Style
 
-from .parser import Parser
+from .stringparser import Parser
 
 LOGGER = logging.getLogger('lantz').addHandler(logging.NullHandler())
 

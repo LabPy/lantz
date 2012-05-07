@@ -119,7 +119,7 @@ class LibraryDriver(Driver):
         for name in chain(self.__libs(library_name),
                           self.__libs(self.LIBRARY_NAME)):
             try:
-                self.lib = Library(library_name, self._wrapper)
+                self.lib = Library(name, self._wrapper)
                 break
             except OSError:
                 pass

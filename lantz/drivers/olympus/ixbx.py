@@ -102,7 +102,7 @@ class IXBX(SerialDriver):
 
     fluo_shutter = ofeat('1LED',
                         'External shutter for the fluorescent light source',
-                         map=ONE_ZERO)
+                         values=ONE_ZERO)
 
     lamp_epi_enabled = ofeat('1LMPSEL',
                              'Illumination source lamp.',
@@ -110,11 +110,11 @@ class IXBX(SerialDriver):
 
     lamp_enabled = ofeat('1LMPSW',
                          'Turn the currently selected lamp onf and off',
-                         map=ON_OFF)
+                         values=ON_OFF)
 
     lamp_intensity = ofeat('1LMP',
                            'Transmitted light intensity',
-                           map=INT)
+                           values=INT)
 
     def lamp_status(self):
         #LMPSTS OK, X
@@ -122,14 +122,14 @@ class IXBX(SerialDriver):
 
     objective = ofeat('1OB',
                       'Objective nosepiece position',
-                      map={int: str})
+                      values={int: str})
 
     body_locked = ofeat('1LOG',
                         'Turn the currently selected lamp on and off',
-                        map=ON_OFF)
+                        values=ON_OFF)
     focus_locked = ofeat('2LOG',
                          'Turn the currently selected lamp on and off',
-                         map=ON_OFF)
+                         values=ON_OFF)
 
     @Feat(units=(ZSTEP, ZSTEP))
     def soft_limits(self):
@@ -146,12 +146,12 @@ class IXBX(SerialDriver):
     move_to_start_enabled = ofeat('INITRET',
                                   'Sets / cancels returning operation to the start '
                                   'position after initializing the origin.',
-                                  map=ON_OFF)
+                                  values=ON_OFF)
 
-    jog_enabled = ofeat('JOG', 'Jog enabled', map=ON_OFF)
-    jog_sensitivity = ofeat('JOGSNS',' Jog sensitivity', map=INT)
-    jog_dial = ofeat('JOGSEL', 'Jog selection (Handle/BLA) ???', map=FH_FRM)
-    jog_limit_enabled = ofeat('joglmt', 'Jog limit enabled', map=ON_OFF)
+    jog_enabled = ofeat('JOG', 'Jog enabled', values=ON_OFF)
+    jog_sensitivity = ofeat('JOGSNS',' Jog sensitivity', values=INT)
+    jog_dial = ofeat('JOGSEL', 'Jog selection (Handle/BLA) ???', values=FH_FRM)
+    jog_limit_enabled = ofeat('joglmt', 'Jog limit enabled', values=ON_OFF)
 
     @Feat()
     def movement_status(self):
@@ -203,26 +203,26 @@ class IX2(_CommonIXBX, SerialDriver):
     """ IX2 Body
     """
 
-    bottom_port_closed = ofeat('1BPORT', 'Bottom port', map=CLOSED_OPEN)
+    bottom_port_closed = ofeat('1BPORT', 'Bottom port', values=CLOSED_OPEN)
 
-    shutter1_closed = ofeat('SHUT1' 'Shutter', map=IN_OUT)
-    shutter2_closed = ofeat('SHUT2', 'Shutter', map=IN_OUT)
+    shutter1_closed = ofeat('SHUT1' 'Shutter', values=IN_OUT)
+    shutter2_closed = ofeat('SHUT2', 'Shutter', values=IN_OUT)
 
-    filter_wheel = ofeat('FW', 'Filter wheel position', map=INT)
-    condensor = ofeat('CD', 'Condensor position', map=INT)
-    mirror_unit = ofeat('MU', 'Mirror unit position', map=INT)
-    camera_port_enabled= ofeat('PRISM', 'Prism position', map=ONE_TWO)
+    filter_wheel = ofeat('FW', 'Filter wheel position', values=INT)
+    condensor = ofeat('CD', 'Condensor position', values=INT)
+    mirror_unit = ofeat('MU', 'Mirror unit position', values=INT)
+    camera_port_enabled= ofeat('PRISM', 'Prism position', values=ONE_TWO)
 
 
 class BX2A(_CommonIXBX, SerialDriver):
     """ BX2A Body
     """
 
-    shutter_closed = ofeat('SHUTTER', 'Shutter RFAA', map=IN_OUT)
-    aperture_stop_diameter = ofeat('EAS', 'Aperture stop diameter (EPI AS RLAA', map=INT)
-    aperture_stop_diameter = ofeat('DAS', 'Aperture stop diameter (DIA AS UCD', map=INT)
-    condenser_top_lens_enabled = ofeat('CDTOP', 'Condenser top lens (UCD)', map=IN_OUT)
-    turret = ofeat('TURRET', 'Turret position (UCD)', map=INT)
-    cube = ofeat('CUBE', 'Cube position (RFAA/RLAA)', map=INT)
-    configure_filterwheel = ofeat('FW', 'Configure filterwheel', map=INT)
+    shutter_closed = ofeat('SHUTTER', 'Shutter RFAA', values=IN_OUT)
+    aperture_stop_diameter = ofeat('EAS', 'Aperture stop diameter (EPI AS RLAA', values=INT)
+    aperture_stop_diameter = ofeat('DAS', 'Aperture stop diameter (DIA AS UCD', values=INT)
+    condenser_top_lens_enabled = ofeat('CDTOP', 'Condenser top lens (UCD)', values=IN_OUT)
+    turret = ofeat('TURRET', 'Turret position (UCD)', values=INT)
+    cube = ofeat('CUBE', 'Cube position (RFAA/RLAA)', values=INT)
+    configure_filterwheel = ofeat('FW', 'Configure filterwheel', values=INT)
 

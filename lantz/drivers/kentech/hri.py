@@ -66,7 +66,7 @@ class HRI(SerialDriver):
         """
         self.send('\r\r')
 
-    @Feat(None, map={True, False})
+    @Feat(None, values={True, False})
     def remote(self, value):
         """Remote or local.
         """
@@ -90,13 +90,13 @@ class HRI(SerialDriver):
             ans = ans.split()[1]
             return ans
 
-    @Feat(None, map={'ecl': 'ECLTRIG', 'ttl': 'TTLTRIG'})
+    @Feat(None, values={'ecl': 'ECLTRIG', 'ttl': 'TTLTRIG'})
     def trigger_logic(self, value):
         """Trigger logic.
         """
         self.query_expect(value)
 
-    @Feat(None, map={'high': 'HITRIG', '50ohm': '50TRIG}'})
+    @Feat(None, values={'high': 'HITRIG', '50ohm': '50TRIG}'})
     def trigger_ttl_termination(self, value):
         """Trigger termination for TTL logic (for ECL is fixed to 50 ohm).
         """
@@ -104,13 +104,13 @@ class HRI(SerialDriver):
             raise InstrumentError('Level triggering only with ECL')
         self.query_expect(value)
 
-    @Feat(None, map={'rising': '+VETRIG', 'falling': '-VETRIG}'})
+    @Feat(None, values={'rising': '+VETRIG', 'falling': '-VETRIG}'})
     def trigger_edge(self, value):
         """Trigger on rising or falling edge.
         """
         self.query_expect(value)
 
-    @Feat(None, map={'level': 'LVLTRIG', 'log': 'LOGTRIG}'})
+    @Feat(None, values={'level': 'LVLTRIG', 'log': 'LOGTRIG}'})
     def trigger_ecl_mode(self, value):
         """Trigger mode for ECL logic.
         """
@@ -119,7 +119,7 @@ class HRI(SerialDriver):
 
         self.query_expect(value)
 
-    @Feat(units='centivolt', range=(-40, 40, 1))
+    @Feat(units='centivolt', limits=(-40, 40, 1))
     def trigger_ecl_level(self):
         """Trigger level for ECL logic, mode level.
         """
@@ -143,7 +143,7 @@ class HRI(SerialDriver):
             value = 40 * value + 2000.0
             self.query_expect('{:d} THRESH ! TRIG+RF>HW'.format(value))
 
-    @Feat(units='volt', range=(-50, 50))
+    @Feat(units='volt', limits=(-50, 50))
     def clamp_voltage(self):
         """Most negative value of the gate pulse.
         """
@@ -167,7 +167,7 @@ class HRI(SerialDriver):
             raise ValueError('Invalid clamp voltage. Not in range {}-{}'.format(mn, mx))
         self.query_expect('{:d} CLAMP ! CLAMP>HW'.format(value * 10))
 
-    @Feat(units='volt', range=(-50, 50))
+    @Feat(units='volt', limits=(-50, 50))
     def average_voltage(self):
         """Cathode potential bias with respect of MCP.
         """
@@ -193,7 +193,7 @@ class HRI(SerialDriver):
         """
         return self.query_expect(".STATUS", chr(0))
 
-    @Feat(None, units='volt', range=(0, 1700))
+    @Feat(None, units='volt', limits=(0, 1700))
     def mcp(self, value):
         """MCP Voltage.
         """
@@ -202,7 +202,7 @@ class HRI(SerialDriver):
         else:
             return self.query_expect('{} !MCPVOLTS'.format(value))
 
-    @Feat(None, map={'inhibit': 0, 'rf': 21, 'ldc': 22, 'hdc': 23, 'dc': 24,
+    @Feat(None, values={'inhibit': 0, 'rf': 21, 'ldc': 22, 'hdc': 23, 'dc': 24,
                      'user1': 25, 'user2': 26, 'user3': 27, 'user4': 28})
     def mode(self, mode):
         """Gain modulation mode.
@@ -235,7 +235,7 @@ class HRI(SerialDriver):
             return self.query("@TEMP .")
         return 0
 
-    @Feat(None, map={True, False})
+    @Feat(None, values={True, False})
     def enabled(self, value):
         """MCP Enabled
         """

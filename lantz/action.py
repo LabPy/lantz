@@ -22,14 +22,14 @@ class Action(object):
 
     Processors can registered for each arguments to modify their values before
     they are passed to the body of the method. Two standard processors are
-    defined: `map` and `units` and others can be given as callables in the
+    defined: `values` and `units` and others can be given as callables in the
     `procs` parameter.
 
     If a method contains multiple arguments, use a tuple. None can be used as
     `do not change`.
 
     :param func: driver method to be wrapped.
-    :param map: A dictionary to map key to values.
+    :param values: A dictionary to values key to values.
                 If a list/tuple instead of a dict is given, the value is not
                 changed but only tested to belong to the container.
     :param units: `Quantity` or string that can be interpreted as units.
@@ -37,10 +37,10 @@ class Action(object):
 
     """
 
-    def __init__(self, func=None, *, map=None, units=None, range=None, procs=None):
-        self.map = map
+    def __init__(self, func=None, *, values=None, units=None, limits=None, procs=None):
+        self.values = values
         self.units = units
-        self.range = range
+        self.limits = limits
         self.processors = procs
         self.func = None
         if func:
@@ -98,8 +98,8 @@ class Action(object):
 
     def rebuild(self):
         self.action_processors = []
-        if self.map:
-            self.processors.append(MapProcessor(self.map))
+        if self.values:
+            self.processors.append(MapProcessor(self.values))
         if self.units:
             self.action_processors.append(FromQuantityProcessor(self.units))
         if self.processors:

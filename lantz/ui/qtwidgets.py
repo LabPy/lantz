@@ -19,17 +19,17 @@ def get_widget(feat):
     :param feat: a lantz feature, the result of inst._lantz_feat[feat_name].
     """
 
-    if feat.map:
-        if isinstance(feat.map, dict):
-            tmp = set(feat.map.keys())
+    if feat.values:
+        if isinstance(feat.values, dict):
+            tmp = set(feat.values.keys())
         else:
-            tmp = set(feat.map)
+            tmp = set(feat.values)
 
         if tmp == {True, False}:
             return QCheckBox
         return QComboBox
 
-    if feat.units or feat.range:
+    if feat.units or feat.limits:
         return QDoubleSpinBox
 
     return QLineEdit
@@ -367,11 +367,11 @@ def connect(widget, target, feat_name=None, feat_key=None):
     if isinstance(widget._lantz_units, str):
         widget._lantz_units = Q_(1, widget._lantz_units)
 
-    widget._lantz_map = feat.map
+    widget._lantz_map = feat.values
     if isinstance(widget._lantz_map, dict):
         widget._lantz_map = list(widget._lantz_map.keys())
 
-    widget._lantz_range = feat.range
+    widget._lantz_range = feat.limits
 
     pimp(widget)
 

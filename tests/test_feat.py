@@ -118,13 +118,13 @@ class FeatTest(unittest.TestCase):
         self.assertEqual(obj.serialno, 23199292)
         self.assertEqual(obj.serialno, 23199292)
 
-    def test_range(self):
+    def test_limits(self):
 
         class Spam(Driver):
 
             _eggs = 8
 
-            @Feat(range=(1, 10, 1))
+            @Feat(limits=(1, 10, 1))
             def eggs(self_):
                 return self_._eggs
 
@@ -142,7 +142,7 @@ class FeatTest(unittest.TestCase):
 
             _eggs = 8
 
-            @Feat(range=((1, 10, 1), (3, 5, .5)))
+            @Feat(limits=((1, 10, 1), (3, 5, .5)))
             def eggs(self_):
                 return self_._eggs
 
@@ -311,7 +311,7 @@ class FeatTest(unittest.TestCase):
                 super().__init__()
                 self_._eggs = 9
 
-            @Feat
+            @Feat()
             def eggs(self_):
                 return self_._eggs
 
