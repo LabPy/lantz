@@ -10,7 +10,7 @@ from collections import OrderedDict, defaultdict
 import colorama
 from colorama import Fore, Back, Style
 
-from lantz.parser import Parser
+from lantz.stringparser import Parser
 from lantz.log import ColorizingFormatter, SocketListener
 
 try:

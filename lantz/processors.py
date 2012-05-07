@@ -14,7 +14,7 @@ import warnings
 from functools import wraps, partial
 
 from . import Q_
-from .parser import Parser
+from .stringparser import Parser
 
 _LOG = logging.getLogger('lantz')
 

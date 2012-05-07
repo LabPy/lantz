@@ -289,9 +289,9 @@ import lantz.drivers as drivers
 
 from io import StringIO
 
-from lantz.parser import Parser
-import lantz.parser as parser
-company_parser = Parser('{_}:company:{:s}', parser.M)
+import lantz.stringparser as parser
+
+company_parser = parser.Parser('{_}:company:{:s}', parser.M)
 def list_drivers(key, module):
     buf = StringIO()
     for element in dir(module):
