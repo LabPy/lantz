@@ -1,0 +1,69 @@
+Lantz
+=====
+
+Lantz is an automation and instrumentation toolkit with a clean, well-designed and consistent interface. It provides a core of commonly used functionalities for building applications that communicate with scientific instruments allowing rapid application prototyping, development and testing. Lantz benefits from Python's extensive library flexibility as a glue language to wrap existing drivers and DLLs.
+
+Lantz aim to provide a library of curated and well documented instruments drivers. We have some already, let us know if you cannot find yours.
+
+
+Getting Lantz
+-------------
+
+Lantz core requires only Python 3.2+. This guide also assumes that you have installed `virtualenv` and `pip`. If not, please install them by typing::
+
+    $ easy_install virtualenv pip
+
+(By the way, check out virtualenv wrapper as a way to easy handle your virtual environments)
+
+Some lantz submodules have other requirements.
+
+   - Colorama: `pip install colorama`
+
+   - Sphinx: `pip install sphinx`
+
+   - pySerial: use a binary package or `pip install pyserial`
+
+   - NumPy: use a binary package or `pip install numpy`
+
+   - Qt: use a binary package
+
+   - pyQt: use a binary package or `pip install pyqt`
+
+
+If you only plan to use Lantz and you have `pip` installed you can::
+
+    $ pip install XXXX
+
+and you are ready to go.
+
+
+But most Lantz users are also developers so it is very likely that you want to do it differently. First, create a virtual environment in your directory of choice::
+
+    $ virtualenv -p python3 lantzenv
+    $ cd lantzenv
+    $ source bin/activate
+
+and then install an editable package
+
+    $ pip install -e git+XXXX#egg=lantz
+
+
+Building the documentation
+--------------------------
+
+You can build your own off-line documentation::
+
+    $ cd docs
+    $ make html
+
+Your newly created documentation will be in `_build/html/index.html`
+
+
+Where to go from here
+---------------------
+
+Check the tutorial in the documentation!
+
+
+
+The Lantz Authors
