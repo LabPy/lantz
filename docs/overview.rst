@@ -3,7 +3,7 @@
 Overview
 ========
 
-A minimal Lantz script to control a function generator might look like this::
+A minimal script to control a function generator using Lantz might look like this::
 
     from lantz import Q_
 
@@ -20,12 +20,12 @@ A minimal Lantz script to control a function generator might look like this::
     fungen.finalize()
 
 
-The code is basically self explanatory, and does not differ too much of what you would write if you write a driver from scratch. But there are a few important things going under the hood that makes Lantz useful for instrumentation. Let's take a look:: 
+The code is basically self explanatory, and does not differ too much of what you would write if you write a driver from scratch. But there are a few important things going under the hood that makes Lantz useful for instrumentation. Let's take a look::
 
 Logging
 -------
 
-While building and running your program it is invaluable to monitor its state. Lantz gives to all your drivers automatic logging. 
+While building and running your program it is invaluable to monitor its state. Lantz gives to all your drivers automatic logging.
 
 The default level is logging.INFO, but if you prepend  the following lines to the previous example::
 
@@ -34,7 +34,7 @@ The default level is logging.INFO, but if you prepend  the following lines to th
     log_to_screen(logging.DEBUG)
 
 You will see the instance initializing and how and when each property is accessed. Loggers are organized by default with the following naming convention::
-    
+
     lantz.<class name>.<instance name>
 
 which for this case becomes::
@@ -59,7 +59,7 @@ To your python program, replace the logging lines by::
     from lantz import log_to_socket
     log_to_socket(logging.DEBUG)
 
-When you run it, you will see the log appearing in the logging window. 
+When you run it, you will see the log appearing in the logging window.
 
 By the way, `lantzmonitor` is more than log to screen dumper. Tailored for lantz, it can display instrument specific messages as well as an on-line summary indicating the current value for each property. Hopefully, you will never need to add a print statement in your program any more!
 
@@ -71,10 +71,10 @@ Timing
 
 Basic statistics of instrument related function calls are kept to facilitate bottleneck identification. While this is not as powerful as python profiler, its much easier to use within your application. You can obtain the statistics for a particular operation using::
 
-    fungen.timing.stats('set_frequency') 
+    fungen.timing.stats('set_frequency')
 
 This will return a named tuple with the following fields::
-    
+
     - last: Execution time of last set operation
     - count: Number of times the setter was called
     - mean: Mean execution time of all set operations
@@ -206,8 +206,8 @@ Instrumentation software need to deal with physical units, and therefore you nee
     from lantz import Q_
 
     mv = Q_(1, 'mV') # we define milivolt
-    value = 42 * mv # we ca
-    thesame = Q_(42, 'mv')
+    value = 42 * mv # we can use the defined units like this
+    thesame = Q_(42, 'mv') # or like this
 
 This makes the code a little more verbose but is worth the effort. The code is more explicit and less error prone. It also allows you to do thing like this::
 
@@ -220,7 +220,7 @@ This makes the code a little more verbose but is worth the effort. The code is m
 
         fungen.frequency = Q_(0.05, 'V')
 
-Later you decide to change the function generator by another::
+Later you decide to change the function generator by a different one, with a different communication protocol::
 
     from lantz import Q_
 
@@ -229,7 +229,7 @@ Later you decide to change the function generator by another::
 
     with FunGen('COM1') as fungen:
 
-        fungen.frequency = Q_(0.05, 'V') # the value is converted from mV to volts inside the driver.
+        fungen.frequency = Q_(0.05, 'V') # the value is converted from volts to mV inside the driver.
 
 Apart from the import, nothing has changed. In a big code base this means that you can easily replace one instrument by another.
 
