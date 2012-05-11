@@ -37,7 +37,7 @@ and then install an editable package::
 
     $ pip install -e git+gitolite@glugcen.dc.uba.ar:lantz.git#egg=lantz
 
-You will find the code in ~/lantzenv/src/lantz.
+You will find the code in `~/lantzenv/src/lantz`.
 
 The folder is a normal git repository from where you can pull and push to keep the repo in sync.
 
@@ -56,6 +56,6 @@ and then install an editable package::
 
     pip install -e git+gitolite@glugcen.dc.uba.ar:lantz.git#egg=lantz
 
-You will find the code in %USERPROFILE%\Desktop\lantzenv\src\lantz.
+You will find the code in `%USERPROFILE%\Desktop\lantzenv\src\lantz`.
 
 The folder is a normal git repository from where you can pull and push to keep the repo in sync.
