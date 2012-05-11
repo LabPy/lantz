@@ -20,6 +20,7 @@ Content
 
    about
    overview
+   installing
    tutorial
    talking
    drivers/drivers

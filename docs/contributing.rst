@@ -54,9 +54,9 @@ Python style
 
     * Before submitting your code, use a tool like `pep8.py`_ and `pylint.py`_ to check for style.
 
-    * `feats` and `dictfeats` should be named with a noun or an adjective.
+    * `Feat` and `DictFeat` should be named with a noun or an adjective.
 
-    * `actions` should be named with a verb.
+    * `Action` should be named with a verb.
 
 
 Version control system

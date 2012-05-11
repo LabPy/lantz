@@ -18,4 +18,4 @@ Lantz builds on the giant shoulders. By using state-of-the art and widely-used n
 
 Lantz speaks many languages. It is built with an international audience from the start thereby allowing translations to be made easily.
 
-Lantz is free as in beer and free as in speech. You can view, modify and distribute the source code as long as you keep a reference to the original version and distribute your changes. It is distributed using the LGPLv3 License. See LICENSE.txt for more details
+Lantz is free as in beer and free as in speech. You can view, modify and distribute the source code as long as you keep a reference to the original version and distribute your changes. It is distributed using the BSD License. See LICENSE for more details
