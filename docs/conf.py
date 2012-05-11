@@ -49,7 +49,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Lantz'
-copyright = u'2011, Hernán E. Grecco'
+copyright = u'2012, Lantz Authors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -143,6 +143,11 @@ html_theme_path = ['_themes']
 
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
+html_sidebars = {
+    'index':    ['sidebarintro.html', 'sourcelink.html', 'searchbox.html'],
+    '**':       ['sidebarlogo.html', 'localtoc.html', 'relations.html',
+                 'sourcelink.html', 'searchbox.html']
+}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
