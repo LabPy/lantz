@@ -27,12 +27,16 @@
 """
 
 import os
+import logging
 import ctypes as ct
 from ctypes.util import find_library
 import warnings
 import threading
 
 from collections import namedtuple
+
+logger = logging.getLogger('lantz.visalib')
+logger.addHandler(logging.NullHandler())
 
 if os.name == 'nt':
     LIBTYPE = ct.WinDLL
@@ -78,7 +82,7 @@ class RichEnum(type):
         if isinstance(key, str) and key.startswith(cls.__dict__['_PREFIX']):
             key = key[len(cls.__dict__['_PREFIX']):]
 
-        if key[0].isdigit():
+        if isinstance(key, str) and key[0].isdigit():
             key = '_' + key
 
         return cls.__dict__[key]
@@ -1569,7 +1573,7 @@ class ResourceManager(object):
         obj.visa = VisaLibrary(library_path)
 
         obj.session = obj.visa.open_default_resource_manager()
-        print('Created ResourceManager (session: {}) for library {}'.format(obj.session, library_path))
+        logger.debug('Created ResourceManager (session: {}) for library {}'.format(obj.session, library_path))
 
         return obj
 
