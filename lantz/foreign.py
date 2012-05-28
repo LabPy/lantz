@@ -25,6 +25,8 @@ class Library(object):
 
     def __init__(self, library, wrapper):
         if isinstance(library, str):
+            self.library_name = library
+
             if library.lower().endswith('.dll'):
                 library = ctypes.WinDLL(library)
             else:
@@ -41,7 +43,22 @@ class Library(object):
         return func
 
 
-class RetStr():
+TYPES = {'c': ctypes.c_char,
+         'b': ctypes.c_byte,
+         'B': ctypes.c_ubyte,
+         '?': ctypes.c_bool,
+         'h': ctypes.c_short,
+         'H': ctypes.c_ushort,
+         'i': ctypes.c_int,
+         'I': ctypes.c_uint,
+         'l': ctypes.c_long,
+         'L': ctypes.c_ulong,
+         'q': ctypes.c_longlong,
+         'Q': ctypes.c_ulonglong,
+         'f': ctypes.c_float,
+         'd': ctypes.c_double}
+
+class RetStr(object):
 
     def __init__(self, length, encoding='ascii'):
         self.length = length
@@ -59,28 +76,28 @@ class RetStr():
         else:
             return self.buffer.value
 
-class RetTuple():
+class RetValue(object):
 
-    TYPES = {'c': ctypes.c_char,
-             'b': ctypes.c_byte,
-             'B': ctypes.c_ubyte,
-             '?': ctypes.c_bool,
-             'h': ctypes.c_short,
-             'H': ctypes.c_ushort,
-             'i': ctypes.c_int,
-             'I': ctypes.c_uint,
-             'l': ctypes.c_long,
-             'L': ctypes.c_ulong,
-             'q': ctypes.c_longlong,
-             'Q': ctypes.c_ulonglong,
-             'f': ctypes.c_float,
-             'd': ctypes.c_double}
-
-    def __init__(self, type, length):
+    def __init__(self, type):
         try:
-            self.buffer = (self.TYPES[type] * length)()
+            self.buffer = (TYPES[type] * 1)()
         except KeyError:
-            raise KeyError('The type {} is not defined ()'.format(type, self.TYPES.keys()))
+            raise KeyError('The type {} is not defined ()'.format(type, TYPES.keys()))
+
+    def __iter__(self):
+        yield self
+
+    @property
+    def value(self):
+        return self.buffer[0]
+
+class RetTuple(object):
+
+    def __init__(self, type, length=1):
+        try:
+            self.buffer = (TYPES[type] * length)()
+        except KeyError:
+            raise KeyError('The type {} is not defined ()'.format(type, TYPES.keys()))
         self.length = length
 
     def __iter__(self):
@@ -90,6 +107,7 @@ class RetTuple():
     @property
     def value(self):
         return tuple(self.buffer[:])
+
 
 class LibraryDriver(Driver):
     """Base class for drivers that communicate with instruments
@@ -101,33 +119,28 @@ class LibraryDriver(Driver):
     #:Name of the library
     LIBRARY_NAME = ''
 
-    def __libs(self, library_name):
-        if not library_name:
-            raise StopIteration
-        if isinstance(library_name, str):
-            yield library_name
-            yield find_library(library_name.split('.')[0])
-        else:
-            for name in library_name:
-                yield name
-                yield find_library(name.split('.')[0])
-
     def __init__(self, *args, **kwargs):
         library_name = kwargs.pop('library_name', None)
         super().__init__(*args, **kwargs)
 
-        for name in chain(self.__libs(library_name),
-                          self.__libs(self.LIBRARY_NAME)):
+        for name in chain(iter_lib(library_name), iter_lib(self.LIBRARY_NAME)):
+            if name is None:
+                continue
             try:
                 self.lib = Library(name, self._wrapper)
+                self.log_debug('Loaded library {}')
                 break
             except OSError:
                 pass
         else:
-            raise Exception('library not found')
+            raise OSError('library not found')
 
         self.log_info('LibraryDriver created with {}'.format(name))
+        self._add_types()
 
+
+    def _add_types(self):
+        pass
 
     def _return_handler(self, func_name, ret_value):
         return ret_value
@@ -137,8 +150,9 @@ class LibraryDriver(Driver):
             new_args = []
             collect = []
             for arg in args:
-                if isinstance(arg, (RetStr, RetTuple)):
+                if isinstance(arg, (RetStr, RetTuple, RetValue)):
                     collect.append(arg)
+                    #new_args.append(ctypes.byref(arg.buffer))
                     new_args.append(arg.buffer)
                 elif isinstance(arg, str):
                     new_args.append(bytes(arg, 'ascii'))
@@ -158,5 +172,13 @@ class LibraryDriver(Driver):
 
         return _inner
 
-
-
+def iter_lib(library_name):
+    if not library_name:
+        raise StopIteration
+    if isinstance(library_name, str):
+        yield library_name
+        yield find_library(library_name.split('.')[0])
+    else:
+        for name in library_name:
+            yield name
+            yield find_library(name.split('.')[0])

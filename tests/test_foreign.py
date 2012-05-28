@@ -1,54 +1,109 @@
 
 import ctypes
+import unittest
 
-from lantz.foreign import LibraryDriver, RetStr, RetTuple
+from array import array
 
-def _a():
-    class MyDriver(LibraryDriver):
+from lantz.foreign import LibraryDriver, RetStr, RetTuple, RetValue, TYPES
 
-        LIBRARY_NAME = 'simplelib.dylib'
+class Array(array):
 
-    P_ = ctypes.POINTER
+    @property
+    def _as_parameter_(self):
+        return self.buffer_info()[0]
 
-    x = MyDriver()
+    def array_len(self):
+        return self.buffer_info()
 
-    a = x.lib.returni10()
-    print(a, type(a))
+class MyDriver(LibraryDriver):
 
-    b = x.lib.sumi13(5)
-    print(b, type(b))
+    LIBRARY_NAME = 'simplelib.dylib'
 
-    x.lib.internal.returnf10.restype = ctypes.c_float
-    a = x.lib.returnf10()
-    print(a, type(a))
+class MyWrongDriver(LibraryDriver):
 
-    x.lib.internal.returnd10.restype = ctypes.c_double
-    a = x.lib.returnd10()
-    print(a, type(a))
+    LIBRARY_NAME = 'simplelib2.dylib'
 
-    here = ctypes.create_string_buffer(b"Hello", 20)
-    print(type(here))
-    here = (ctypes.c_char * 20)()
-    print(type(here))
-    a = x.lib.withCharp(here, len(here))
-    print(a, here.value, type(here))
+class ForeignTest(unittest.TestCase):
 
-    a, ret = x.lib.withCharp(RetStr(20), 20)
-    print(a, ret, type(ret))
+    def setUp(self):
+        self.driver = MyDriver()
 
-    a, ret  = x.lib.withCharp(*RetStr(20))
-    print(a, ret, type(ret))
+    def test_raise(self):
+        self.assertRaises(OSError, MyWrongDriver, ())
 
-    here = ctypes.create_string_buffer(b'23',20)
-    a = x.lib.atoime(here)
-    print(a, type(a))
+    def test_simple_return(self):
+        a = self.driver.lib.returni10()
+        self.assertEqual(a, 10)
+        self.assertEqual(type(a), int)
 
-    a = x.lib.atoime('23')
-    print(a, type(a))
+        a = self.driver.lib.sumi13(5)
+        self.assertEqual(a, 18)
+        self.assertEqual(type(a), int)
 
-    p = (ctypes.c_double * 3)()
-    a = x.lib.double_param(p)
-    print(a, p, p[:], type(p))
+    def test_return_string(self):
+        value = ctypes.create_string_buffer(b"Hello", 20)
+        value = (ctypes.c_char * 20)()
+        ret = self.driver.lib.write_in_charp(value, len(value))
+        value = value.value.decode('ascii')
+        self.assertEqual((ret, value, type(value)), (1, '28G11AC10T32', str))
 
-    a = x.lib.double_param(RetTuple('d', 3))
-    print(a, p, p[:], type(p))
+        ret, value = self.driver.lib.write_in_charp(RetStr(20), 20)
+        self.assertEqual((ret, value, type(value)), (1, '28G11AC10T32', str))
+
+        ret, value = self.driver.lib.write_in_charp(*RetStr(20))
+        self.assertEqual((ret, value, type(value)), (1, '28G11AC10T32', str))
+
+    def test_atoi(self):
+        value = ctypes.create_string_buffer(b'23',20)
+        ret = self.driver.lib.use_atoi(value)
+        self.assertEqual(ret, 23)
+
+        ret = self.driver.lib.use_atoi('23')
+        self.assertEqual(ret, 23)
+
+    def test_return_array(self):
+        value = (ctypes.c_double * 3)()
+        ret = self.driver.lib.double_array_param(value)
+        value = tuple(value[:])
+        self.assertEqual((ret, value, type(value)), (1, (1, 2, 3), tuple))
+
+        ret, value = self.driver.lib.double_array_param(RetTuple('d', 3))
+        self.assertEqual((ret, value, type(value)), (1, (1, 2, 3), tuple))
+
+        value = (ctypes.c_double * 10)()
+        ret = self.driver.lib.double_array_length_param(value, 10)
+        value = tuple(value[:])
+        self.assertEqual((ret, value, type(value)), (1, tuple(range(10)), tuple))
+
+        ret, value = self.driver.lib.double_array_length_param(*RetTuple('d', 10))
+        self.assertEqual((ret, value, type(value)), (1, tuple(range(10)), tuple))
+
+        l = 10
+        arr = tuple(range(l))
+        total = float(sum(arr))
+        self.driver.lib.internal.sum_double_array_length.restype = ctypes.c_double
+
+        value = (ctypes.c_double * l)(*arr)
+        ret = self.driver.lib.sum_double_array_length(value, l)
+        self.assertEqual((ret, type(ret)), (total, type(total)))
+
+        value = Array('d', arr)
+        ret = self.driver.lib.sum_double_array_length(*value.buffer_info())
+        self.assertEqual((ret, type(ret)), (total, type(total)))
+
+        ret = self.driver.lib.sum_double_array_length(value, l)
+        self.assertEqual((ret, type(ret)), (total, type(total)))
+
+        ret = self.driver.lib.sum_double_array_length(*value.array_len())
+        self.assertEqual((ret, type(ret)), (total, type(total)))
+
+    def test_return_value(self):
+        value = ctypes.c_double()
+        ret = self.driver.lib.double_param(ctypes.byref(value))
+        value = value.value
+        self.assertEqual((ret, value, type(value)), (1, 7., float))
+
+        ret, value = self.driver.lib.double_param(RetValue('d'))
+        self.assertEqual((ret, value, type(value)), (1, 7., float))
+
+
