@@ -40,7 +40,10 @@ def CreateHandlerClass(instrument):
             try:
                 sig, value = data[0], data[1:].split()
                 prop = value[0].lower()
-                current = getattr(self.instrument, prop)
+                try:
+                    current = getattr(self.instrument, prop)
+                except AttributeError:
+                    raise SimError
                 if isinstance(current, dict):
                     dict_key = getattr(instrument, prop + '_key_convert')(value[1])
                 else:
