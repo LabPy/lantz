@@ -70,7 +70,7 @@ class App(cmd.Cmd):
             self.current = visa.VisaDriver(args)
             self.current.initialize()
             print('{} has been opened.\n'
-                  'You can talk to the device using read, write and query.\n'
+                  'You can talk to the device using "send", "recv" or "query.\n'
                   '\\n is added and expected at the end of each message'.format(args))
             self.prompt = '(open) '
         except e:
@@ -106,27 +106,27 @@ class App(cmd.Cmd):
         except Exception as e:
             print(e)
 
-    def do_read(self, args):
-        """Read from the resource in use."""
+    def do_recv(self, args):
+        """Receive from the resource in use."""
 
         if not self.current:
             print('There are no resources in use. Use the command "open".')
             return
 
         try:
-            print(self.current.read(args))
+            print(self.current.recv())
         except Exception as e:
             print(e)
 
-    def do_write(self, args):
-        """Write to the resource in use: write *IDN? """
+    def do_send(self, args):
+        """Send to the resource in use: send *IDN? """
 
         if not self.current:
             print('There are no resources in use. Use the command "open".')
             return
 
         try:
-            print('{} bytes written'.format(self.current.write(args)))
+            self.current.send(args)
         except Exception as e:
             print(e)
 
