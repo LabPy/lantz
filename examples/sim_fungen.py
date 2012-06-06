@@ -78,8 +78,8 @@ class SimFunctionGenerator(object):
         self.off = 0.0
         self._wvf = 0
         self.out = 0
-        self.dou = {ch:0 for ch in range(8)}
-        self.din = {ch:0 for ch in range(8)}
+        self.dou = {ch:0 for ch in range(1, 9)}
+        self.din = {ch:0 for ch in range(1, 9)}
 
         self.din_key_convert = int
         self.dou_key_convert = int

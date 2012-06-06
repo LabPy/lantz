@@ -62,9 +62,9 @@ If the command is invalid or an occurs in the instrument, the instrument will re
 
 One more thing, following a tutorial about building a driver to communicate with an instrument that you do not have is not much fun. That's why we have created a virtual version of this instrument. From the command line, run the following command:
 
-$ sim-signalgen.py
+$ sim-fungen.py
 
-This will start an application that listens for incoming TCP packages on port 80 from `localhost`.
+This will start an application that listens for incoming TCP packages on port 5678 from `localhost`.
 
 
 A basic driver
@@ -105,7 +105,7 @@ Inside the method (in this case is a getter) goes the code to communicate with t
 
 Finally, inside the `__name__ == '__main__'` we instantiate the SignalGenerator specifying host and port (these are arguments of the TCPDriver constructor, more on this later) and we print the identification.
 
-If you have `sim-signalgen.py` running in your computer, you can test your new driver. From the command line, cd into your working directory and then run the following command::
+If you have `sim-fungen.py` running in your computer, you can test your new driver. From the command line, cd into your working directory and then run the following command::
 
 $ python tutorial.py
 
@@ -188,7 +188,7 @@ Let's allow our driver to control the instruments amplitude::
             print('Current amplitude: {}'.format(inst.amplitude))
 
 
-We have defined another Feat, now with a getter and a setter. The getter sends `?AMP` and waits for the answer which is converted to float and returned to the caller. The setter send `!AMP` concatenated with the float formatted to string with two decimals. Run the script. Check also the window running `sim-signalgen.py`. You should see the amplitude changing!.
+We have defined another Feat, now with a getter and a setter. The getter sends `?AMP` and waits for the answer which is converted to float and returned to the caller. The setter send `!AMP` concatenated with the float formatted to string with two decimals. Run the script. Check also the window running `sim-fungen.py`. You should see the amplitude changing!.
 
 In the current version of this driver, if we try to set the amplitude to 20 V the command will fill in the instrument but the driver will not know. Lets add some error checking::
 
