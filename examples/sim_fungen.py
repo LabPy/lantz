@@ -78,8 +78,8 @@ class SimFunctionGenerator(object):
         self.off = 0.0
         self._wvf = 0
         self.out = 0
-        self.dou = {ch:0 for ch in range(8)}
-        self.din = {ch:0 for ch in range(8)}
+        self.dou = {ch:0 for ch in range(1, 9)}
+        self.din = {ch:0 for ch in range(1, 9)}
 
         self.din_key_convert = int
         self.dou_key_convert = int
@@ -140,7 +140,7 @@ if __name__ == "__main__":
         server.shutdown()
 
     #server_thread = threading.Thread(target=server.serve_forever)
-    # Exit the server thread when the main thread terminates
+    # Exit the server thread when the parent thread terminates
     #server_thread.setDaemon(True)
     #server_thread.start()
     #print("Server loop running in thread:", server_thread.name)
