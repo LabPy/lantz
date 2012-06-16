@@ -273,7 +273,7 @@ class DictFeat(Feat):
 
     def __set__(self, instance, value):
         if not isinstance(value, dict):
-            raise AttributeError('This is a dictfeature and cannot be set in this way. '
+            raise AttributeError('This is a DictFeat and cannot be set in this way. '
                                  'You probably want to do something like:'
                                  'obj.prop[index] = value or obj.prop = dict')
 
