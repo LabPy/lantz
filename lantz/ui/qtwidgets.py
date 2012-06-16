@@ -1,45 +1,671 @@
-import types
+# -*- coding: utf-8 -*-
+"""
+    lantz.ui.qtwidgets
+    ~~~~~~~~~~~~~~~~~~
 
-from . import Signal, Property, Slot
+    Implements UI widgets based on Qt widgets. To achieve functionality,
+    instances of QtWidgets are patched.
 
-from PyQt4.QtCore import QRect, QVariant, Qt, QSize
-from PyQt4.QtGui import (QWidget, QLabel, QPlainTextEdit, QPushButton, QDialog,
-                         QDoubleSpinBox, QHBoxLayout, QFormLayout, QComboBox,
-                         QVBoxLayout, QLayout, QDialogButtonBox, QLineEdit,
-                         QSpinBox, QCheckBox, QFont, QGridLayout,
-                         QApplication)
+    :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
+"""
+
+import sys
+import logging
+
+from Qt.QtCore import QVariant, Qt, QSize, Slot, Signal, Property
+from Qt.QtGui import (QApplication, QDialog, QWidget, QFont, QSizePolicy,
+                      QLabel, QPushButton, QDialogButtonBox,
+                      QLayout, QHBoxLayout, QVBoxLayout,
+                      QTabWidget,
+                      QLineEdit, QSpinBox, QDoubleSpinBox, QLCDNumber,
+                      QDial, QProgressBar, QSlider, QScrollBar,
+                      QComboBox, QCheckBox)
 
 from .. import Q_, Driver
-from ..feat import MISSING
+from ..feat import MISSING, DictFeat
 
 
-def get_widget(feat):
-    """Return a widget to represent a lantz feature.
+logger = logging.getLogger('lantz.ui')
+logger.addHandler(logging.NullHandler())
 
-    :param feat: a lantz feature, the result of inst._lantz_feat[feat_name].
+
+def register_wrapper(cls):
+    """Register a class as lantz wrapper for QWidget subclasses.
+
+    The class must contain a field (_WRAPPERS) with a tuple of the
+    QWidget subclasses that it wraps.
+    """
+    for wrapped in cls._WRAPPED:
+        if wrapped in cls._WRAPPERS:
+            logger.warn('{} is already registered to {}.'.format(wrapped, cls._WRAPPERS[wrapped]))
+        cls._WRAPPERS[wrapped] = type(wrapped.__class__.__name__ + 'Wrapped',
+                                      (cls, wrapped), {})
+
+    return cls
+
+
+@register_wrapper
+class WidgetMixin(object):
+    """Mixin class to provide extra functionality to QWidget derived controls.
+
+    Derived class must override _WRAPPED to indicate with which classes it
+    can be mixed.
+
+    To wrap an existing widget object use::
+
+    >>> widget = QComboBox()
+    >>> WidgetMixin.wrap(widget)
+
+    If you want lantz to provide an appropriate wrapped widget for a given feat::
+
+    >>> widget = WidgetMixin.from_feat(feat)
+
+    In any case, after wrapping a widget you need to bind it to a feat::
+
+    >>> feat = driver._lantz_feat[feat_name]
+    >>> widget.bind_feat(feat)
+
+    Finally, you need to
+
+    >>> widget.lantz_target = driver
+
     """
 
-    if feat.values:
-        if isinstance(feat.values, dict):
-            tmp = set(feat.values.keys())
+    _WRAPPED = (QWidget, )
+
+    #: Dictionary linking Widget types with the function to patch them
+    _WRAPPERS = {}
+
+    def keyPressEvent(self, event):
+        """When 'u' is pressed, request new units.
+        When 'r' is pressed, get new value from the driver.
+        """
+        super().keyPressEvent(event)
+
+        if event.text() == 'r':
+            # This should also trigger a widget update if necessary.
+            self.value_from_feat()
+
+    def value(self):
+        """Get widget value.
+        """
+        return super().value()
+
+    def setValue(self, value):
+        """Set widget value.
+        """
+        if value is MISSING:
+            return
+        super().setValue(value)
+
+    def setReadOnly(self, value):
+        """Set read only s
+        """
+        super().setReadOnly(value)
+
+    def value_from_feat(self):
+        """Update the widget value with the current Feat value of the driver.
+        """
+        if self._feat is None or self._lantz_target is None:
+            return
+
+        self._feat.get(self._lantz_target, key=self._feat_key)
+
+    def value_to_feat(self):
+        """Update the Feat value of the driver with the widget value.
+        """
+        if self._feat is None or self._lantz_target is None:
+            return
+
+        self._feat.set(self._lantz_target, value=self.value(), key=self._feat_key)
+
+    @property
+    def readable(self):
+        """If the Feat associated with the widget can be read (get).
+        """
+        if self._feat is None:
+            return False
+        return self._feat.fget not in (None, MISSING)
+
+    @property
+    def writable(self):
+        """If the Feat associated with the widget can be written (set).
+        """
+        if self._feat is None:
+            return False
+        return self._feat.fset is not None
+
+    @Slot(QVariant)
+    def on_widget_value_changed(self, new_value):
+        """When the widget is changed by the user, update the driver with
+        the new value.
+        """
+        if self._update_on_change:
+            self.value_to_feat()
+
+    def on_feat_value_changed(self, value):
+        """When the driver value is changed, update the widget if necessary.
+        """
+        if self.value() != value:
+           self.setValue(value)
+
+    @property
+    def feat_key(self):
+        """Key associated with the DictFeat.
+        """
+        return self._feat_key
+
+    @feat_key.setter
+    def feat_key(self, value):
+        if self._lantz_target:
+            self._lantz_target.del_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
+        self._feat_key = value
+        if self._lantz_target:
+            self._lantz_target.add_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
+        self.value_from_feat()
+
+    @property
+    def lantz_target(self):
+        """Driver connected to the widget.
+        """
+        return self._lantz_target
+
+    @lantz_target.setter
+    def lantz_target(self, target):
+        if self._lantz_target:
+            self._lantz_target.del_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
+            self.valueChanged.disconnect()
+        if target:
+            self._lantz_target = target
+            self._lantz_target.add_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
+            #if feat_key is MISSING:
+            #    self.on_feat_value_changed(self._lantz_target.recall(self._feat.name))
+            #else:
+            #    self.on_feat_value_changed(self._lantz_target.recall(self._feat.name)[self._feat_key])
+            self.value_from_feat()
+            self.valueChanged.connect(self.on_widget_value_changed)
+
+    def bind_feat(self, feat):
+        self._feat = feat
+        self._feat_key = MISSING
+        self.setReadOnly(not self.writable)
+
+    @classmethod
+    def _wrap(cls, widget):
+        ChildrenWidgets.patch(widget)
+        widget._lantz_target = None
+        widget._feat = None
+        widget._update_on_change = True
+        widget.__class__ =  cls
+        widget._lantz_wrapped = True
+
+    @classmethod
+    def wrap(cls, widget):
+        if hasattr(widget, '_lantz_wrapped'):
+            return
+        cls._WRAPPERS.get(type(widget), cls)._wrap(widget)
+
+
+    @classmethod
+    def from_feat(cls, feat, parent=None):
+        """Return a widget appropriate to represent a lantz feature.
+
+        :param feat: a lantz feature, the result of inst._lantz_feat[feat_name].
+        :param parent: parent widget.
+        """
+
+        if feat.values:
+            if isinstance(feat.values, dict):
+                tmp = set(feat.values.keys())
+            else:
+                tmp = set(feat.values)
+
+            if tmp == {True, False}:
+                widget = QCheckBox
+            else:
+                widget = QComboBox
+        elif feat.units or feat.limits:
+            widget = QDoubleSpinBox
         else:
-            tmp = set(feat.values)
+            widget= QLineEdit
 
-        if tmp == {True, False}:
-            return QCheckBox
-        return QComboBox
+        widget = widget(parent)
+        cls.wrap(widget)
 
-    if feat.units or feat.limits:
-        return QDoubleSpinBox
+        return widget
 
-    return QLineEdit
+
+class FeatWidget(object):
+    """Widget to show a Feat.
+
+    :param parent: parent widget.
+    :param target: driver object to connect.
+    :param feat: Feat to connect.
+    """
+
+    def __new__(cls, parent, target, feat):
+        widget = WidgetMixin.from_feat(feat, parent)
+        widget.bind_feat(feat)
+        widget.lanz_target = target
+        return widget
+
+
+class DictFeatWidget(QWidget):
+    """Widget to show a DictFeat.
+
+    :param parent: parent widget.
+    :param target: driver object to connect.
+    :param feat: DictFeat to connect.
+    """
+
+    def __init__(self, parent, target, feat):
+        super().__init__(parent)
+        self._feat = feat
+
+        layout = QHBoxLayout(self)
+
+        if feat.keys:
+            wid = QComboBox()
+            if isinstance(feat.keys, dict):
+                self._keys = list(feat.keys.keys())
+            else:
+                self._keys = list(feat.keys)
+
+            wid.addItems([str(key) for key in self._keys])
+            wid.currentIndexChanged.connect(self._combobox_changed)
+        else:
+            wid = QLineEdit()
+            wid.textChanged.connect(self._lineedit_changed)
+
+        layout.addWidget(wid)
+        self._key_widget = wid
+
+        wid = WidgetMixin.from_feat(feat)
+        wid.bind_feat(feat)
+        wid.feat_key = self._keys[0]
+        wid.lantz_target = target
+        layout.addWidget(wid)
+        self._value_widget = wid
+
+    @Slot(QVariant)
+    def _combobox_changed(self, value):
+        self._value_widget.feat_key = self._keys[self._key_widget.currentIndex()]
+
+    @Slot(QVariant)
+    def _lineedit_changed(self, value):
+        self._value_widget.feat_key = self._key_widget.text()
+
+    def value(self):
+        """Get widget value.
+        """
+        return self._value_widget.value()
+
+    def setValue(self, value):
+        """Set widget value.
+        """
+        if value is MISSING:
+            return
+        self._value_widget.setValue(value)
+
+    def setReadOnly(self, value):
+        """Set read only s
+        """
+        self._value_widget.setReadOnly(value)
+
+    @property
+    def lantz_target(self):
+        """Driver connected to this widget.
+        """
+        return self._value_widget._lantz_target
+
+    @lantz_target.setter
+    def lantz_target(self, driver):
+        self._value_widget._lantz_target = driver
+
+    @property
+    def readable(self):
+        """If the Feat associated with the widget can be read (get).
+        """
+        return self._value_widget.readable
+
+    @property
+    def writable(self):
+        """If the Feat associated with the widget can be written (set).
+        """
+        return self._value_widget.writable
+
+
+class LabeledFeatWidget(QWidget):
+    """Widget containing a label, a control, and a get a set button.
+
+    :param parent: parent widget.
+    :param target: driver object to connect.
+    :param feat: Feat to connect.
+    """
+
+    def __init__(self, parent, target, feat):
+        super().__init__(parent)
+        layout = QHBoxLayout(self)
+
+        self._label = QLabel()
+        self._label.setText(feat.name)
+        self._label.setFixedWidth(120)
+        layout.addWidget(self._label)
+
+        if isinstance(feat, DictFeat):
+            self._widget = DictFeatWidget(parent, target, feat)
+        else:
+            self._widget = WidgetMixin.from_feat(feat)
+            self._widget.bind_feat(feat)
+            self._widget.lantz_target = target
+
+        layout.addWidget(self._widget)
+
+        self._get = QPushButton()
+        self._get.setText('get')
+        self._get.setEnabled(self._widget.readable)
+        self._get.setFixedWidth(60)
+        layout.addWidget(self._get)
+
+        self._set = QPushButton()
+        self._set.setText('set')
+        self._set.setEnabled(self._widget.writable)
+        self._set.setFixedWidth(60)
+        layout.addWidget(self._set)
+
+        self._get.clicked.connect(self.on_get_clicked)
+        self._set.clicked.connect(self.on_set_clicked)
+        self._widget._update_on_change = self._widget.writable
+
+        self.widgets = (self._label, self._widget, self._get, self._set)
+
+    @property
+    def label_width(self):
+        """Width of the label
+        """
+        return self._label.width
+
+    @label_width.setter
+    def label_width(self, value):
+        self._label.setFixedWidth(value)
+
+    @property
+    def lantz_target(self):
+        """Driver connected to this widget.
+        """
+        return self._widget._lantz_target
+
+    @lantz_target.setter
+    def lantz_target(self, driver):
+        self._widget._lantz_target = driver
+
+    @Slot()
+    def on_get_clicked(self):
+        self._widget.value_from_feat()
+
+    @Slot()
+    def on_set_clicked(self):
+        font = QFont()
+        font.setItalic(False)
+        self._widget.setFont(font)
+        self._widget.value_to_feat()
+
+    @property
+    def readable(self):
+        """If the Feat associated with the widget can be read (get).
+        """
+        return self._widget.readable
+
+    @property
+    def writable(self):
+        """If the Feat associated with the widget can be written (set).
+        """
+        return self._widget.writable
+
+
+class DriverTestWidget(QWidget):
+    """Widget that is automatically filled to control all Feats of a given driver.
+
+    :param parent: parent widget.
+    :param target: driver object to map.
+    """
+
+    def __init__(self, parent, target):
+        super().__init__(parent)
+        self._lantz_target = target
+
+        layout = QVBoxLayout(self)
+
+        label = QLabel()
+        label.setText(str(target))
+        layout.addWidget(label)
+
+        recall = QPushButton()
+        recall.setText('Refresh')
+        recall.clicked.connect(lambda x: target.refresh())
+
+        update = QPushButton()
+        update.setText('Update')
+        update.clicked.connect(lambda x: target.update(self.widgets_values_as_dict()))
+
+        auto = QCheckBox()
+        auto.setText('Update on change')
+        auto.setChecked(True)
+        auto.stateChanged.connect(self.update_on_change)
+
+        hlayout = QHBoxLayout()
+        hlayout.addWidget(recall)
+        hlayout.addWidget(update)
+        hlayout.addWidget(auto)
+
+        layout.addLayout(hlayout)
+
+        self.writable_widgets = []
+        self.widgets = []
+        for feat_name, feat in sorted(target._lantz_features.items()):
+            try:
+                feat_widget = LabeledFeatWidget(self, target, feat)
+
+                self.widgets.append(feat_widget)
+                if feat_widget.writable:
+                    self.writable_widgets.append(feat_widget)
+
+                layout.addWidget(feat_widget)
+            except Exception as ex:
+                logger.debug('Could not create control for {}: {}'.format(feat_name, ex))
+                #import traceback
+                #traceback.print_exc()
+
+    def update_on_change(self, new_state):
+        """Set the 'update_on_change' flag to new_state in each writable widget
+        within this widget. If True, the driver will be updated after each change.
+        """
+
+        for widget in self.writable_widgets:
+            widget._widget._update_on_change = new_state
+
+    def widgets_values_as_dict(self):
+        """Return a dictionary mapping each writable feat name to the current
+        value of the widget.
+        """
+        return {widget._feat.name: widget._widget.value()
+                for widget in self.writable_widgets}
+
+    @property
+    def lantz_target(self):
+        """Driver connected to this widget.
+        """
+        return self._lantz_target
+
+    @lantz_target.setter
+    def lantz_target(self, driver):
+        self._lantz_target = driver
+        for widget in self.widgets:
+            widget.lantz_target = driver
+
+
+class SetupTestWidget(QWidget):
+    """Widget to control multiple drivers.
+
+    :param parent: parent widget.
+    :param targets: iterable of driver object to map.
+    """
+
+    def __init__(self, parent, targets):
+        super().__init__(parent)
+
+        layout = QHBoxLayout(self)
+
+        tab_widget = QTabWidget(self)
+        tab_widget.setTabsClosable(False)
+        for target in targets:
+            widget = DriverTestWidget(parent, target)
+            tab_widget.addTab(widget, target.name)
+
+        layout.addWidget(tab_widget)
+
+
+def connect_feat(widget, target, feat_name=None, feat_key=MISSING):
+    """Connect a feature from a given driver to a widget. Calling this
+    function also patches the widget is necessary.
+
+    If applied two times with the same widget, it will connect to the target
+    provided in the second call. This behaviour can be useful to change the
+    connection target without rebuilding the whole UI. Alternative, after
+    connect has been called the first time, widget will have a property
+    `lantz_target` that can be used to achieve the same thing.
+
+    :param widget: widget instance.
+    :param target: driver instance.
+    :param feat_name: feature name. If None, connect using widget name.
+    :param feat_key: For a DictFeat, this defines which key to show.
+    """
+
+    logger.debug('Connecting {} to {}, {}, {}'.format(widget, target, feat_name, feat_key))
+
+    if not isinstance(target, Driver):
+        raise TypeError('Connect target must be an instance of lantz.Driver, not {}'.format(target))
+
+    if not feat_name:
+        feat_name = widget.objectName()
+
+    #: Reconnect
+    if hasattr(widget, '_feat.name') and widget._feat.name == feat_name:
+        widget.lantz_target = target
+        return
+
+    feat =  target._lantz_features[feat_name]
+
+    WidgetMixin.wrap(widget)
+    widget.bind_feat(feat)
+    widget.feat_key = feat_key
+
+    widget.lantz_target = target
+
+
+def connect_driver(parent, target, *, prefix='', sep='__'):
+    """Connect all children widgets to their corresponding lantz feature
+    matching by name. Non-matching names are ignored.
+
+    :param parent: parent widget.
+    :param target: the driver.
+    :param prefix: prefix to be prepended to the lantz feature (default = '')
+    :param sep: separator between prefix, name and suffix
+    """
+
+    logger.debug('Connecting {} to {}, {}, {}'.format(parent, target, prefix, sep))
+
+    ChildrenWidgets.patch(parent)
+
+    if prefix:
+        prefix += sep
+
+    for name, _, wid in parent.widgets:
+        if prefix and name.startswith(prefix):
+            name = name[len(prefix):]
+        if sep in name:
+            name, _ = name.split(sep, 1)
+        if name in target._lantz_features:
+            connect_feat(wid, target, name)
+
+
+def connect_setup(parent, targets, *, prefix=None, sep='__'):
+    """Connect all children widget to their corresponding
+
+    :param parent: parent widget.
+    :param targets: iterable of drivers.
+    :param prefix: prefix to be prepended to the lantz feature name
+                     if None, the driver name will be used (default)
+                     if it is a dict, the driver name will be used to obtain
+                                      the prefix.
+    """
+
+    logger.debug('Connecting {} to {}, {}, {}'.format(parent, targets, prefix, sep))
+
+    ChildrenWidgets.patch(parent)
+    for target in targets:
+        name = target.name
+        if isinstance(prefix, dict):
+            name = prefix[name]
+        connect_driver(parent, target, prefix=name, sep=sep)
+
+
+def start_test_app(target, width=500, *args):
+    """Start a single window test application with a form automatically
+    generated for the driver.
+
+    :param target: a driver object or a collection of drivers.
+    :param width: to be used as minimum width of the window.
+    :param args: arguments to be passed to QApplication.
+    """
+    app = QApplication(list(args))
+    if isinstance(target, Driver):
+        main = DriverTestWidget(None, target)
+    else:
+        main = SetupTestWidget(None, target)
+    main.setMinimumWidth(500)
+    main.show()
+    if sys.platform.startswith('darwin'):
+        main.raise_()
+    app.exec_()
+
+
+class ChildrenWidgets(object):
+    """Convenience class to iterate children.
+
+    :param parent: parent widget.
+    """
+
+    def __init__(self, parent):
+        self.parent = parent
+
+    def __getattr__(self, item):
+        return self.parent.findChild((QWidget, ), item)
+
+    def __iter__(self):
+        pending = [self.parent, ]
+        qualname = {self.parent: self.parent.objectName()}
+        while pending:
+            object = pending.pop()
+            for child in object.children():
+                if not isinstance(child, QWidget):
+                    continue
+                qualname[child] = qualname[object] + '.' + child.objectName()
+                pending.append(child)
+                yield child.objectName(), qualname[child], child
+
+    @classmethod
+    def patch(cls, parent):
+        if not hasattr(parent, 'widgets'):
+            parent.widgets = cls(parent)
 
 
 def request_new_units(current_units):
     """Ask for new units using a dialog box and return them.
 
-    :param current: current units or magnitude.
-    :type current: Q_
+    :param current_units: current units or magnitude.
+    :type current_units: Quantity
 
     """
     new_units = UnitInputDialog.get_units(current_units)
@@ -53,39 +679,20 @@ def request_new_units(current_units):
         return None
 
 
-def add_keyPressEvent_handler(widget):
-    """Add to a QWidget instance proper handling of 'u' for unit changing
-    and 'r' for refreshing.
+@register_wrapper
+class MagnitudeMixin(WidgetMixin):
 
-    :param widget: QWidget instance.
-    """
-
-    widget._original_keyPressEvent = widget.keyPressEvent
+    _WRAPPED = (QDoubleSpinBox, )
 
     def keyPressEvent(self, event):
-        """When 'u' is pressed, request new units.
-        When 'r' is pressed, get new value from the driver.
-        """
-        widget._original_keyPressEvent(event)
-
-        if self._lantz_units and event.text() == 'u':
+        super().keyPressEvent(event)
+        if self._units and event.text() == 'u':
             self.change_units(request_new_units(self.value()))
 
-        if event.text() == 'r':
-            # This should also trigger a widget update if necessary.
-            getattr(self._target, self._feat_name)
-
-    widget.keyPressEvent = types.MethodType(keyPressEvent, widget)
-
-
-def add_magnitude_handler(widget):
-    """Add to a QWidget proper handling of units.
-
-    :param widget: QDoubleSpinBox instance.
-    """
-    if not widget._lantz_units:
-        widget.setValue = types.MethodType(_setValue, widget)
-        return
+    def bind_feat(self, feat):
+        super().bind_feat(feat)
+        self._units = Q_(1, feat.units)
+        self.change_units(self._units)
 
     def change_units(self, new_units):
         """Update displayed suffix and stored units.
@@ -93,19 +700,31 @@ def add_magnitude_handler(widget):
         if new_units is None:
             return
         try:
-            rescaled = self.value().rescale(new_units)
+            rescaled = self.value().to(new_units)
         except ValueError:
             # incompatible units
             return None
         else:
-            self._lantz_units = new_units
-            self.setSuffix(' ' + str(new_units.units))
+            if hasattr(self, 'setSuffix'):
+               self.setSuffix(' ' + str(new_units.units))
+
+            if hasattr(self, 'setRange'):
+                rng = self._feat.limits
+                conv = lambda ndx: Q_(rng[ndx], self._feat.units).to(new_units).magnitude
+                if len(rng) == 1:
+                    self.setRange(0, conv(0))
+                else:
+                    self.setRange(conv(0), conv(1))
+                    if len(rng) == 3:
+                        self.setSingleStep(conv(2))
+                self._units = new_units
+
             self.setValue(rescaled)
 
     def value(self):
         """Get widget value and scale by units.
         """
-        return self._original_getter() * self._lantz_units
+        return super().value() * self._units
 
     def setValue(self, value):
         """Set widget value scaled by units.
@@ -115,50 +734,53 @@ def add_magnitude_handler(widget):
             font.setItalic(True)
             self.setFont(font)
             return
-        self._original_setter(value.rescale(self._lantz_units).magnitude)
-
-    widget.change_units = types.MethodType(change_units, widget)
-    widget.value = types.MethodType(value, widget)
-    widget.setValue = types.MethodType(setValue, widget)
-
-    widget.setSuffix(' ' + str(widget._lantz_units.units))
+        super().setValue(value.to(self._units).magnitude)
 
 
-def _setValue(self, value):
+@register_wrapper
+class SliderMixin(MagnitudeMixin):
 
-    if value is MISSING:
-        return
-    self._original_setter(value)
+    _WRAPPED = (QSlider, QDial, QProgressBar, QScrollBar)
+
+    def setReadOnly(self, value):
+        super().setEnabled(not value)
 
 
-# Pimpers
+@register_wrapper
+class LCDNumberMixin(MagnitudeMixin):
 
-def pimp_QDoubleSpinBox(widget):
+    _WRAPPED = (QLCDNumber, )
 
-    widget._original_getter = widget.value
-    widget._original_setter = widget.setValue
-    widget._original_changed = widget.valueChanged
+    @classmethod
+    def _wrap(cls, widget):
+        super()._wrap(widget)
+        #TODO: Create a real valueChanged Signal.
+        widget.valueChanged = widget.overflow
 
-    add_magnitude_handler(widget)
+    def setReadOnly(self, value):
+        super().setEnabled(not value)
 
-    try:
-        rng = widget._lantz_range
-        if len(rng) == 1:
-            widget.setRange(0, rng[0])
-        else:
-            widget.setRange(rng[0], rng[1])
-            if len(rng) == 3:
-                widget.setSingleStep(rng[2])
-    except (IndexError, TypeError) as e:
-        widget.setRange(float('-inf'), float('inf'))
+    def setValue(self, value):
+        if value is MISSING:
+            font = QFont()
+            font.setItalic(True)
+            self.setFont(font)
+            return
+        super().display(value.to(self._units).magnitude)
 
-def pimp_QComboBox(widget):
+    def value(self):
+        return super().value()
 
-    widget._original_getter = widget.currentIndex
-    widget._original_setter = widget.setCurrentIndex
-    widget._original_changed = widget.currentIndexChanged
 
-    widget.addItems(widget._lantz_map)
+@register_wrapper
+class QComboBoxMixin(WidgetMixin):
+
+    _WRAPPED = (QComboBox, )
+
+    @classmethod
+    def _wrap(cls, widget):
+        super()._wrap(widget)
+        widget.valueChanged = widget.currentIndexChanged
 
     def value(self):
         return self.currentText()
@@ -169,284 +791,73 @@ def pimp_QComboBox(widget):
             font.setItalic(True)
             self.setFont(font)
             return
-        self.setCurrentIndex(self._lantz_map.index(value))
+        self.setCurrentIndex(self.__values.index(value))
 
     def setReadOnly(self, value):
-        widget.setEnabled(not value)
+        self.setEnabled(not value)
 
-    widget.value = types.MethodType(value, widget)
-    widget.setValue = types.MethodType(setValue, widget)
-    widget.setReadOnly = types.MethodType(setReadOnly, widget)
+    def bind_feat(self, feat):
+        super().bind_feat(feat)
+        if isinstance(self._feat.values, dict):
+            self.__values = list(self._feat.values.keys())
+        else:
+            self.__values = list(self.__values)
+        self.clear()
+        self.addItems([str(value) for value in self.__values])
 
 
-def pimp_QCheckBox(widget):
+@register_wrapper
+class QCheckBoxMixin(WidgetMixin):
 
-    widget._original_getter = widget.isChecked
-    widget._original_setter = widget.setChecked
-    widget._original_changed = widget.stateChanged
+    _WRAPPED = (QCheckBox, )
+
+    @classmethod
+    def _wrap(cls, widget):
+        super()._wrap(widget)
+        widget.valueChanged = widget.stateChanged
 
     def setReadOnly(self, value):
-        widget.setCheckable(not value)
+        self.setCheckable(not value)
 
-    widget.setReadOnly = types.MethodType(setReadOnly, widget)
+    def value(self):
+        return self.isChecked()
 
-def pimp_QLineEdit(widget):
-    """
-
-    :param widget:
-    :type widget: QLineEdit
-    :return:
-    """
-
-    widget._original_getter = widget.text
-    widget._original_setter = widget.setText
-    widget._original_changed = widget.textChanged
-
-def pimp_pass(widget):
-    pass
-
-
-PIMPER = {QSpinBox: pimp_QDoubleSpinBox,
-          QDoubleSpinBox: pimp_QDoubleSpinBox,
-          QComboBox: pimp_QComboBox,
-          QCheckBox: pimp_QCheckBox,
-          QLineEdit: pimp_QLineEdit}
-
-from .qtlog import LogTable
-
-
-def start_form(inst, *args):
-    app = QApplication(list(args))
-    main = Form(None, inst)
-    main.setMinimumWidth(500)
-    main.show()
-    app.exec_()
-
-
-class Form(QWidget):
-
-    def __init__(self, parent, target):
-        super().__init__(parent)
-        self._target = target
-        self._layout = QVBoxLayout()
-
-        label = QLabel()
-        label.setText(str(target))
-        self._layout.addWidget(label)
-        layout = QHBoxLayout()
-
-        recall = QPushButton()
-        recall.setText('Refresh')
-        recall.clicked.connect(lambda x: target.refresh())
-
-        update = QPushButton()
-        update.setText('Update')
-        update.clicked.connect(lambda x: target.update(self.widgets_as_dict()))
-
-        auto = QCheckBox()
-        auto.setText('Update on change')
-        auto.setChecked(True)
-        auto.stateChanged.connect(self.update_on_change)
-
-        layout.addWidget(recall)
-        layout.addWidget(update)
-        layout.addWidget(auto)
-        self._layout.addLayout(layout)
-
-        layout = QGridLayout()
-        self._layout.addLayout(layout)
-
-
-        self.writable_widgets = []
-        for row, feat_name in enumerate(sorted(target._lantz_features.keys())):
-            try:
-                featwidget = FeatWidget(target, feat_name)
-                if featwidget.writable:
-                    self.writable_widgets.append(featwidget)
-                for col, widget in enumerate(featwidget.widgets):
-                    layout.addWidget(widget, row, col)
-            except Exception as ex:
-                import traceback
-                traceback.print_exc()
-                print('Could not create control for {}: {}'.format(feat_name, ex))
-
-        self.setLayout(self._layout)
-
-    def update_on_change(self, new_state):
-        for widget in self.writable_widgets:
-            widget._widget._update_on_change = new_state
-
-    def widgets_as_dict(self):
-        return {widget._feat_name: widget._widget.value() for widget in self.writable_widgets}
-
-
-
-def pimp(widget):
-
-    add_keyPressEvent_handler(widget)
-
-    PIMPER[type(widget)](widget)
-
-    if not hasattr(widget, 'value'):
-        widget.value = widget._original_getter
-
-    if not hasattr(widget, 'setValue'):
-        widget.setValue = types.MethodType(_setValue, widget)
-
-    if not hasattr(widget, 'valueChanged'):
-        widget.valueChanged = widget._original_changed
-
-    @Slot(QVariant)
-    def on_widget_value_changed(self, value):
-        """When the widget is changed by the user, update the driver with
-        the new value.
-        """
-        if self._update_on_change:
-            setattr(self._target, self._feat_name, self.value())
-
-    def on_feat_value_changed(self, value):
-        """When the driver value is changed, update the widget if necessary.
-        """
-        if self.value() == value:
+    def setValue(self, value):
+        if value is MISSING:
             return
-        self.setValue(value)
-
-    def target(self):
-        return self._target
-
-    def setTarget(self, target):
-        if self._target:
-            self._target.del_on_changed(self._feat_name, self.on_feat_value_changed, self._feat_key)
-        if target:
-            self._target = target
-            self._target.add_on_changed(self._feat_name, self.on_feat_value_changed, self._feat_key)
-            widget.on_feat_value_changed(self._target.recall(self._feat_name))
-
-    widget._update_on_change = False
-
-    widget.target = types.MethodType(target, widget)
-    widget.setTarget = types.MethodType(setTarget, widget)
-
-    widget.on_widget_value_changed = types.MethodType(on_widget_value_changed, widget)
-    widget.on_feat_value_changed = types.MethodType(on_feat_value_changed, widget)
-
-    widget.valueChanged.connect(widget.on_widget_value_changed)
+        self.setChecked(value)
 
 
-def connect(widget, target, feat_name=None, feat_key=None):
-    """Connect a feature from a given driver to a widget.
+@register_wrapper
+class QLineEditMixin(WidgetMixin):
 
-    If applied two times with the same widget, it will connect to the target
-    provided in the second call. This behaviour can be useful to change the
-    connection target without rebuilding the whole UI. Alternative, after
-    connect has been called the first time, widget will have a member
-    `setTarget` that can be used to achieve the same thing.
+    _WRAPPED = (QLineEdit, )
 
-    :param widget: widget instance.
-    :param target: driver instance.
-    :param feat_name: feature name. If None, connect using widget name.
-    :param feat_key: TBD
-    """
+    @classmethod
+    def _wrap(cls, widget):
+        super()._wrap(widget)
+        widget.valueChanged = widget.textChanged
 
-    if not isinstance(target, Driver):
-        raise TypeError('Connect target must be an instance of Lantz.Driver, not {}'.format(target))
+    def value(self):
+        return self.text()
 
-    if not feat_name:
-        feat_name = widget.name()
-
-    if hasattr(widget, '_feat_name') and widget._feat_name == feat_name:
-        widget.setTarget(target)
-        return
-
-    widget._target = None # Will be populated later
-    widget._feat_name = feat_name
-    widget._feat_key = feat_key
-
-    feat =  target._lantz_features[feat_name]
-    widget._lantz_units = feat.units
-    if isinstance(widget._lantz_units, str):
-        widget._lantz_units = Q_(1, widget._lantz_units)
-
-    widget._lantz_map = feat.values
-    if isinstance(widget._lantz_map, dict):
-        widget._lantz_map = list(widget._lantz_map.keys())
-
-    widget._lantz_range = feat.limits
-
-    pimp(widget)
-
-    widget.setReadOnly(feat.fset is None)
-    target.on_changed[feat_name].append(widget.on_feat_value_changed)
-    widget.setTarget(target)
-
-
-
-class FeatWidget(object):
-
-    def __init__(self, target, feat_name):
-
-        self._target = target
-        self._feat_name = feat_name
-
-        self._label = QLabel()
-        self._label.setText(feat_name)
-
-        self._widget = get_widget(target._lantz_features[feat_name])()
-        connect(self._widget, target, feat_name)
-
-        self._get = QPushButton()
-        self._get.setText('get')
-        self._get.setEnabled(self.readable)
-        self._get.setFixedWidth(60)
-
-        self._set = QPushButton()
-        self._set.setText('set')
-        self._set.setEnabled(self.writable)
-        self._set.setFixedWidth(60)
-
-        self._get.clicked.connect(self.on_get_clicked)
-        self._set.clicked.connect(self.on_set_clicked)
-        self._widget._update_on_change = self.writable
-
-        self.widgets = (self._label, self._widget, self._get, self._set)
-
-    @property
-    def readable(self):
-        return self.target._lantz_features[self._feat_name].fget not in (None, MISSING)
-
-    @property
-    def writable(self):
-        return self._target._lantz_features[self._feat_name].fset is not None
-
-    @property
-    def label_width(self):
-        return self._label.width
-
-    @label_width.setter
-    def label_width(self, value):
-        self._label.width = value
-
-    @property
-    def target(self):
-        return self._target
-
-    @target.setter
-    def target(self, driver):
-        self._target = driver  #TODO: try weak ref
-
-    @Slot()
-    def on_get_clicked(self):
-        getattr(self._target, self._feat_name)
-
-    @Slot()
-    def on_set_clicked(self):
-        font = QFont()
-        font.setItalic(False)
-        self._widget.setFont(font)
-        setattr(self._target, self._feat_name, self._widget.value())
+    def setValue(self, value):
+        if value is MISSING:
+            return
+        return self.setText(value)
 
 
 class UnitInputDialog(QDialog):
+    """Dialog to select new units. Checks compatibility while typing
+    and does not allow to continue if incompatible.
+
+    Returns None if cancelled.
+
+    :param units: current units.
+    :param parent: parent widget.
+
+    >>> new_units = UnitInputDialog.get_units('ms')
+    """
 
     def __init__(self, units, parent=None):
         super().__init__(parent)
@@ -459,8 +870,7 @@ class UnitInputDialog(QDialog):
         self.setWindowTitle('Convert units')
         self.layout = QVBoxLayout(parent)
         self.layout.setSizeConstraint(QLayout.SetFixedSize)
-        align = (Qt.AlignRight | Qt.AlignTrailing |
-                 Qt.AlignVCenter)
+        align = (Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
 
         self.layout1 = QHBoxLayout()
         self.label1 = QLabel()
@@ -506,10 +916,13 @@ class UnitInputDialog(QDialog):
         self.destination_units.setFocus()
 
     def check(self):
+        units = self.destination_units.text().strip()
+        if not units:
+            return
         try:
-            new_units = Q_(1, self.destination_units.text())
-            factor = self.units.rescale(new_units).magnitude
-        except LookupError:
+            new_units = Q_(1, units)
+            factor = self.units.to(new_units).magnitude
+        except LookupError or SyntaxError:
             self.message.setText('Cannot parse units')
             self.buttonBox.setEnabled(False)
         except ValueError:
@@ -521,8 +934,12 @@ class UnitInputDialog(QDialog):
 
     @staticmethod
     def get_units(units):
+        """Creates and display a UnitInputDialog and return new units.
+
+        Return None if the user cancelled.
+
+        """
         dialog = UnitInputDialog(Q_(1, units.units))
         if dialog.exec_():
             return dialog.destination_units.text()
         return None
-
