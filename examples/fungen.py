@@ -24,8 +24,8 @@ if __name__ == '__main__':
 
     with LantzSignalGenerator(host='localhost', port=args.port) as inst:
         if args.interactive:
-            from lantz.ui.qtwidgets import start_form
-            start_form(inst)
+            from lantz.ui.qtwidgets import start_test_app
+            start_test_app(inst)
         else:
             print('The identification of this instrument is : ' + inst.idn)
             inst.amplitude = 3 * volt

@@ -140,7 +140,7 @@ if __name__ == "__main__":
         server.shutdown()
 
     #server_thread = threading.Thread(target=server.serve_forever)
-    # Exit the server thread when the main thread terminates
+    # Exit the server thread when the parent thread terminates
     #server_thread.setDaemon(True)
     #server_thread.start()
     #print("Server loop running in thread:", server_thread.name)

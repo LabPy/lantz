@@ -76,8 +76,8 @@ if __name__ == '__main__':
     lantz.log.log_to_socket(lantz.log.DEBUG)
     with MDSnC(args.port) as inst:
         if args.interactive:
-            from lantz.ui.qtwidgets import start_form
-            start_form(inst)
+            from lantz.ui.qtwidgets import start_test_app
+            start_test_app(inst)
         else:
             from time import sleep
             print("init")

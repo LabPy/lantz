@@ -65,8 +65,6 @@ def repartial_submit(fname):
 
 class _DriverType(type):
     """Base metaclass for all drivers.
-
-    After class declaration, creates a
     """
 
     def __init__(cls, classname, bases, class_dict):
@@ -343,7 +341,7 @@ class Driver(metaclass=_DriverType):
             return self.__dict__[keys]
         return {key: self.__dict__[key] for key in self._lantz_features.keys()}
 
-    def add_on_changed(self, feat_name, func, key=None):
+    def add_on_changed(self, feat_name, func, key=MISSING):
         """Add callback to be triggered when a Feat/DictFeat value changes.
 
         :param feat_name: name of the Feat/DictFeat.
@@ -351,12 +349,12 @@ class Driver(metaclass=_DriverType):
         :param key: (optional) For DictFeat, indicates the key to be monitored.
                     Use None to trigger the callback when any key us changed.
         """
-        if key is None:
+        if key is MISSING:
             self.on_changed[feat_name].append(func)
         else:
             self.on_changed[(feat_name, key)].append(func)
 
-    def del_on_changed(self, feat_name, func, key=None):
+    def del_on_changed(self, feat_name, func, key=MISSING):
         """Delete callback. See add_on_changed.
 
         :param feat_name: name of the Feat/DictFeat.
@@ -364,7 +362,7 @@ class Driver(metaclass=_DriverType):
         :param key: (optional) For DictFeat, indicates the key to be monitored.
                     Use None to trigger the callback when any key us changed.
         """
-        if key is None:
+        if key is MISSING:
             callbacks = self.on_changed[feat_name]
         else:
             callbacks = self.on_changed[(feat_name, key)]
