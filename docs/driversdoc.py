@@ -331,6 +331,7 @@ def main():
     opts.suffix = 'rst'
     fname = os.path.join(opts.destdir, 'drivers.rst')
     with open(fname, 'w') as fp:
+        fp.write('.. _drivers:\n')
         fp.write(format_heading(1, 'Drivers'))
         last = ''
         for key in sorted(packages.keys()):

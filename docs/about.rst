@@ -1,3 +1,5 @@
+.. _about:
+
 =====
 About
 =====
@@ -10,11 +12,11 @@ Lantz wraps common widgets for instrumentation, allowing to build responsive, ev
 
 Lantz explains itself by contextually displaying documentation. Core functionalities, widgets and drivers adhere to a high documentation standard that allows the user to know exactly what the program is doing and the purpose of each parameter.
 
-Lantz works well with Linux, Mac and Windows. It is written in Python, using cross platform C/C++ for optimization of calculation intensive operations and Qt4 for the user interface.
+Lantz works well with Linux, Mac and Windows. It is written in Python and Qt4 for the user interface.
 
 Lantz profits from Python's batteries-included philosophy and it's extensive library in many different fields from text parsing to database communication.
 
-Lantz builds on the giant shoulders. By using state-of-the art and widely-used numerical and image processing libraries, it delivers tested robustness and performance.
+Lantz builds on the giant shoulders. By using state-of-the art libraries, it delivers tested robustness and performance.
 
 Lantz speaks many languages. It is built with an international audience from the start thereby allowing translations to be made easily.
 

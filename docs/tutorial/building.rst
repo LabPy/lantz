@@ -1,7 +1,8 @@
+.. _tutorial-building:
 
-===================================
-Tutorial: Building your own drivers
-===================================
+=========================
+Building your own drivers
+=========================
 
 
 The instrument
@@ -288,7 +289,7 @@ We have just added in the Feat definition that the units is Volts. Lantz uses th
 
 Run the script and notice how Lantz will do the conversion for you. This allows to use the output of one instrument as the output of another without handling the unit conversion. Additionally, it allows you to replace this signal generator by another that might require the amplitude in different units without changing your code.
 
-Ranges
+Limits
 ======
 
 When the communication round-trip to the instrument is too long, you might want to catch some of the errors before hand. You can use `limits` to check::

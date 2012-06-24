@@ -1,3 +1,5 @@
+.. _installing:
+
 Building your development environment
 =====================================
 

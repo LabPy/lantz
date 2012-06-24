@@ -48,8 +48,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Lantz'
-copyright = u'2012, Lantz Authors'
+project = 'Lantz'
+copyright = '2012, Lantz Authors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -78,11 +78,11 @@ exclude_patterns = ['_build']
 #default_role = None
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
-#add_function_parentheses = True
+add_function_parentheses = True
 
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
-#add_module_names = True
+add_module_names = True
 
 # If true, sectionauthor and moduleauthor directives will be shown in the
 # output. They are ignored by default.
@@ -95,19 +95,20 @@ pygments_style = 'sphinx'
 modindex_common_prefix = ['lantz.']
 
 
-import driversdoc
-driversdoc.main()
+#import driversdoc
+#driversdoc.main()
 
 # -- Options for HTML output ---------------------------------------------------
 sys.path.append(os.path.abspath('_themes'))
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#html_theme = 'flask'
+html_theme = 'lantz'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
+html_theme_options = {'collapsiblesidebar': True}
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ['_themes']
@@ -121,7 +122,7 @@ html_theme_path = ['_themes']
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = 'spear.jpg'
+#html_logo = ''
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -131,15 +132,15 @@ html_theme_path = ['_themes']
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ['_static']
+html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-#html_last_updated_fmt = '%b %d, %Y'
+html_last_updated_fmt = '%b %d, %Y'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
-#html_use_smartypants = True
+html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
@@ -194,8 +195,8 @@ htmlhelp_basename = 'Lantzdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Lantz.tex', u'Lantz Documentation',
-   u'Hernán E. Grecco', 'manual'),
+  ('index', 'Lantz.tex', 'Lantz Documentation',
+   'Hernán E. Grecco', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -226,6 +227,6 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'lantz', u'Lantz Documentation',
-     [u'Hernán E. Grecco'], 1)
+    ('index', 'lantz', 'Lantz Documentation',
+     ['Hernán E. Grecco'], 1)
 ]
