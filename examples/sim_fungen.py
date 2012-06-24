@@ -1,3 +1,5 @@
+
+import time
 import socket
 import socketserver
 
@@ -21,13 +23,13 @@ def CreateHandlerClass(instrument):
             try:
                 while True:
                     data = self.rfile.readline()
-                    print('{0:s} -> inst: {1}'.format(self.client_address[0], data))
+                    print('{2}   {0:s} -> inst: {1}'.format(self.client_address[0], data, time.time()))
                     data = str(data, self.ENCODING)
                     out = self._dispatch(data)
                     out = self.CONVERSION[type(out)].format(out)
                     out = bytes(out + self.TERMINATION, self.ENCODING)
                     self.wfile.write(out)
-                    print('{0:s} <- inst: {1}'.format(self.client_address[0], out))
+                    print('{2}   {0:s} <- inst: {1}'.format(self.client_address[0], out, time.time()))
             except socket.error as e:
                 if e.errno == 32: # Broken pipe
                     print('Client disconnected')
@@ -46,6 +48,9 @@ def CreateHandlerClass(instrument):
                     raise SimError
                 if isinstance(current, dict):
                     dict_key = getattr(instrument, prop + '_key_convert')(value[1])
+                elif callable(current):
+                    current()
+                    return 'OK'
                 else:
                     dict_key = None
 
@@ -60,7 +65,7 @@ def CreateHandlerClass(instrument):
                     else:
                         cls = type(current)
                         setattr(instrument, prop, cls(value[1]))
-                    return "OK"
+                    return 'OK'
                 return 'ERROR'
             except (SimError, IndexError) as e:
                 return 'ERROR'
@@ -108,7 +113,9 @@ class SimFunctionGenerator(object):
             raise SimError
         self._amp = value
 
-
+    def cal(self):
+        print('Calibrating ...')
+        time.sleep(.1)
 
 
 if __name__ == "__main__":

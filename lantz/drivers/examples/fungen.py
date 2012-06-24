@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Feat, DictFeat, Q_
+from lantz import Feat, DictFeat, Q_, Action
 from lantz.network import TCPDriver
 from lantz.errors import InstrumentError
 
@@ -96,3 +96,7 @@ class LantzSignalGenerator(TCPDriver):
         """Digital input state.
         """
         return self.query('?DIN {}'.format(key))
+
+    @Action()
+    def calibrate(self):
+        self.query('!CAL')

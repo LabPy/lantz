@@ -37,4 +37,5 @@ if __name__ == '__main__':
             inst.dout[1] = True
             print(inst.dout[1])
             print(inst.din[2])
+            inst.calibrate()
 
