@@ -16,7 +16,7 @@ import logging
 from Qt.QtCore import QVariant, Qt, QSize, Slot, Signal, Property
 from Qt.QtGui import (QApplication, QDialog, QWidget, QFont, QSizePolicy,
                       QLabel, QPushButton, QDialogButtonBox,
-                      QLayout, QHBoxLayout, QVBoxLayout,
+                      QLayout, QHBoxLayout, QVBoxLayout, QFrame,
                       QTabWidget,
                       QLineEdit, QSpinBox, QDoubleSpinBox, QLCDNumber,
                       QDial, QProgressBar, QSlider, QScrollBar,
@@ -463,6 +463,8 @@ class DriverTestWidget(QWidget):
 
         self.writable_widgets = []
         self.widgets = []
+
+        # Feat
         for feat_name, feat in sorted(target._lantz_features.items()):
             try:
                 feat_widget = LabeledFeatWidget(self, target, feat)
@@ -476,6 +478,19 @@ class DriverTestWidget(QWidget):
                 logger.debug('Could not create control for {}: {}'.format(feat_name, ex))
                 #import traceback
                 #traceback.print_exc()
+
+        # Actions
+        line = QFrame(self)
+        #self.line.setGeometry(QtCore.QRect(110, 80, 351, 31))
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(line)
+
+        actions = QComboBox()
+        alayout = QHBoxLayout()
+        alayout.addWidget(actions)
+        alayout.addWidget(run_action)
+        layout.addWidget()
 
     def update_on_change(self, new_state):
         """Set the 'update_on_change' flag to new_state in each writable widget
