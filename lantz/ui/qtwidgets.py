@@ -11,12 +11,16 @@
 """
 
 import sys
+import json
+import inspect
 import logging
+from docutils import core as doc_core
 
 from Qt.QtCore import QVariant, Qt, QSize, Slot, Signal, Property
 from Qt.QtGui import (QApplication, QDialog, QWidget, QFont, QSizePolicy,
+                      QColor, QPalette, QToolTip,
                       QLabel, QPushButton, QDialogButtonBox,
-                      QLayout, QHBoxLayout, QVBoxLayout, QFrame,
+                      QLayout, QHBoxLayout, QVBoxLayout, QFormLayout, QFrame,
                       QTabWidget,
                       QLineEdit, QSpinBox, QDoubleSpinBox, QLCDNumber,
                       QDial, QProgressBar, QSlider, QScrollBar,
@@ -25,9 +29,37 @@ from Qt.QtGui import (QApplication, QDialog, QWidget, QFont, QSizePolicy,
 from .. import Q_, Driver
 from ..feat import MISSING, DictFeat
 
+QToolTip.setFont(QFont('SansSerif', 10))
 
 logger = logging.getLogger('lantz.ui')
 logger.addHandler(logging.NullHandler())
+
+
+def _rst_to_html(rst):
+    """Convert rst docstring to HTML.
+    """
+    parts = doc_core.publish_parts(rst, writer_name="html")
+    return parts['body']
+
+
+def _params_doc(rst):
+    """Extract
+    """
+    docs = {}
+    rst = ' '.join(rst.splitlines())
+    key = None
+    for line in rst.split(':'):
+        line = line.strip()
+        if key:
+            docs[key] = line.strip()
+            key = None
+        else:
+            for prefix in ('param', 'parameter', 'arg', 'argument', 'key', 'keyword'):
+                if line.startswith(prefix):
+                    key = line[len(prefix):].strip()
+                    break
+
+    return docs
 
 
 def register_wrapper(cls):
@@ -351,6 +383,7 @@ class LabeledFeatWidget(QWidget):
         self._label = QLabel()
         self._label.setText(feat.name)
         self._label.setFixedWidth(120)
+        self._label.setToolTip(_rst_to_html(feat.__doc__))
         layout.addWidget(self._label)
 
         if isinstance(feat, DictFeat):
@@ -486,11 +519,29 @@ class DriverTestWidget(QWidget):
         line.setFrameShadow(QFrame.Sunken)
         layout.addWidget(line)
 
-        actions = QComboBox()
+
+        actions_label = QLabel(self)
+        actions_label.setText('Actions:')
+        actions_label.setFixedWidth(120)
+
+        self.actions_combo = QComboBox(self)
+        self.actions_combo.addItems(list(target._lantz_actions.keys()))
+
+        actions_button = QPushButton(self)
+        actions_button.setFixedWidth(60)
+        actions_button.setText('Run')
+        actions_button.clicked.connect(self.on_run_clicked)
+
         alayout = QHBoxLayout()
-        alayout.addWidget(actions)
-        alayout.addWidget(run_action)
-        layout.addWidget()
+        alayout.addWidget(actions_label)
+        alayout.addWidget(self.actions_combo)
+        alayout.addWidget(actions_button)
+
+        layout.addLayout(alayout)
+
+    @Slot(QVariant)
+    def on_run_clicked(self):
+        ArgumentsInputDialog.run(getattr(self._lantz_target, self.actions_combo.currentText()))
 
     def update_on_change(self, new_state):
         """Set the 'update_on_change' flag to new_state in each writable widget
@@ -640,6 +691,7 @@ def start_test_app(target, width=500, *args):
     else:
         main = SetupTestWidget(None, target)
     main.setMinimumWidth(500)
+    main.setWindowTitle('Lantz Driver Test Panel')
     main.show()
     if sys.platform.startswith('darwin'):
         main.raise_()
@@ -860,6 +912,99 @@ class QLineEditMixin(WidgetMixin):
         if value is MISSING:
             return
         return self.setText(value)
+
+
+class ArgumentsInputDialog(QDialog):
+
+    def __init__(self, argspec, parent=None, window_title='Function arguments', doc=None):
+        super().__init__(parent)
+
+        vlayout = QVBoxLayout(self)
+
+        layout = QFormLayout()
+
+        widgets = []
+        for row, arg in enumerate(argspec.args[1:]):
+            wid = QLineEdit(self)
+            wid.setObjectName(arg)
+            try:
+                default = argspec.defaults[len(argspec.args) - row]
+                wid.setText(repr(default))
+            except (KeyError, TypeError):
+                pass
+            layout.addRow(arg, wid)
+            widgets.append(wid)
+            wid.textChanged.connect(self.on_widget_change(wid))
+            if doc and arg in doc:
+                wid.setToolTip(doc[arg])
+
+        self.widgets = widgets
+
+        buttonBox = QDialogButtonBox()
+        buttonBox.setOrientation(Qt.Horizontal)
+        buttonBox.setStandardButtons(QDialogButtonBox.Ok)
+        buttonBox.setEnabled(True)
+        buttonBox.accepted.connect(self.accept)
+
+        vlayout.addLayout(layout)
+
+        label = QLabel()
+        label.setText('Values are decoded from text using as JSON.')
+        vlayout.addWidget(label)
+
+        vlayout.addWidget(buttonBox)
+
+        self.buttonBox = buttonBox
+        self.arguments = {wid.objectName(): '' for wid in self.widgets}
+        self.valid = {wid.objectName(): True for wid in self.widgets}
+
+        self.setWindowTitle(window_title)
+
+
+    def on_widget_change(self, widget):
+        name = widget.objectName()
+        def validate(value):
+            try:
+                if value:
+                    value = json.loads(value)
+                else:
+                    value = None
+                palette = QPalette()
+                palette.setColor(widget.backgroundRole(), QColor('white'))
+                widget.setPalette(palette)
+                self.arguments[name] = value
+                self.valid[name] = True
+            except:
+                palette = QPalette()
+                palette.setColor(widget.backgroundRole(), QColor(255, 102, 102))
+                widget.setPalette(palette)
+                self.valid[name] = False
+
+            self.buttonBox.setEnabled(all(self.valid.values()))
+
+        return validate
+
+    def accept(self):
+        super().accept()
+
+    @staticmethod
+    def run(func):
+        """Creates and display a UnitInputDialog and return new units.
+
+        Return None if the user cancelled.
+
+        """
+        argspec = inspect.getargspec(func.__wrapped__)
+        if argspec.args:
+            dialog = ArgumentsInputDialog(argspec,
+                                          window_title=func.__wrapped__.__name__ + ' arguments',
+                                          doc=_params_doc(func.__wrapped__.__doc__))
+            if dialog.exec_():
+                print(dialog.arguments)
+                return func(**dialog.arguments)
+            return None
+        else:
+            return func()
 
 
 class UnitInputDialog(QDialog):
