@@ -1,7 +1,12 @@
 
 import time
+import logging
+
 import socket
 import socketserver
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s',
+                    datefmt='%Y-%d-%m %H:%M:%S')
 
 class SimError(Exception):
     pass
@@ -23,16 +28,16 @@ def CreateHandlerClass(instrument):
             try:
                 while True:
                     data = self.rfile.readline()
-                    print('{2}   {0:s} -> inst: {1}'.format(self.client_address[0], data, time.time()))
+                    logging.debug('%s -> inst: %s', self.client_address[0], data)
                     data = str(data, self.ENCODING)
                     out = self._dispatch(data)
                     out = self.CONVERSION[type(out)].format(out)
                     out = bytes(out + self.TERMINATION, self.ENCODING)
                     self.wfile.write(out)
-                    print('{2}   {0:s} <- inst: {1}'.format(self.client_address[0], out, time.time()))
+                    logging.debug('%s <- inst: %s', self.client_address[0], out)
             except socket.error as e:
                 if e.errno == 32: # Broken pipe
-                    print('Client disconnected')
+                    logging.info('Client disconnected')
             finally:
                 self.finish()
 
@@ -49,7 +54,11 @@ def CreateHandlerClass(instrument):
                 if isinstance(current, dict):
                     dict_key = getattr(instrument, prop + '_key_convert')(value[1])
                 elif callable(current):
-                    current()
+                    try:
+                        current(*value[1:])
+                    except Exception as ex:
+                        logging.exception('While calling %s with %s: %s', current, value, ex)
+                        return 'ERROR'
                     return 'OK'
                 else:
                     dict_key = None
@@ -70,7 +79,7 @@ def CreateHandlerClass(instrument):
             except (SimError, IndexError) as e:
                 return 'ERROR'
             except Exception as e:
-                print('Exception {}'.format(e))
+                logging.exception('Exception {}'.format(e))
                 raise Exception
 
     return Handler
@@ -114,8 +123,14 @@ class SimFunctionGenerator(object):
         self._amp = value
 
     def cal(self):
-        print('Calibrating ...')
+        logging.info('Calibrating ...')
         time.sleep(.1)
+
+    def tes(self, level, repetitions):
+        level = int(level)
+        repetitions = int(repetitions)
+        for rep in range(repetitions):
+            logging.info('Testing level %s. (%s/%s)', level, rep + 1, repetitions)
 
 
 if __name__ == "__main__":
@@ -137,19 +152,13 @@ if __name__ == "__main__":
 
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
-    print('Listening to {}:{}'.format(host, port))
-    print('interrupt the program with Ctrl-C')
+    logging.info('Listening to %s:%s', host, port)
+    logging.info('interrupt the program with Ctrl-C')
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print('Ending')
+        logging.info('Ending')
     finally:
         server.shutdown()
 
-    #server_thread = threading.Thread(target=server.serve_forever)
-    # Exit the server thread when the parent thread terminates
-    #server_thread.setDaemon(True)
-    #server_thread.start()
-    #print("Server loop running in thread:", server_thread.name)
-    #server.shutdown()
 

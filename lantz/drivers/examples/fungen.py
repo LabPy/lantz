@@ -99,4 +99,13 @@ class LantzSignalGenerator(TCPDriver):
 
     @Action()
     def calibrate(self):
+        """Calibrate.
+        """
         self.query('!CAL')
+
+    @Action()
+    def self_test(self, level, repetitions=3):
+        """Reset to .
+        """
+        self.query('!TES {} {}'.format(level, repetitions))
+
