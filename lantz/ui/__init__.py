@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
     lantz.ui
     ~~~~~~~~
@@ -18,17 +18,20 @@ import imp
 import sys
 
 
-class QtImporter(object):
+class ReplaceImport(object):
+    """Hook that replace imports of a package by another.
 
-    def __init__(self, qtbindings):
-        if qtbindings not in ('PyQt4', 'PySide'):
-            raise ValueError('Unknown Qt Bindings: {}'.format(package))
+    :param old: package to be replaced.
+    :param new: package to be used.
+    """
 
-        self.qtbindings = qtbindings
+    def __init__(self, old, new):
+        self.old = old
+        self.new = new
 
     def find_module(self, fullname, path=None):
-        if fullname.startswith('Qt') and path is None:
-            fullname = self.qtbindings + fullname[2:]
+        if fullname.startswith(self.old) and path is None:
+            fullname = self.new + fullname[len(self.old):]
             self.mod_data = imp.find_module(fullname)
             return self
         return None
@@ -36,35 +39,37 @@ class QtImporter(object):
     def load_module(self, fullname):
         return imp.load_module(fullname, *self.mod_data)
 
+    def register(self):
+        if self not in sys.meta_path:
+            sys.meta_path.append(self)
 
-qtbindings = os.environ.get('QTBINDINGS', None)
+    def unregister(self):
+        if self in sys.meta_path:
+            sys.meta_path.remove(self)
 
-if not qtbindings:
-    try:
-        import PyQt4
-        del PyQt4
-        qtbindings = 'PyQt4'
-    except ImportError:
+#: Valid QTBINDINGS
+_VALID = 'PyQt4', 'PySide'
+
+# Read QTBINDINGS environmental variable, if not found try all valid.
+try:
+    qtbindings = os.environ['QTBINDINGS']
+    if qtbindings not in _VALID:
+        raise ImportError('{} is not a valid value for QTBINDINGS {}'.format(qtbindings, _VALID))
+except KeyError:
+    for qtbindings in _VALID:
         try:
-            import PySide
-            del PySide
-            qtbindings = 'PySide'
+            imp.find_module(qtbindings)
+            break
         except ImportError:
-            raise ImportError('lantz.ui requires PyQt4 or PySide')
+            pass
+    else:
+        raise ImportError('lantz.ui requires {}'.format(_VALID))
 
-_hook = QtImporter(qtbindings)
+# Create hook and register it.
+_QtHook = ReplaceImport('Qt', qtbindings)
+_QtHook.register()
 
-def register_hook():
-    enable = sys.version_info[0] >= 3
-    if enable and _hook not in sys.meta_path:
-        sys.meta_path.append(_hook)
-
-def unregister_hook():
-    if _hook in sys.meta_path:
-        sys.meta_path.remove(_hook)
-
-register_hook()
-
+# If PyQt4 bindings are used, patch them.
 if qtbindings == 'PyQt4':
     import sip
     sip.setapi('QString', 2)
@@ -73,3 +78,4 @@ if qtbindings == 'PyQt4':
     core.Signal = core.pyqtSignal
     core.Slot = core.pyqtSlot
     core.Property = core.pyqtProperty
+    del core
