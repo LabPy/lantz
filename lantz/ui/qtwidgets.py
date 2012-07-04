@@ -18,7 +18,7 @@ from docutils import core as doc_core
 
 from Qt.QtCore import QVariant, Qt, QSize, Slot, Signal, Property
 from Qt.QtGui import (QApplication, QDialog, QWidget, QFont, QSizePolicy,
-                      QColor, QPalette, QToolTip,
+                      QColor, QPalette, QToolTip, QMessageBox,
                       QLabel, QPushButton, QDialogButtonBox,
                       QLayout, QHBoxLayout, QVBoxLayout, QFormLayout, QFrame,
                       QTabWidget,
@@ -541,7 +541,7 @@ class DriverTestWidget(QWidget):
 
     @Slot(QVariant)
     def on_run_clicked(self):
-        ArgumentsInputDialog.run(getattr(self._lantz_target, self.actions_combo.currentText()))
+        ArgumentsInputDialog.run(getattr(self._lantz_target, self.actions_combo.currentText()), self)
 
     def update_on_change(self, new_state):
         """Set the 'update_on_change' flag to new_state in each writable widget
@@ -924,19 +924,23 @@ class ArgumentsInputDialog(QDialog):
         layout = QFormLayout()
 
         widgets = []
-        for row, arg in enumerate(argspec.args[1:]):
+
+        defaults = argspec.defaults if argspec.defaults else ()
+        defaults = ('', ) * (len(argspec.args[1:]) - len(defaults)) + defaults
+
+        self.arguments = {}
+        for arg, default in zip(argspec.args[1:], defaults):
             wid = QLineEdit(self)
             wid.setObjectName(arg)
-            try:
-                default = argspec.defaults[len(argspec.args) - row]
-                wid.setText(repr(default))
-            except (KeyError, TypeError):
-                pass
+            wid.setText(json.dumps(default))
+            self.arguments[arg] = default
+
             layout.addRow(arg, wid)
             widgets.append(wid)
             wid.textChanged.connect(self.on_widget_change(wid))
             if doc and arg in doc:
                 wid.setToolTip(doc[arg])
+
 
         self.widgets = widgets
 
@@ -955,7 +959,6 @@ class ArgumentsInputDialog(QDialog):
         vlayout.addWidget(buttonBox)
 
         self.buttonBox = buttonBox
-        self.arguments = {wid.objectName(): '' for wid in self.widgets}
         self.valid = {wid.objectName(): True for wid in self.widgets}
 
         self.setWindowTitle(window_title)
@@ -988,23 +991,30 @@ class ArgumentsInputDialog(QDialog):
         super().accept()
 
     @staticmethod
-    def run(func):
+    def run(func, parent=None):
         """Creates and display a UnitInputDialog and return new units.
 
         Return None if the user cancelled.
 
         """
-        argspec = inspect.getargspec(func.__wrapped__)
-        if argspec.args:
-            dialog = ArgumentsInputDialog(argspec,
-                                          window_title=func.__wrapped__.__name__ + ' arguments',
-                                          doc=_params_doc(func.__wrapped__.__doc__))
-            if dialog.exec_():
-                print(dialog.arguments)
-                return func(**dialog.arguments)
-            return None
-        else:
-            return func()
+        wrapped = func.__wrapped__
+        argspec = inspect.getargspec(wrapped)
+        arguments = {}
+        if len(argspec.args) > 1:
+            dialog = ArgumentsInputDialog(argspec, parent,
+                                          window_title=wrapped.__name__ + ' arguments',
+                                          doc=_params_doc(wrapped.__doc__))
+            if not dialog.exec_():
+                return None
+            arguments = dialog.arguments
+
+        try:
+            func(**arguments)
+        except:
+            QMessageBox.critical(parent, 'Lantz',
+                                 'Instrument error while calling {}'.format(wrapped.__name__),
+                                 QMessageBox.Ok,
+                                 QMessageBox.NoButton)
 
 
 class UnitInputDialog(QDialog):
