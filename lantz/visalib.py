@@ -56,7 +56,7 @@ class RichEnum(type):
     """Type for rich enumerations.
     """
 
-    def __new__(cls, name, bases, dct):
+    def __new__(mcs, name, bases, dct):
         ndct = {}
         ntuple = dct.get('_TUPLE', None)
         for key, value in dct.items():
@@ -74,7 +74,7 @@ class RichEnum(type):
             dct[key] = value
 
         dct.update(ndct)
-        obj = super().__new__(cls, name, bases, dct)
+        obj = super().__new__(mcs, name, bases, dct)
         obj.__new__ = None
         return obj
 
@@ -893,10 +893,9 @@ class VisaLibrary(object):
         """
         self.lib.viEnableEvent(session, event_type, mechanism, context)
 
-    def find_next(self, session, find_list):
+    def find_next(self, find_list):
         """Returns the next resource from the list of resources found during a previous call to find_resources().
 
-        :param session: Unique logical identifier to a session (unused, just to uniform signatures).
         :param find_list: Describes a find list. This parameter must be created by find_resources().
         :return: Returns a string identifying the location of a device.
         """
@@ -957,7 +956,7 @@ class VisaLibrary(object):
         :return: Number of written bytes.
         """
         return_count = Types.UInt32()
-        self.lib.viGpibCommand(session, buffer, len(buffer), ct.byref(return_count))
+        self.lib.viGpibCommand(session, data, len(data), ct.byref(return_count))
         return return_count.value
 
     def gpib_control_atn(self, session, mode):
@@ -1233,7 +1232,7 @@ class VisaLibrary(object):
         :return: Unique logical identifier reference to a session.
         """
         vi = Types.Session()
-        status = self.lib.viOpen(session, resource_name, access_mode, open_timeout, ct.byref(vi))
+        self.lib.viOpen(session, resource_name, access_mode, open_timeout, ct.byref(vi))
         return vi.value
 
     def open_default_resource_manager(self):
@@ -1527,7 +1526,7 @@ class VisaLibrary(object):
         :return: Number of bytes actually transferred.
         """
         return_count = Types.UInt32()
-        status = self.lib.viWrite(session, data, len(data), ct.byref(return_count))
+        self.lib.viWrite(session, data, len(data), ct.byref(return_count))
         return return_count.value
 
     def write_asynchronously(self, session, buffer):
@@ -1592,7 +1591,7 @@ class ResourceManager(object):
         find_list, return_counter, instrument_description = lib.find_resources(self.session, query)
         resources.append(instrument_description)
         for i in range(return_counter - 1):
-            resources.append(lib.find_next(self.session, find_list))
+            resources.append(lib.find_next(find_list))
 
         return tuple(resource for resource in resources)
 
