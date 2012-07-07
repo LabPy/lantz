@@ -321,9 +321,6 @@ class DriverFormatter(ColorizingFormatter):
         buf.write(value)
 
 
-#: Default format for log messages.
-DEFAULT_FORMAT = '%(asctime)s <color>%(levelname)-8s</color> %(name)s: %(message)s'
-
 #: Parser for set messages.
 SETTER = Parser('{0:s} was set to {1:s}')
 
@@ -358,7 +355,7 @@ class LantzMonitor(SocketListener):
 
     def __init__(self, tcphost, udphost, level=logging.INFO,
                  filter_='lantz.*'):
-        super().__init__(tcphost, udphost, level)
+        super().__init__(tcphost, udphost)
 
         self.queues = defaultdict(InstrumentState)
         self.filter = filter_ or '*'
