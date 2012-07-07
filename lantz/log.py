@@ -24,50 +24,65 @@ from socketserver import (ThreadingUDPServer, DatagramRequestHandler,
                           ThreadingTCPServer, StreamRequestHandler)
 
 
-from colorama import Fore, Back, Style
-
 from .stringparser import Parser
 
-LOGGER = logging.getLogger('lantz').addHandler(logging.NullHandler())
+LOGGER = logging.getLogger('lantz')
+LOGGER.addHandler(logging.NullHandler())
 
-SPLIT_COLOR = Parser('{0:s}<color>{1:s}</color>{2:s}')
-
-SCHEME = {
-    'bw': {logging.DEBUG: Style.NORMAL,
-           logging.INFO: Style.NORMAL,
-           logging.WARNING: Style.BRIGHT,
-           logging.ERROR: Style.BRIGHT,
-           logging.CRITICAL: Style.BRIGHT
-           },
-    'plain': {logging.DEBUG: Fore.BLUE + Style.BRIGHT,
-              logging.INFO: Back.WHITE + Fore.BLACK,
-              logging.WARNING: Fore.YELLOW + Style.BRIGHT,
-              logging.ERROR: Fore.RED + Style.BRIGHT,
-              logging.CRITICAL: Back.RED + Fore.WHITE + Style.BRIGHT
-              },
-    'whitebg': {logging.DEBUG: Fore.BLUE + Style.BRIGHT,
-                logging.INFO: Back.WHITE + Fore.BLACK,
-                logging.WARNING: Fore.YELLOW + Style.BRIGHT,
-                logging.ERROR: Fore.RED + Style.BRIGHT,
-                logging.CRITICAL: Back.RED + Fore.WHITE + Style.BRIGHT
-               },
-    'blackbg': {logging.DEBUG: Fore.BLUE + Style.BRIGHT,
-                logging.INFO: Fore.GREEN,
-                logging.WARNING: Fore.YELLOW + Style.BRIGHT,
-                logging.ERROR: Fore.RED + Style.BRIGHT,
-                logging.CRITICAL: Back.RED + Fore.WHITE + Style.BRIGHT
-               }
-}
+try:
+    from colorama import Fore, Back, Style, init as colorama_init
+    colorama_init()
+    colorama = True
+    DEFAULT_FMT = Style.NORMAL + '%(asctime)s <color>%(levelname)-8s</color>' + Style.RESET_ALL + ' %(message)s'
+except Exception as e:
+    LOGGER.info('Log will not be colorized. Could not import colorama: {}'.format(e))
+    colorama = False
+    DEFAULT_FMT = '%(asctime)s %(levelname)-8s %(message)s'
 
 
 class ColorizingFormatter(logging.Formatter):
-    """Color capable terminal handler.
+    """Color capable logging formatter.
 
     Use <color> </color> to enclose text to colorize.
     """
 
-    def __init__(self, scheme='blackbg', *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+    SPLIT_COLOR = Parser('{0:s}<color>{1:s}</color>{2:s}')
+
+    SCHEME = {'bw': {logging.DEBUG: '',
+                     logging.INFO: '',
+                     logging.WARNING: '',
+                     logging.ERROR: '',
+                     logging.CRITICAL: ''}
+             }
+
+    @classmethod
+    def add_color_schemes(cls):
+        cls.format = cls.color_format
+        cls.SCHEME.update(bright={DEBUG: Style.NORMAL,
+                                  INFO: Style.NORMAL,
+                                  WARNING: Style.BRIGHT,
+                                  ERROR: Style.BRIGHT,
+                                  CRITICAL: Style.BRIGHT},
+                          simple={DEBUG: Fore.BLUE + Style.BRIGHT,
+                                  INFO: Back.WHITE + Fore.BLACK,
+                                  WARNING: Fore.YELLOW + Style.BRIGHT,
+                                  ERROR: Fore.RED + Style.BRIGHT,
+                                  CRITICAL: Back.RED + Fore.WHITE + Style.BRIGHT},
+                          whitebg={DEBUG: Fore.BLUE + Style.BRIGHT,
+                                   INFO: Back.WHITE + Fore.BLACK,
+                                   WARNING: Fore.YELLOW + Style.BRIGHT,
+                                   ERROR: Fore.RED + Style.BRIGHT,
+                                   CRITICAL: Back.RED + Fore.WHITE + Style.BRIGHT},
+                          blackbg={DEBUG: Fore.BLUE + Style.BRIGHT,
+                                   INFO: Fore.GREEN,
+                                   WARNING: Fore.YELLOW + Style.BRIGHT,
+                                   ERROR: Fore.RED + Style.BRIGHT,
+                                   CRITICAL: Back.RED + Fore.WHITE + Style.BRIGHT}
+                          )
+
+    def __init__(self, fmt=DEFAULT_FMT, datefmt='%H:%M:%S', style='%', scheme='bw'):
+        super().__init__(fmt, datefmt, style)
         self.scheme = scheme
 
     @property
@@ -77,7 +92,7 @@ class ColorizingFormatter(logging.Formatter):
     @scheme.setter
     def scheme(self, value):
         if isinstance(value, str):
-            self._scheme = SCHEME[value]
+            self._scheme = self.SCHEME[value]
         else:
             self._scheme = value
 
@@ -90,17 +105,21 @@ class ColorizingFormatter(logging.Formatter):
 
         return message
 
-    def format(self, record):
+    def color_format(self, record):
         """Format record into string, colorizing the text enclosed
         within <color></color>
         """
         message = super().format(record)
         parts = message.split('\n', 1)
         if '<color>' in parts[0] and '</color>' in parts[0]:
-            bef, dur, aft = SPLIT_COLOR(parts[0])
+            bef, dur, aft = self.SPLIT_COLOR(parts[0])
             parts[0] = bef + self.colorize(dur, record) + aft
         message = '\n'.join(parts)
         return message
+
+
+if colorama:
+    ColorizingFormatter.add_color_schemes()
 
 
 class BaseServer(object):
@@ -206,7 +225,7 @@ class SocketListener(object):
     """Print incoming log recored to tcp and udp ports.
     """
 
-    def __init__(self, tcphost, udphost, level=logging.INFO):
+    def __init__(self, tcphost, udphost):
         self.tcp_addr = get_address(tcphost)
         self.udp_addr = get_address(udphost, DEFAULT_UDP_LOGGING_PORT)
         self.start()
@@ -248,7 +267,7 @@ def log_to_socket(level=logging.INFO, host='localhost',
     """
     logger = logging.getLogger('lantz')
     logger.setLevel(level)
-    logger.addHandler(SocketHandler(host, DEFAULT_TCP_LOGGING_PORT))
+    logger.addHandler(SocketHandler(host, port))
     return logger
 
 
@@ -256,12 +275,14 @@ def log_to_screen(level=logging.INFO, scheme='blackbg'):
     """Log all Lantz events to the screen with a colorized terminal
 
     :param level: logging level for the lantz handler
-    :param scheme: color scheme. Valid values are 'bg', 'plain', 'whitebg', 'blackg'
+    :param scheme: color scheme. Valid values are 'bw', 'bright', 'simple', 'whitebg', 'blackg'
     :return: lantz logger
     """
     logger = logging.getLogger('lantz')
     logger.setLevel(level)
     handler = logging.StreamHandler()
+    if not colorama:
+        scheme = 'bw'
     handler.setFormatter(ColorizingFormatter(scheme=scheme))
     logger.addHandler(handler)
     return logger
