@@ -23,6 +23,10 @@ class DimensionalityWarning(Warning):
     pass
 
 
+def _do_nothing(value):
+    return value
+
+
 def _getitem(a, b):
     """Return a[b] or if not found a[type(b)]
     """
@@ -167,13 +171,20 @@ class Processor(object):
 
     @classmethod
     def _to_callable(cls, obj):
-        if callable(obj) or obj is None:
+        if callable(obj):
             return obj
+        if obj is None:
+            return _do_nothing
         return cls.to_callable(obj)
 
     @classmethod
     def to_callable(cls, obj):
         raise TypeError('Preprocessor argument must callable, not {}'.format(obj))
+
+    def __len__(self):
+        if isinstance(self.processors, tuple):
+            return len(self.processor)
+        return 1
 
 
 class FromQuantityProcessor(Processor):
