@@ -13,7 +13,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     import lantz.log
-    lantz.log.log_to_socket(lantz.log.DEBUG)
+    lantz.log.log_to_screen(lantz.log.DEBUG)
 
     from lantz.drivers.examples import LantzSignalGenerator
     from lantz import Q_
@@ -33,9 +33,8 @@ if __name__ == '__main__':
             inst.frequency = 20 * Hz
             inst.output_enabled = True
             inst.waveform = 'sine'
-            inst.refresh_async()
+            inst.refresh()
             inst.dout[1] = True
             print(inst.dout[1])
             print(inst.din[2])
             inst.calibrate()
-
