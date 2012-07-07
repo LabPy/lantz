@@ -14,7 +14,15 @@ import sys
 import json
 import inspect
 import logging
-from docutils import core as doc_core
+
+try:
+    from docutils import core as doc_core
+except ImportError:
+    class doc_core(object):
+
+        @staticmethod
+        def publish_parts(rst, *args, **kwargs):
+            return rst
 
 from Qt.QtCore import QVariant, Qt, QSize, Slot, Signal, Property
 from Qt.QtGui import (QApplication, QDialog, QWidget, QFont, QSizePolicy,
@@ -690,7 +698,7 @@ def start_test_app(target, width=500, *args):
         main = DriverTestWidget(None, target)
     else:
         main = SetupTestWidget(None, target)
-    main.setMinimumWidth(500)
+    main.setMinimumWidth(width)
     main.setWindowTitle('Lantz Driver Test Panel')
     main.show()
     if sys.platform.startswith('darwin'):
