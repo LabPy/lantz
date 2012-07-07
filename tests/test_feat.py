@@ -26,6 +26,11 @@ class FeatTest(unittest.TestCase):
         precision.
         """
 
+        if isinstance(q1, (list, tuple)):
+            for first, second in zip(q1, q2):
+                self.assertQuantityEqual(first, second)
+            return
+
         delta = 1e-5 if delta is None else delta
         msg = '' if msg is None else ' (%s)' % msg
 
@@ -137,6 +142,8 @@ class FeatTest(unittest.TestCase):
         self.assertEqual(obj.eggs, 2)
         self.assertRaises(ValueError, setattr, obj, "eggs", 11)
         self.assertRaises(ValueError, setattr, obj, "eggs", 0)
+
+    def test_limits_tuple(self):
 
         class Spam(Driver):
 
@@ -276,7 +283,7 @@ class FeatTest(unittest.TestCase):
         self.assertEqual(setattr(obj, "eggs_adim",3), None)
         self.assertQuantityEqual(obj.eggs_adim, 3)
 
-    def test_tuplify_and_units(self):
+    def test_units_tuple(self):
 
         hdl = MemHandler()
 
@@ -297,11 +304,33 @@ class FeatTest(unittest.TestCase):
             def eggs(self_, values):
                 self_._eggs = values
 
+        class Spam2(Driver):
+            _logger = logging.getLogger('test.feat')
+            _logger.addHandler(hdl)
+            _logger.setLevel(logging.DEBUG)
+
+            _eggs = (8, 1)
+
+            # Transform each element of the return vector
+            # based on the set signature
+            @Feat(units=('s', None))
+            def eggs(self_):
+                return self_._eggs
+
+            @eggs.setter
+            def eggs(self_, values):
+                self_._eggs = values
+
         obj = Spam()
         self.assertQuantityEqual(obj.eggs, (Q_(8, 's'),  Q_(1, 's')))
         self.assertEqual(setattr(obj, "eggs", (Q_(3, 'ms'), Q_(4, 'ms'))), None)
         self.assertQuantityEqual(obj.eggs, (Q_(3 / 1000, 's'), Q_(4 / 1000, 's')))
         self.assertEqual(setattr(obj, "eggs", (3, 1)), None)
+
+        obj = Spam2()
+        self.assertQuantityEqual(obj.eggs, (Q_(8, 's'),  1))
+        self.assertEqual(setattr(obj, "eggs", (Q_(3, 'ms'), 4)), None)
+        self.assertQuantityEqual(obj.eggs, (Q_(3 / 1000, 's'), 4))
 
     def test_ofinstance(self):
 
