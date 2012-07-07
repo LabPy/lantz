@@ -2,6 +2,7 @@ import unittest
 from time import sleep
 
 from lantz import Driver, Feat, DictFeat, Action, Q_
+from lantz.feat import MISSING
 
 SLEEP = .1
 WAIT = .2
@@ -15,7 +16,7 @@ class aDriver(Driver):
         self._eggs = None
         self._ham = None
 
-    @Feat
+    @Feat()
     def eggs(self):
         if self.slow:
             sleep(SLEEP)
@@ -27,7 +28,7 @@ class aDriver(Driver):
             sleep(SLEEP)
         self._eggs = value
 
-    @Feat
+    @Feat()
     def ham(self):
         if self.slow:
             sleep(SLEEP)
@@ -166,21 +167,157 @@ class DriverTest(unittest.TestCase):
         fut = obj.refresh_async({'eggs': None, 'ham': None})
         self.assertEqual(fut.result(), {'eggs': 3, 'ham': 23})
 
-    def test_action(self):
-        obj = aDriver()
-        self.assertEqual(obj.run(), 42)
-        self.assertEqual(obj.run2(2), 42 * 2)
-        self.assertEqual(obj.run3(3), 42 * 3)
-        self.assertEqual(obj.run4(Q_(3, 'ms')), 3)
-        self.assertEqual(obj.run4(Q_(3, 's')), 3000)
+    def test_derived_class(self):
 
-    def test_action_async(self):
-        obj = aDriver()
-        fut = obj.run_async()
-        self.assertEqual(fut.result(), 42)
-        fut = obj.run2_async(2)
-        self.assertEqual(fut.result(), 42 * 2)
+        class X(Driver):
 
+            _val1 = 1
+
+            @Feat()
+            def feat1(self):
+                return 'feat1'
+
+            @Feat()
+            def val1(self):
+                return self._val1
+
+            @val1.setter
+            def val1(self, value):
+                self._val1 = value
+
+            @Action()
+            def action1(self):
+                return 'action1'
+
+        class Y(X):
+
+            _val2 = 1
+
+            @Feat()
+            def feat2(self):
+                return 'feat2'
+
+            @Feat()
+            def val2(self):
+                return self._val2
+
+            @val2.setter
+            def val2(self, value):
+                self._val2 = value
+
+            @Action()
+            def action2(self):
+                return 'action2'
+
+        class Z(X):
+
+            @Feat()
+            def feat1(self):
+                return super().feat1 + ' in Z'
+
+            @Feat()
+            def val1(self):
+                return super().val1
+
+            @val1.setter
+            def val1(self, value):
+                self._val1 = 2 * value
+
+            @Action()
+            def action1(self):
+                return super().action1() + ' in Z'
+
+        class N(X):
+            pass
+
+        x = X()
+        y = Y()
+        z = Z()
+        n = N()
+        self.assertEqual(set(x._lantz_features.keys()), {'feat1', 'val1'})
+        self.assertEqual(set(y._lantz_features.keys()), {'feat1', 'feat2', 'val1', 'val2'})
+        self.assertEqual(set(z._lantz_features.keys()), {'feat1', 'val1'})
+        self.assertEqual(set(n._lantz_features.keys()), {'feat1', 'val1'})
+
+        self.assertEqual(set(x._lantz_actions.keys()), {'action1', })
+        self.assertEqual(set(y._lantz_actions.keys()), {'action1', 'action2'})
+        self.assertEqual(set(z._lantz_actions.keys()), {'action1', })
+        self.assertEqual(set(n._lantz_actions.keys()), {'action1', })
+
+        self.assertEqual(x.refresh(), {'feat1': 'feat1', 'val1': 1})
+        x.val1 = 2
+        self.assertEqual(x.refresh(), {'feat1': 'feat1', 'val1': 2})
+
+        self.assertEqual(y.refresh(), {'feat1': 'feat1', 'feat2': 'feat2', 'val1': 1, 'val2': 1})
+        y.val2 = 2
+        self.assertEqual(y.refresh(), {'feat1': 'feat1', 'feat2': 'feat2', 'val1': 1, 'val2': 2})
+
+        self.assertEqual(z.refresh(), {'feat1': 'feat1 in Z', 'val1': 1})
+        z.val1 = 2
+        self.assertEqual(z.refresh(), {'feat1': 'feat1 in Z', 'val1': 4})
+
+        self.assertEqual(n.refresh(), {'feat1': 'feat1', 'val1': 1})
+
+        self.assertEqual(x.action1(), 'action1')
+        self.assertEqual(y.action1(), 'action1')
+        self.assertEqual(y.action2(), 'action2')
+        self.assertEqual(z.action1(), 'action1 in Z')
+        self.assertEqual(n.action1(), 'action1')
+
+    def test_derived_class_post(self):
+
+        class X(object):
+
+            @Feat()
+            def feat1(self):
+                return 'feat1'
+
+            @Action()
+            def action1(self):
+                return 'action1'
+
+        class Y(X, Driver):
+
+            @Feat()
+            def feat2(self):
+                return 'feat2'
+
+            @Action()
+            def action2(self):
+                return 'action2'
+
+        class Z(X, Driver):
+
+            @Feat()
+            def feat1(self):
+                return super().feat1 + ' in Z'
+
+            @Action()
+            def action1(self):
+                return super().action1() + ' in Z'
+
+        class N(X, Driver):
+            pass
+
+        y = Y()
+        z = Z()
+        n = N()
+        self.assertEqual(set(y._lantz_features.keys()), {'feat1', 'feat2'})
+        self.assertEqual(set(z._lantz_features.keys()), {'feat1', })
+        self.assertEqual(set(n._lantz_features.keys()), {'feat1', })
+
+        self.assertEqual(set(y._lantz_actions.keys()), {'action1', 'action2'})
+        self.assertEqual(set(z._lantz_actions.keys()), {'action1', })
+        self.assertEqual(set(n._lantz_actions.keys()), {'action1', })
+
+        self.assertEqual(y.refresh(), {'feat1': 'feat1', 'feat2': 'feat2'})
+        self.assertEqual(z.refresh(), {'feat1': 'feat1 in Z'})
+        self.assertEqual(n.refresh(), {'feat1': 'feat1'})
+
+        self.assertEqual(y.action1(), 'action1')
+        self.assertEqual(y.action2(), 'action2')
+        self.assertEqual(z.action1(), 'action1 in Z')
+        self.assertEqual(n.action1(), 'action1')
 
 if __name__ == '__main__':
     unittest.main()
