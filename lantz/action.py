@@ -11,10 +11,11 @@
 """
 
 import time
+import inspect
 import functools
 
 from .processors import (Processor, ToQuantityProcessor, FromQuantityProcessor,
-                         MapProcessor, ReverseMapProcessor)
+                         MapProcessor, ReverseMapProcessor, RangeProcessor)
 
 
 class Action(object):
@@ -37,59 +38,58 @@ class Action(object):
 
     """
 
-    def __init__(self, func=None, *, values=None, units=None, limits=None, procs=None):
+    def __init__(self, func = None, *, values=None, units=None, limits=None, procs=None):
         self.values = values
         self.units = units
         self.limits = limits
         self.processors = procs
-        self.func = None
-        if func:
-            self.__call__(func)
-
-    def decorate(self, func, instance):
-        def decorated_function(*args, **kwargs):
-            out = func(instance, *args, **kwargs)
-            return out
-        return functools.update_wrapper(decorated_function, func)
+        self.func = func
+        self.args = None
 
     def __call__(self, func):
         self.func = func
+        self.args = inspect.getfullargspec(func).args
+        self.__name__ = func.__name__
         self.__doc__ = func.__doc__
+        self.rebuild()
         return self
 
     def __get__(self, instance, owner=None):
-        if instance is None:
-            return self
-        rv = instance.__dict__.get(self.func.__name__)
-        if rv is None:
-            rv = self.decorate(self.func, instance)
-            instance.__dict__[self.func.__name__] = rv
-        return rv
+        return functools.partial(self.call, instance)
 
-    def call(self, *args, **kwargs):
-        name = self.name
+    def call(self, instance, *args, **kwargs):
+        name = self.__name__
 
         # This part calls to the underlying function wrapping
         # and timing, logging and error handling
         with instance._lock:
-            instance.log_info('Calling {0} with ({}, {}))'.format(name, args, kwargs))
+            instance.log_info('Calling {} with ({}, {}))'.format(name, args, kwargs))
 
             try:
-                t_value = self.pre_action(*args, **kwargs)
+                values = inspect.getcallargs(self.func, *(instance, ) + args, **kwargs)
+                fargs = self.args
+                values = tuple(values[farg] for farg in fargs)[1:]
+                if len(values) == 1:
+                    t_values = (self.pre_action(values[0]), )
+                else:
+                    t_values = self.pre_action(values)
             except Exception as e:
-                self.log_error('Error while calling {}'.format(e))
+                instance.log_error('While pre-processing ({}, {}) for {}: {}'.format(args, kwargs, name, e))
                 raise e
+            instance.log_debug('(raw) Setting {} = {}'.format(name, t_values))
 
             try:
                 tic = time.time()
-                out = self.func(self, *t_value)
+                out = self.func(instance, *t_values)
             except Exception as e:
-                self.log_error('Error while calling {}'.format(e))
+                instance.log_error('While calling {} with {}. {}'.format(name, t_values, e))
                 raise e
 
             instance.timing.add(name, time.time() - tic)
 
             instance.log_info('{} returned {}'.format(name, out))
+
+        return out
 
     def pre_action(self, value):
         for processor in self.action_processors:
@@ -98,10 +98,43 @@ class Action(object):
 
     def rebuild(self):
         self.action_processors = []
+        largs = len(self.args) - 1
+        name = self.__name__
+
         if self.values:
-            self.processors.append(MapProcessor(self.values))
+            proc = MapProcessor(self.values)
+            lproc = len(proc) if isinstance(proc, Processor) else 1
+            if lproc != largs:
+                raise ValueError("In {}: the number of elements in 'values' ({}) "
+                                 "must match the number of arguments ({})".format(name, lproc, largs))
+            self.action_processors.append(proc)
+
         if self.units:
-            self.action_processors.append(FromQuantityProcessor(self.units))
+            proc = FromQuantityProcessor(self.units)
+            lproc = len(proc) if isinstance(proc, Processor) else 1
+            if lproc != largs:
+                raise ValueError("In {}: the number of elements in 'units' ({}) "
+                                 "must match the number of arguments ({})".format(name, lproc, largs))
+            self.action_processors.append(proc)
+
+        if self.limits:
+            if isinstance(self.limits[0], (list, tuple)):
+                proc = RangeProcessor(self.limits)
+            else:
+                proc = RangeProcessor((self.limits, ))
+
+            lproc = len(proc) if isinstance(proc, Processor) else 1
+            if lproc != largs:
+                raise ValueError("In {}: the number of elements in 'limits' ({}) "
+                                 "must match the number of arguments ({})".format(name, lproc, largs))
+
+            self.action_processors.append(proc)
+
         if self.processors:
-            for proc in self.processors:
-                self.action_processors.append(Processor(proc))
+            for processor in self.processors:
+                proc = Processor(processor)
+                lproc = len(proc) if isinstance(proc, Processor) else 1
+                if lproc != largs:
+                    raise ValueError("In {}: the number of elements in 'processor' ({}) "
+                                     "must match the number of arguments ({})".format(name, len(proc), largs))
+                self.action_processors.append(proc)
