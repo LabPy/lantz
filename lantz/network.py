@@ -30,6 +30,8 @@ class TCPDriver(TextualMixin, Driver):
     RECV_TERMINATION = '\n'
     SEND_TERMINATION = '\n'
 
+    RECV_CHUNK = 1024
+
     def __init__(self, host='localhost', port=9997, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,7 +48,7 @@ class TCPDriver(TextualMixin, Driver):
         except socket.timeout as e:
             raise LantzSocketTimeoutError(str(e))
 
-    def raw_recv(self, size=1024):
+    def raw_recv(self, size):
         """Receive raw bytes to the instrument.
 
         :param size: number of bytes to receive.
@@ -54,7 +56,7 @@ class TCPDriver(TextualMixin, Driver):
         :return type: bytes.
         """
         try:
-            return self.socket.recv(1024)
+            return self.socket.recv(size)
         except socket.timeout as e:
             raise LantzSocketTimeoutError(str(e))
 

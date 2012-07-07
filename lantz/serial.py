@@ -55,6 +55,9 @@ class SerialDriver(TextualMixin, Driver):
     SEND_TERMINATION = ''
     ENCODING = 'ascii'
 
+    #: -1 is mapped to get the number of bytes pending.
+    RECV_CHUNK = -1
+
     #: comunication parameters
     BAUDRATE = 9600
     BYTESIZE = 8
@@ -96,7 +99,7 @@ class SerialDriver(TextualMixin, Driver):
         except serial.SerialTimeoutException as e:
             raise LantzSerialTimeoutError(str(e))
 
-    def raw_recv(self, size=-1):
+    def raw_recv(self, size):
         """Receive raw bytes to the instrument.
 
         :param size: number of bytes to receive

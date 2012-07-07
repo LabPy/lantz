@@ -60,6 +60,8 @@ class MessageVisaDriver(TextualMixin, Driver):
     SEND_TERMINATION = '\n'
     ENCODING = 'ascii'
 
+    RECV_CHUNK = -1
+
     def __init__(self, resource_name, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -89,7 +91,7 @@ class MessageVisaDriver(TextualMixin, Driver):
         except Exception as e:
             raise Exception(str(e))
 
-    def raw_recv(self, size=-1):
+    def raw_recv(self, size):
         """Receive raw bytes to the instrument.
 
         :param size: number of bytes to receive
