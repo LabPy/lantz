@@ -68,6 +68,7 @@ class _DriverType(type):
     """
 
     def __init__(cls, classname, bases, class_dict):
+        super().__init__(classname, bases, class_dict)
         feats = dict()
         actions = dict()
         dicts = [class_dict, ] + [base.__dict__ for base in bases
@@ -80,17 +81,25 @@ class _DriverType(type):
                     value.rebuild()
                 elif isinstance(value, Action):
                     value.rebuild()
-                    actions[key + '_async'] = repartial_submit(key)
-                    actions[key + '_async'].__doc__ = '(Async) ' + value.__doc__ if value.__doc__ else ''
+                    actions[key] = value
 
-        if hasattr(cls, '_lantz_features') and cls is Driver:
+        for key, action in actions.items():
+            async_action = repartial_submit(key)
+            async_action.__doc__ = '(Async) ' + action.__doc__ if action.__doc__ else ''
+            setattr(cls, key + '_async', async_action)
+
+        if hasattr(cls, '_lantz_features'):
             feats.update(cls._lantz_features)
-            cls._lantz_features.update = feats
+            cls._lantz_features = feats
         else:
             cls._lantz_features = feats
 
-        for key, action in actions.items():
-            setattr(cls, key, action)
+        if hasattr(cls, '_lantz_actions'):
+            actions.update(cls._lantz_actions)
+            cls._lantz_actions = actions
+        else:
+            cls._lantz_actions = actions
+
 
 _REGISTERED = defaultdict(int)
 
@@ -228,12 +237,10 @@ class Driver(metaclass=_DriverType):
     def __str__(self):
         classname = self.__class__.__name__
         return "{} {}".format(classname, self.name)
-        return self.__str
 
     def __repr__(self):
         classname = self.__class__.__name__
         return "<{}('{}')>".format(classname, self.name)
-        return self.__repr
 
     def __enter__(self):
         self.initialize()
@@ -304,7 +311,10 @@ class Driver(metaclass=_DriverType):
                 return tuple(getattr(self, key) for key in keys)
             elif isinstance(keys, dict):
                 return {key: getattr(self, key) for key in keys.keys()}
-            return getattr(self, keys)
+            elif isinstance(keys, str):
+                return getattr(self, keys)
+            else:
+                raise ValueError('keys must be a (str, list, tuple or dict)')
         return {key: getattr(self, key) for key in self._lantz_features}
 
     def refresh_async(self, keys=None, *, callback=None):

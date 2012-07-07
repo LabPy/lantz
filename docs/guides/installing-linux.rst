@@ -1,4 +1,4 @@
-.. _installing:
+.. _installing-linux:
 
 Building your development environment
 =====================================
@@ -28,7 +28,7 @@ Some lantz submodules have other requirements::
 Linux
 -----
 
-Open a terminal and change to the folder where you will create your virtual environemnt. In this case, we have chosen the home directory::
+Open a terminal and change to the folder where you will create your virtual environment. In this case, we have chosen the home directory::
 
     $ cd ~
     $ virtualenv -p python3 lantzenv
