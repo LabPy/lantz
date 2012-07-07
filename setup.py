@@ -9,6 +9,9 @@ setup(name='Lantz',
       author_email='hernan.grecco@gmail.com',
       url='',
       packages=['lantz'],
-     )
-
-# Requirements colorama, quantities
+      extras_require = {
+                        'colorama':  ['colorama'],
+                        'numpy': ['numpy'],
+                        'ui': ['sip', 'pyqt4']
+                        }
+)
