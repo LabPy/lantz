@@ -15,4 +15,4 @@
 
 from .ixbx import IX2, BX2A, IXBX
 
-__all__ = ['IX2', 'BX2', 'IXBX']
+__all__ = ['IX2', 'BX2A', 'IXBX']

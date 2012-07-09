@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.pi
-    ~~~~~~~~~~~~~~~~
+    lantz.drivers.tektronix
+    ~~~~~~~~~~~~~~~~~~~~~~~
 
     :company: Tektronix.
     :description: Test and Measurement Equipment.

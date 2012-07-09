@@ -1,20 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.aa.aotf
-    ~~~~~~~~~~~~~~~~~~~~~
+    lantz.drivers.aeroflex.a2023a
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    Implements the drivers for an AOTF Controller
+    Implements the drivers for an signal generator.
 
-
-    Implementation notes
-    --------------------
-
-    There are currently two (disconnected) ways of setting the power for each
-    line: powerdb and power.
 
     Sources::
 
-        - MDSnC Manual
+        - Aeroflex 2023a Manual.
 
     :copyright: © 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.

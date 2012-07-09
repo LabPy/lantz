@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-
     lantz.drivers.olympus.ixbx
     ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -37,10 +36,10 @@ IN_OUT = {True: 'IN', False: 'OUT'}
 CLOSED_OPEN = {True: 'IN', False: 'OUT'}
 ONE_ZERO = {True: '1', False: '0'}
 ONE_TWO = {True: '1', False: '2'}
-INT = {int: str}
 FH_FRM = {True: 'FH', False: 'FRM'}
 EPI_DIA = {True: 'EPI', False: 'DIA'}
 
+INTSTR = (int, str)
 
 def ofeat(command, doc, **kwargs):
     """Build Feat
@@ -107,7 +106,7 @@ class IXBX(SerialDriver):
 
     lamp_epi_enabled = ofeat('1LMPSEL',
                              'Illumination source lamp.',
-                             map = EPI_DIA)
+                             values=EPI_DIA)
 
     lamp_enabled = ofeat('1LMPSW',
                          'Turn the currently selected lamp onf and off',
@@ -115,7 +114,7 @@ class IXBX(SerialDriver):
 
     lamp_intensity = ofeat('1LMP',
                            'Transmitted light intensity',
-                           values=INT)
+                           procs=(INTSTR, ))
 
     def lamp_status(self):
         #LMPSTS OK, X
@@ -123,7 +122,7 @@ class IXBX(SerialDriver):
 
     objective = ofeat('1OB',
                       'Objective nosepiece position',
-                      values={int: str})
+                      procs=(INTSTR, ))
 
     body_locked = ofeat('1LOG',
                         'Turn the currently selected lamp on and off',
@@ -150,7 +149,7 @@ class IXBX(SerialDriver):
                                   values=ON_OFF)
 
     jog_enabled = ofeat('JOG', 'Jog enabled', values=ON_OFF)
-    jog_sensitivity = ofeat('JOGSNS',' Jog sensitivity', values=INT)
+    jog_sensitivity = ofeat('JOGSNS',' Jog sensitivity', procs=(INTSTR, ))
     jog_dial = ofeat('JOGSEL', 'Jog selection (Handle/BLA) ???', values=FH_FRM)
     jog_limit_enabled = ofeat('joglmt', 'Jog limit enabled', values=ON_OFF)
 
@@ -200,30 +199,30 @@ class IXBX(SerialDriver):
         pass
 
 
-class IX2(_CommonIXBX, SerialDriver):
-    """ IX2 Body
+class IX2(IXBX):
+    """ Olympus IX2 Body
     """
 
     bottom_port_closed = ofeat('1BPORT', 'Bottom port', values=CLOSED_OPEN)
 
-    shutter1_closed = ofeat('SHUT1' 'Shutter', values=IN_OUT)
+    shutter1_closed = ofeat('SHUT1', 'Shutter', values=IN_OUT)
     shutter2_closed = ofeat('SHUT2', 'Shutter', values=IN_OUT)
 
-    filter_wheel = ofeat('FW', 'Filter wheel position', values=INT)
-    condensor = ofeat('CD', 'Condensor position', values=INT)
-    mirror_unit = ofeat('MU', 'Mirror unit position', values=INT)
+    filter_wheel = ofeat('FW', 'Filter wheel position', procs=(INTSTR, ))
+    condensor = ofeat('CD', 'Condensor position', procs=(INTSTR, ))
+    mirror_unit = ofeat('MU', 'Mirror unit position', procs=(INTSTR, ))
     camera_port_enabled= ofeat('PRISM', 'Prism position', values=ONE_TWO)
 
 
-class BX2A(_CommonIXBX, SerialDriver):
-    """ BX2A Body
+class BX2A(IXBX):
+    """ Olympus BX2A Body
     """
 
     shutter_closed = ofeat('SHUTTER', 'Shutter RFAA', values=IN_OUT)
-    aperture_stop_diameter = ofeat('EAS', 'Aperture stop diameter (EPI AS RLAA', values=INT)
-    aperture_stop_diameter = ofeat('DAS', 'Aperture stop diameter (DIA AS UCD', values=INT)
+    aperture_stop_diameter = ofeat('EAS', 'Aperture stop diameter (EPI AS RLAA)', procs=(INTSTR, ))
+    aperture_stop_diameter = ofeat('DAS', 'Aperture stop diameter (DIA AS UCD)', procs=(INTSTR, ))
     condenser_top_lens_enabled = ofeat('CDTOP', 'Condenser top lens (UCD)', values=IN_OUT)
-    turret = ofeat('TURRET', 'Turret position (UCD)', values=INT)
-    cube = ofeat('CUBE', 'Cube position (RFAA/RLAA)', values=INT)
-    configure_filterwheel = ofeat('FW', 'Configure filterwheel', values=INT)
+    turret = ofeat('TURRET', 'Turret position (UCD)', procs=(INTSTR, ))
+    cube = ofeat('CUBE', 'Cube position (RFAA/RLAA)', procs=(INTSTR, ))
+    configure_filterwheel = ofeat('FW', 'Configure filterwheel', procs=(INTSTR, ))
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.driver.pi.lambda103
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    lantz.drivers.sutter.lambda103
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Implements the drivers to control a filter wheel.
 

@@ -1,3 +1,20 @@
+# -*- coding: utf-8 -*-
+"""
+    lantz.drivers.andor.neo
+    ~~~~~~~~~~~~~~~~~~~~~~~
+
+    Implements a high level driver for the Andor Neo CMOS Camera
+
+
+    Sources::
+
+        - Andor Neo Manual
+
+    :copyright: © 2012 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
+"""
+
+
 import ctypes as ct
 
 import numpy as np
@@ -8,7 +25,7 @@ from lantz.foreign import RetStr, RetTuple
 from .andor import Andor
 
 class Neo(Andor):
-    """Basic Neo Andor Camera
+    """Neo Andor CMOS Camera
     """
 
     def initialize(self):

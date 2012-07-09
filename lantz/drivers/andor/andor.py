@@ -1,3 +1,19 @@
+# -*- coding: utf-8 -*-
+"""
+    lantz.drivers.andor.andor
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    Low level driver wrapping atcore andor library.
+
+
+    Sources::
+
+        - Andor Manual
+
+    :copyright: © 2012 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
+"""
+
 import ctypes as ct
 
 from lantz import Driver, Feat, Action

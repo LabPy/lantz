@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.pi
-    ~~~~~~~~~~~~~~~~
+    lantz.drivers.sutter
+    ~~~~~~~~~~~~~~~~~~~~
 
     :company: Sutter Instrument.
     :description: Biomedical and scientific instrumentation.

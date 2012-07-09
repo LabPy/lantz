@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.driver.tektronix.tds2024b
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    lantz.drivers.tektronix.tds2024b
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Implements the drivers to control an oscilloscope.
 
