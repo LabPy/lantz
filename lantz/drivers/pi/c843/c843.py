@@ -221,8 +221,8 @@ class C843(object):
         length = 128
         errmsg = (ct.c_char * length)()
         error = self.stage.C843_GetError(self.ild)
-        self.stage.C843_TranslateError(ct.c_int(error),\
-                                    errmsg, ct.c_int(length - 1))
+        self.stage.C843_TranslateError(ct.c_int(error),
+                                       errmsg, ct.c_int(length - 1))
         return errmsg[:]
 
     def qspa(self, ax, param):
@@ -258,6 +258,6 @@ class C843(object):
         stagenames = (ct.c_char * 1)()
         length = ct.c_int(1)
         state = ct.c_bool(0)
-        error = self.stage.C843_qSPA(self.ild,\
-                        axes, params, values, stagenames, length)
+        error = self.stage.C843_qSPA(self.ild,
+                                     axes, params, values, stagenames, length)
         return "Stage {} {} : {}".format(ax, _params[param], values[0])

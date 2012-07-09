@@ -17,8 +17,8 @@
 
         - Innova 300C Manual
 
-    :copyright: Copyright 2012 by the Lantz team, see AUTHORS.
-    :license:
+    :copyright: © 2012 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
 
 """
 

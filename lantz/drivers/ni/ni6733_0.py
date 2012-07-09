@@ -63,7 +63,7 @@ class WaveformThread( threading.Thread ):
                                 DAQmx_Val_Rising,
                                 DAQmx_Val_FiniteSamps,
                                 #DAQmx_Val_ContSamps,
-                                uInt64(self.periodLength)));
+                                uInt64(self.periodLength)))
         self.CHK(nidaq.DAQmxWriteAnalogF64( self.taskHandle,
                               int32(self.periodLength),
                               0,

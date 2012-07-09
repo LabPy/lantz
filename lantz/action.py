@@ -6,7 +6,7 @@
     Implements the Action class to wrap driver bound methods with Lantz's
     data handling, logging, timing.
 
-    :copyright: (c) 2011 by Lantz Authors, see AUTHORS for more details.
+    :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 

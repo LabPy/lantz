@@ -6,7 +6,7 @@
     Implements Feat and DictFeat property-like classes with data handling,
     logging, timing, cache and notification.
 
-    :copyright: (c) 2011 by Lantz Authors, see AUTHORS for more details.
+    :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 

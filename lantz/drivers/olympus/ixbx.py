@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 
     lantz.drivers.olympus.ixbx
@@ -17,7 +18,7 @@
         - Lantz reverse engineering
 
 
-    :copyright: (c) 2011 by Lantz Authors, see AUTHORS for more details.
+    :copyright: © 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 
 """
@@ -135,7 +136,7 @@ class IXBX(SerialDriver):
     def soft_limits(self):
         near = self.query('2NEARLMT?')
         far = self.query('2FARLMT?')
-        return (near, far)
+        return near, far
 
     @soft_limits.setter
     def soft_limits(self, near, far):

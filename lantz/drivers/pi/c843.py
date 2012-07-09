@@ -319,7 +319,7 @@ while inp != 'quit':
     try:
         target_position = float(inp)
         if chan in (1,2,3):
-            if target_position <= 14 and target_position >= 0:
+            if 0 <= target_position <= 14:
                 stage.mov(chan, target_position)
                 stage.geterror()
                 sleep(1)

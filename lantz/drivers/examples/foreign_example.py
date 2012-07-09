@@ -5,7 +5,7 @@
 
     Foreign library example.
 
-    :copyright: © 2011 by Lantz Authors, see AUTHORS for more details.
+    :copyright: © 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -15,7 +15,9 @@ from lantz import Feat, Action, DictFeat
 from lantz.foreign import LibraryDriver
 from lantz.errors import InstrumentError
 
-class ForeignExample(LibraryDriver):
+class ForeignTemplate(LibraryDriver):
+    """Template for Drivers using a library.
+    """
 
     LIBRARY_NAME = 'mylibrary.dll'
 

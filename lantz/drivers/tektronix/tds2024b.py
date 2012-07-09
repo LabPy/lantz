@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+    lantz.driver.tektronix.tds2024b
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    Implements the drivers to control an oscilloscope.
+
+    :copyright: © 2012 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
+"""
 
 from numpy import array, arange
 

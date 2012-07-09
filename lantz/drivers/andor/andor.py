@@ -231,7 +231,7 @@ if __name__ == '__main__':
 
         imagesizebytes = andor.getint("ImageSizeBytes")
 
-        userbuffer = ct.create_string_buffer(' ' * imagesizebytes);
+        userbuffer = ct.create_string_buffer(' ' * imagesizebytes)
         andor.queuebuffer(userbuffer, imagesizebytes)
 
         imsize = ct.c_int(1)

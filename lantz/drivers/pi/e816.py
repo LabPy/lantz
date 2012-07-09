@@ -30,7 +30,7 @@
         - PZ116E User Manual / E-816 Computer Interface and Command Interpreter
         - PZ120E Software Manual / E-816 Windows GCS DLL
 
-    :copyright: © 2011 by Lantz Authors, see AUTHORS for more details.
+    :copyright: © 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 

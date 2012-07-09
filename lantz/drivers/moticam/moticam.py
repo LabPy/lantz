@@ -9,6 +9,7 @@ class Moticam(object):
         self.cam = ct.WinDLL("MUCam32.dll")
 
     def camerafinder(self):
+        pass
 
 
 

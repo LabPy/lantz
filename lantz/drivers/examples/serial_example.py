@@ -5,7 +5,7 @@
 
     Serial example.
 
-    :copyright: © 2011 by Lantz Authors, see AUTHORS for more details.
+    :copyright: © 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -13,7 +13,7 @@ from lantz import Action, Feat, DictFeat
 from lantz.serial import SerialDriver
 
 class SerialTemplate(SerialDriver):
-    """MDSnC synthesizer for AOTF.nC
+    """Template for drivers connecting via serial port.
     """
 
     ENCODING = 'ascii'

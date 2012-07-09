@@ -5,7 +5,7 @@
 
     Implements a base class for drivers that communicate with instruments via TCP.
 
-    :copyright: (c) 2011 by Lantz Authors, see AUTHORS for more details.
+    :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
