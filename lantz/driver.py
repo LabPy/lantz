@@ -178,7 +178,7 @@ class Driver(metaclass=_DriverType):
     unfinished_tasks = property(lambda self: self.__unfinished_tasks)
 
     def log(self, level, msg, *args, **kwargs):
-        """Log msg.format(*args, **kwargs) with the integer severity 'level'
+        """Log with the integer severity 'level'
         on the logger corresponding to this instrument.
 
         :param level: severity level for this event.
@@ -191,7 +191,7 @@ class Driver(metaclass=_DriverType):
             logger.log(level, msg, *args, extra=self.log_extra)
 
     def log_info(self, msg, *args, **kwargs):
-        """Log msg.format(*args, **kwargs) with the severity 'INFO'
+        """Log with the severity 'INFO'
         on the logger corresponding to this instrument.
 
         :param msg: message to be logged (can contain PEP3101 formatting codes)
@@ -199,7 +199,7 @@ class Driver(metaclass=_DriverType):
         self.log(logging.INFO, msg, *args, **kwargs)
 
     def log_debug(self, msg, *args, **kwargs):
-        """Log msg.format(*args, **kwargs) with the severity 'DEBUG'
+        """Log with the severity 'DEBUG'
         on the logger corresponding to this instrument.
 
         :param msg: message to be logged (can contain PEP3101 formatting codes)
@@ -208,7 +208,7 @@ class Driver(metaclass=_DriverType):
         self.log(logging.DEBUG, msg, *args, **kwargs)
 
     def log_error(self, msg, *args, **kwargs):
-        """Log msg.format(*args, **kwargs) with the severity 'ERROR'
+        """Log with the severity 'ERROR'
         on the logger corresponding to this instrument.
 
         :param msg: message to be logged (can contain PEP3101 formatting codes)
@@ -217,7 +217,7 @@ class Driver(metaclass=_DriverType):
         self.log(logging.ERROR, msg, *args, **kwargs)
 
     def log_warning(self, msg, *args, **kwargs):
-        """Log msg.format(*args, **kwargs) with the severity 'WARNING'
+        """Log with the severity 'WARNING'
         on the logger corresponding to this instrument.
 
         :param msg: message to be logged (can contain PEP3101 formatting codes)
@@ -226,7 +226,7 @@ class Driver(metaclass=_DriverType):
         self.log(logging.WARNING, msg, *args, **kwargs)
 
     def log_critical(self, msg, *args, **kwargs):
-        """Log msg.format(*args, **kwargs) with the severity 'CRITICAL'
+        """Log with the severity 'CRITICAL'
         on the logger corresponding to this instrument.
 
         :param msg: message to be logged (can contain PEP3101 formatting codes)

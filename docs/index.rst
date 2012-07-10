@@ -19,41 +19,55 @@ Lantz aim to provide a library of curated and well documented instruments driver
 Content
 =======
 
-    :ref:`about`
-    Lantz Philosophy and design principles.
+    | :ref:`about`
+    | Lantz Philosophy and design principles.
+    |
+    | :ref:`overview`
+    | A short tour of Lantz features.
+    |
+    | :ref:`tutorials`
+    | Step-by-step instructions to use Lantz.
+    |
+    | :ref:`guides`
+    | Task oriented guides.
+    |
+    | :ref:`faq`
+    | Frequently asked questions and their answers.
+    |
+    | :ref:`drivers`
+    | List of Lantz drivers.
+    |
+    | :ref:`api`
+    | Application programming interface reference.
+    |
+    | :ref:`contributing`
+    | We need your brain.
 
-    :ref:`overview`
-    A short tour of Lantz features.
 
-    :ref:`installing`
-    Installing Lantz.
+.. toctree::
+   :hidden:
 
-    :ref:`tutorials`
-    Step-by-step instructions to use Lantz.
+   about
+   overview
+   tutorial/index
+   guides/index
+   faq
+   drivers/index
+   api/index
+   contributing
+   agreement
+   bugs
 
-    :ref:`guides`
-    Task oriented guides.
-
-    :ref:`faq`
-    Frequently asked questions and their answers.
-
-    :ref:`drivers`
-    List of Lantz drivers.
-
-    :ref:`contributing`
-    We need your brain.
 
 
 Indices and tables
 ==================
 
-    :ref:`genindex`
-    Lists all sections and subsections.
-
-
-    :ref:`modindex`
-    All functions, classes, terms.
-
-
-    :ref:`search`
-    Search this documentation.
+    | :ref:`genindex`
+    | Lists all sections and subsections.
+    |
+    | :ref:`modindex`
+    | All functions, classes, terms.
+    |
+    | :ref:`search`
+    | Search this documentation.

@@ -4,11 +4,11 @@
 Tutorials
 =========
 
+If you haven't install `Lantz` yet, checkout :ref:`installing`
 
-    :ref:`tutorial-using`
-    Using a Lantz driver to control an instrument.
+.. toctree::
+   :numbered:
 
-
-    :ref:`tutorial-building`
-    Building a Lant driver to control an instrument.
+   using
+   building
 

@@ -7,13 +7,14 @@ FAQs
 Why building an instrumentation toolkit?
 ----------------------------------------
 
-Instrumentation and experiment automation became a cornerstone of modern science. Most of the devices that we use to quantify and perturb natural processes can or should be computer controlled. Moreover, the ability to control and synchronize multiple devices, enables complex experiments to be acomplished in a reproducible manner. 
+Instrumentation and experiment automation became a cornerstone of modern science. Most of the devices that we use to quantify and perturb natural processes can or should be computer controlled. Moreover, the ability to control and synchronize multiple devices, enables complex experiments to be accomplished in a reproducible manner.
 
 This toolkit emerges from my frustration with existing languages, libraries and frameworks for instrumentation:
 
-- Domain specific languages that make extremely difficult to achieve things that are trivial in most general-purpose languages. 
-- Lots of boilerplate code to achieve consistent behaviour across an application.
-- Inability to use existing libraries.
+  - Domain specific languages that make extremely difficult to achieve things that are
+    trivial in most general-purpose   languages.
+  - Lots of boilerplate code to achieve consistent behaviour across an application.
+  - Inability to use existing libraries.
 
 Lantz aims to reduce the burden of writing a good instrumentation software by providing base classes from which you can derive your own. These classes provide the boilerplate code that enables advanced functionality, allowing you to concentrate in the program logic.
 
@@ -37,7 +38,7 @@ But ... there are a lot of drivers already available for these languages
 
 It is true, but many of these drivers are contributed by the users themselves. If a new toolkit emerges with enough momentum, many of those users will start to contribute to it. And due to the fact that building good drivers in Lantz is much easier than doing it in any of the other language we expect that this happens quite fast.
 
-By the way, did you know we already have XXXX drivers?
+By the way, did you know we already have some :ref:`drivers`. If your instrument is not listed, let us know!
 
 
 Why Python?

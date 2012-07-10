@@ -329,10 +329,16 @@ def main():
         os.mkdir(opts.destdir)
     opts.force = True
     opts.suffix = 'rst'
-    fname = os.path.join(opts.destdir, 'drivers.rst')
+    fname = os.path.join(opts.destdir, 'index.rst')
     with open(fname, 'w') as fp:
-        fp.write('.. _drivers:\n')
-        fp.write(format_heading(1, 'Drivers'))
+        fp.write('.. _drivers:\n\n')
+        fp.write(format_heading(0, 'Drivers'))
+        fp.write('\n')
+        fp.write('.. toctree::\n')
+        fp.write('   :hidden:\n')
+        fp.write('   :glob:\n')
+        fp.write('\n')
+        fp.write('   *\n')
         last = ''
         for key in sorted(packages.keys()):
             try:

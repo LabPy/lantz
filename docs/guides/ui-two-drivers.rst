@@ -11,7 +11,7 @@ Real application consists not only of a single instrument but many. In a custom 
 
 (We use twice the same kind for simplicity, but it is not necessary).
 
-The widgets are named `fungen1__frequency` and `fungen2__frequency`::
+The widgets are named `fungen1__frequency` and `fungen2__frequency`.
 
 
 The long way
