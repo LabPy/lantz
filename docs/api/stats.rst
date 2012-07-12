@@ -1,0 +1,4 @@
+
+
+.. automodule:: lantz.stats
+   :members:

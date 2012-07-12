@@ -1,9 +1,6 @@
 
-.. automodule:: lantz
-
-
-Base
-====
+General
+=======
 
 .. autoclass:: lantz.Driver
    :members:

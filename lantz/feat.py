@@ -6,7 +6,7 @@
     Implements Feat and DictFeat property-like classes with data handling,
     logging, timing, cache and notification.
 
-    :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -15,7 +15,21 @@ import time
 from .processors import (Processor, ToQuantityProcessor, FromQuantityProcessor,
                          MapProcessor, ReverseMapProcessor, RangeProcessor)
 
-MISSING = object()
+class _NamedObject(object):
+    """A class to construct named sentinels.
+    """
+
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
+
+MISSING = _NamedObject('MISSING')
+
 
 class Feat(object):
     """Pimped Python property for interfacing with instruments. Can be used as

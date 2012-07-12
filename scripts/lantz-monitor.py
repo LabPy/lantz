@@ -1,3 +1,15 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+    lantz-monitor
+    ~~~~~~~~~~~~~
+
+    Text based tool to monitor Lantz messages logged to a socket.
+
+
+    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
+"""
 
 import pickle
 import logging
@@ -447,7 +459,7 @@ if __name__ == '__main__':
 
     import argparse
 
-    parser = argparse.ArgumentParser(description='Lantz monitor.')
+    parser = argparse.ArgumentParser(description='Text based tool to monitor Lantz messages logged to a socket..')
     parser.add_argument('-t', '--tcp', default='0.0.0.0', dest='tcphost',
                         help='Where to listen for TCP traffic (host[:port])')
     parser.add_argument('-u', '--udp', default='0.0.0.0', dest='udphost',

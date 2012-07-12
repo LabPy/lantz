@@ -6,7 +6,7 @@
     Implements UI widgets based on Qt widgets. To achieve functionality,
     instances of QtWidgets are patched.
 
-    :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -670,9 +670,9 @@ def connect_setup(parent, targets, *, prefix=None, sep='__'):
     :param parent: parent widget.
     :param targets: iterable of drivers.
     :param prefix: prefix to be prepended to the lantz feature name
-                     if None, the driver name will be used (default)
-                     if it is a dict, the driver name will be used to obtain
-                                      the prefix.
+                   if None, the driver name will be used (default)
+                   if it is a dict, the driver name will be used to obtain
+                   he prefix.
     """
 
     logger.debug('Connecting {} to {}, {}, {}'.format(parent, targets, prefix, sep))

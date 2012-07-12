@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 """
     lantz-visa-shell
-    ~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~
 
     VISA shell for interactive testing.
 
     :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-__author__ = 'grecco'
 
 import sys
 import cmd
@@ -17,7 +16,7 @@ import cmd
 from lantz import visa
 
 class App(cmd.Cmd):
-    """VISA Shell.
+    """VISA shell for interactive testing.
     """
 
     intro = '\nWelcome to the VISA shell. Type help or ? to list commands.\n'

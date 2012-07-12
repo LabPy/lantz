@@ -9,7 +9,7 @@
     environmental variable QTBINDINGS to PySide or PyQt4.
     If unset, PyQt4 is tried first, then PySide.
 
-    :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 

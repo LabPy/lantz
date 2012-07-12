@@ -1,29 +1,75 @@
 #! /usr/bin/env python
-"""\
-Scan for serial ports.
+# -*- coding: utf-8 -*-
+"""
+    lantz-scan
+    ~~~~~~~~~~
 
-Part of pySerial (http://pyserial.sf.net)
-(C) 2002-2003 <cliechti@gmx.net>
+    Serial port scanner.
 
-The scan function of this module tries to open each port number
-from 0 to 255 and it builds a list of those ports where this was
-successful.
+    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
 """
 
 import serial
 
-def scan():
-    """Scan for available ports. return a list of tuples (num, name)
+def scan(ports=None, verbose=False):
+    """Scan for available ports.
+
+    :param ports: an iterable of device names or port number numbers.
+                  if None, ports 0 to 9 is given.
+    :param verbose: print status.
+    :return: return a list of tuples (identification, name)
     """
-    for i in range(256):
+
+    if not ports:
+        ports = range(10)
+
+    if verbose:
+        _print = print
+    else:
+        def _print(*args, **kwargs):
+            pass
+
+    for port in ports:
         try:
-            s = serial.Serial(i)
-            yield i, s.portstr
+            _print('Trying {} ... '.format(port), end='')
+            s = serial.Serial(port)
+            yield port, s.portstr
             s.close()
+            _print('success (port string: {}'.format(s.portstr))
         except serial.SerialException:
+            _print('failed!')
             pass
 
 if __name__=='__main__':
-    print("Found ports:")
-    for n, s in scan():
-        print("{} {}".format(n, s))
+    import sys
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Tries to open serial ports and print the valid ones.')
+    parser.add_argument('ports', metavar='ports', type=str, nargs='*', default=None,
+                        help='Ports to open. Ranges (e.g. 0-3, meaning 0, 1, 2, 3 are also possible.')
+    args = parser.parse_args()
+
+    if args.ports:
+        try:
+            ports = set()
+            for port in args.ports:
+                if '-' in port:
+                    fr, to = port.split('-')
+                    ports.update(range(int(fr), int(to)+1))
+                else:
+                    try:
+                        ports.add(int(port))
+                    except ValueError:
+                        ports.add(port)
+        except Exception as e:
+            print('Could no parse input {}: {}'.format(port, e))
+            sys.exit(1)
+    else:
+        ports = list(range(0, 10))
+
+    print("Testing ports ...")
+
+    number = len(tuple(scan(ports, verbose=True)))
+
+    print('{} ports found'.format(number + 1))
