@@ -6,23 +6,28 @@
     Wraps Visa Library in a Python friendly way.
 
 
-    This wrapper originated while porting pyvisa to Python 3 and therefore is heavily influenced by it. There are a few
-    important differences::
+    This wrapper originated while porting pyvisa to Python 3 and therefore is
+    heavily influenced by it. There are a few important differences:
 
-      - There is no visa_library singleton object and the library path can be specified.
+    - There is no visa_library singleton object and the library path can
+      be specified.
 
-      - Similar functions for different data width (In8, In16, etc) have been grouped within the same function. The
-        extended versions are also grouped.
+    - Similar functions for different data width (In8, In16, etc) have been
+      grouped within the same function. The extended versions are also grouped.
 
-      - VISA functions dealing with strings have been dropped as can be easily replaced by Python functions.
+    - VISA functions dealing with strings have been dropped as can be easily
+      replaced by Python functions.
 
-      - types, status codes, attributes, events and constants are defined within a class (not a module).
+    - types, status codes, attributes, events and constants are defined within
+      a class (not a module).
 
-      - Prefixes in types (vi), status codes (VI_), attributes (VI_ATTR), events (VI_EVENT) and constants (VI_) have
-        been dropped for clarity. As this constants are defined within a RichEnum class, prefixed names are still usable.
+    - Prefixes in types (`vi`), status codes (`VI_`), attributes (`VI_ATTR`),
+      events (`VI_EVENT`) and constants (`VI_`) have been dropped for clarity.
+      As this constants are defined within a RichEnum class, prefixed names are
+      still usable.
 
 
-    :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -70,24 +75,32 @@ class RichEnum(type):
 
                 ndct[value.code] = value
 
-
             dct[key] = value
 
-        dct.update(ndct)
         obj = super().__new__(mcs, name, bases, dct)
+        obj._codes = ndct
         obj.__new__ = None
         return obj
 
     def __getitem__(cls, key):
-        if isinstance(key, str) and key.startswith(cls.__dict__['_PREFIX']):
-            key = key[len(cls.__dict__['_PREFIX']):]
+        if isinstance(key, str):
+            return getattr(cls, key)
 
-        if isinstance(key, str) and key[0].isdigit():
-            key = '_' + key
-
+        if isinstance(key, int):
+            return cls._codes[key]
         return cls.__dict__[key]
 
-    __getattr__ = __getitem__
+    def __getattr__(cls, item):
+        if item.startswith('__'):
+            raise AttributeError("'{}' object has no attribute '{}'".format(cls, item))
+
+        if item.startswith(cls._PREFIX):
+            item = item[len(cls._PREFIX):]
+
+        if item[0].isdigit():
+            item = '_' + item
+
+        return getattr(cls, item)
 
     def __contains__(cls, item):
         return item in cls.doc
