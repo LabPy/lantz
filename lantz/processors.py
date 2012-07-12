@@ -3,7 +3,7 @@
     lantz.processors
     ~~~~~~~~~~~~~~~~
 
-    :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -382,6 +382,6 @@ def check_membership(container):
 
     def _inner(value):
         if value not in container:
-            return KeyError('{} not in {}'.format(value, container))
+            raise ValueError('{} not in {}'.format(value, container))
         return value
     return _inner
