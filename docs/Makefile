@@ -142,6 +142,18 @@ all:
 	rm -rf _build/latex
 	rm -rf _build/epub
 
-upload:
-	$(MAKE) all
+glug:
 	cd _build/html; rsync -a . hgrecco@glugcen.dc.uba.ar:/var/www/lantz/
+
+github:
+	rm -rf ~/tmp/lantz-docs
+	git clone -b gh-pages git@github.com:hgrecco/lantz.git ~/tmp/lantz-docs
+	cd ~/tmp/lantz-docs; \
+	rm -rf *
+	cp -rf _build/html/ ~/tmp/lantz-docs
+	cd ~/tmp/lantz-docs; \
+	touch .nojekyll ; \
+	git add . ; \
+	git commit -a -m "Updated the docs" ; \
+	git push origin gh-pages;
+	rm -rf ~/tmp/lantz-docs

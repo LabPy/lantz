@@ -71,3 +71,11 @@ Indices and tables
     |
     | :ref:`search`
     | Search this documentation.
+
+|
+|
+|
+
+----
+
+*We thank* `GlugCEN <http://glugcen.dc.uba.ar/>`_ *for hosting the code, the docs and the mailing list*

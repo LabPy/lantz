@@ -4,7 +4,7 @@
 Installing
 ==========
 
-Lantz core requires only Python 3.2+. This guide also assumes that you have installed `virtualenv <http://www.virtualenv.org/en/latest/index.html>`_ and `pip <http://www.pip-installer.org/en/latest/index.html>`_. If not, please install them by typing::
+Lantz core requires only Python 3.2+. This guide also assumes that you have installed `virtualenv`_ and `pip`_. If not, please install them by typing::
 
     $ easy_install virtualenv pip
 
@@ -77,6 +77,10 @@ If you just want want to use `Lantz`, you can just::
 
     $ pip install git+gitolite@glugcen.dc.uba.ar:lantz.git#egg=lantz
 
+or from `Lantz at Github`_::
+
+    $ pip install git+git://github.com/hgrecco/lantz.git#egg=lantz
+
 
 Building your Lantz development environment
 ===========================================
@@ -118,17 +122,18 @@ You will find the code in `%USERPROFILE%\\Desktop\\lantzenv\\src\\lantz`.
 
 The folder is a normal git repository from where you can pull and push to keep the repo in sync.
 
-
-.. _Colorama: <http://pypi.python.org/pypi/colorama/>
-.. _Sphinx: <http://sphinx.pocoo.org/>
-.. _Docutils: <http://docutils.sourceforge.net/>
-.. _pySerial: <http://pyserial.sourceforge.net/>
-.. _pySerial binaries: <http://pyserial.sourceforge.net/pyserial.html#packages>
-.. _Qt4: <http://qt.nokia.com/products/>
-.. _PyQt: <http://www.riverbankcomputing.co.uk/software/pyqt>
-.. _PyQt binaries: <http://www.riverbankcomputing.co.uk/software/pyqt/download/>
-.. _PySide: <http://www.pyside.org/>
-.. _PySide binaries: <http://qt-project.org/wiki/Category:LanguageBindings::PySide::Downloads>
-.. _NumPy: <http://numpy.scipy.org/>
-.. _NumPy binaries: <http://sourceforge.net/projects/numpy/files/>
-
+.. _pip: http://www.pip-installer.org/en/latest/index.html
+.. _virtualenv: http://www.virtualenv.org/en/latest/index.html
+.. _Colorama: http://pypi.python.org/pypi/colorama/
+.. _Sphinx: http://sphinx.pocoo.org/
+.. _Docutils: http://docutils.sourceforge.net/
+.. _pySerial: http://pyserial.sourceforge.net/
+.. _pySerial binaries: http://pyserial.sourceforge.net/pyserial.html#packages
+.. _Qt4: http://qt.nokia.com/products/
+.. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt
+.. _PyQt binaries: http://www.riverbankcomputing.co.uk/software/pyqt/download/
+.. _PySide: http://www.pyside.org/
+.. _PySide binaries: http://qt-project.org/wiki/Category:LanguageBindings::PySide::Downloads
+.. _NumPy: http://numpy.scipy.org/
+.. _NumPy binaries: http://sourceforge.net/projects/numpy/files/
+.. _Lantz at Github: https://github.com/hgrecco/lantz
