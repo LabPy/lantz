@@ -468,7 +468,11 @@ class TextualMixin(object):
             return str(self.raw_recv(termination), encoding)
 
         received = ''
-        stop = time.time() + self.TIMEOUT
+        if self.TIMEOUT is None or self.TIMEOUT < 0:
+            stop = float('+inf')
+        else:
+            stop = time.time() + self.TIMEOUT
+
         while not received.endswith(termination):
             raw_received = self.raw_recv(self.RECV_CHUNK)
             received += str(raw_received, encoding)
