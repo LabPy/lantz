@@ -843,7 +843,7 @@ class VisaLibrary(object):
         :param session: Unique logical identifier to a session.
         :param count: Number of bytes to be read.
         :return: data read.
-        :rtype: byts
+        :rtype: bytes
         """
         buffer = ct.create_string_buffer(count)
         return_count = Types.UInt32()
@@ -947,18 +947,21 @@ class VisaLibrary(object):
         :return: The state of the queried attribute for a specified resource.
         """
         # FixMe: How to deal with Types.Buf?
-        datatype = Attributes[attribute].datatype
+        if not hasattr(attribute, 'ctype'):
+            attribute = Attributes[attribute]
+        code = attribute.code
+        datatype = attribute.ctype
         if datatype == Types.String:
             attribute_state = ct.create_string_buffer(256)
-            self.lib.viGetAttribute(attribute, attribute_state)
+            self.lib.viGetAttribute(code, attribute_state)
         elif datatype == Types.AUInt8:
             length = self.get_attribute(session, Attributes.USB_RECV_INTR_SIZE)
             attribute_state = (Types.UInt8 * length)()
-            self.lib.viGetAttribute(session, attribute, ct.byref(attribute_state))
+            self.lib.viGetAttribute(session, code, ct.byref(attribute_state))
             return list(attribute_state)
         else:
             attribute_state = datatype()
-            self.lib.viGetAttribute(attribute, ct.byref(attribute_state))
+            self.lib.viGetAttribute(session, code, ct.byref(attribute_state))
         return attribute_state.value
 
     def gpib_command(self, session, data):
@@ -1395,6 +1398,8 @@ class VisaLibrary(object):
         :param attribute_state: The state of the attribute to be set for the specified object.
         :return:
         """
+        if isinstance(attribute, str):
+            attribute = Attributes[attribute].code
         self.lib.viSetAttribute(session, attribute, attribute_state)
 
     def set_buffer(self, session, mask, size):

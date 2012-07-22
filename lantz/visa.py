@@ -22,9 +22,9 @@ class LantzVisaTimeoutError(LantzTimeoutError):
 BYTESIZE = {5: 5, 6: 6,
             7: 7, 8: 8}
 
-PARITY = {'None': Constants.ASRL_PAR_NONE, 'Even': Constants.ASRL_PAR_EVEN,
-          'Odd': Constants.ASRL_PAR_ODD, 'Mark': Constants.ASRL_PAR_MARK,
-          'Space': Constants.ASRL_PAR_SPACE}
+PARITY = {'none': Constants.ASRL_PAR_NONE, 'even': Constants.ASRL_PAR_EVEN,
+          'odd': Constants.ASRL_PAR_ODD, 'mark': Constants.ASRL_PAR_MARK,
+          'space': Constants.ASRL_PAR_SPACE}
 
 STOPBITS = {1: Constants.ASRL_STOP_ONE, 1.5: Constants.ASRL_STOP_ONE5,
             2: Constants.ASRL_STOP_TWO}
@@ -66,6 +66,7 @@ class MessageVisaDriver(TextualMixin, Driver):
         super().__init__(*args, **kwargs)
 
         self.vi = None
+        self._init_attributes = {}
 
         library_path = kwargs.get('library_path', None)
         self.resource_manager = ResourceManager(library_path)
@@ -91,34 +92,15 @@ class MessageVisaDriver(TextualMixin, Driver):
         except Exception as e:
             raise Exception(str(e))
 
-    def raw_recv(self, size):
-        """Receive raw bytes to the instrument.
-
-        :param size: number of bytes to receive
-        :return: received bytes
-        :return type: bytes
-
-        If a timeout is set, it may return less bytes than requested.
-        If size == -1, then the number of available bytes will be read.
-
-        """
-        size = 0 ###
-        if size == -1:
-            size = self.serial.inWaiting()
-
-        if size == 0:
-            size = 1
-        #self.log_debug('waiting {}'.format(size))
-        data = self.visa.read(self.vi, size)
-        #self.log_debug(data)
-        return data
-
     def initialize(self):
         """Open port
         """
         if not self.is_open():
             self.log_debug('Opening {}'.format(self.resource_name))
             self.vi = self.resource_manager.open_resource(self.resource_name) #, self.access_mode, self.open_timeout
+            for key, value in self._init_attributes.items():
+                self.visa.set_attribute(self.vi, key, value)
+
             self.log_debug('The session for {} is {}'.format(self.resource_name, self.vi))
         else:
             self.log_debug('{} is already open'.format(self.resource_name))
@@ -135,7 +117,65 @@ class MessageVisaDriver(TextualMixin, Driver):
 
 
 class SerialVisaDriver(MessageVisaDriver):
-    pass
+
+    #: comunication parameters
+    BAUDRATE = 9600
+    BYTESIZE = 8
+    PARITY = 'none'
+    STOPBITS = 1
+
+    #: flow control flags
+    RTSCTS = False
+    DSRDTR = False
+    XONXOFF = False
+
+    RECV_CHUNK = -1
+
+    def __init__(self, resource_name, *args, **kwargs):
+        super().__init__(resource_name, *args, **kwargs)
+
+        kw = {}
+        kw['ASRL_BAUD']= kwargs.get('baudrate', self.BAUDRATE)
+        kw['ASRL_DATA_BITS'] = BYTESIZE[kw.get('bytesize', self.BYTESIZE)]
+        kw['ASRL_PARITY'] = PARITY[kw.get('parity', self.PARITY)]
+        kw['ASRL_STOP_BITS'] = STOPBITS[kw.get('stopbits', self.STOPBITS)]
+
+        flow = Constants.ASRL_FLOW_NONE
+        if kwargs.get('rtscts', getattr(self, 'RTSCTS')):
+            flow |= Constants.ASRL_FLOW_RTS_CTS
+        if kwargs.get('dsrdtr', getattr(self, 'DSRDTR')):
+            flow |= Constants.ASRL_FLOW_DTR_DSR
+        if kwargs.get('xonxoff', getattr(self, 'XONXOFF')):
+            flow |= Constants.ASRL_FLOW_XON_XOFF
+
+        kw['ASRL_FLOW_CNTRL'] = flow
+
+        self._init_attributes.update(kw)
+
+
+    def raw_recv(self, size):
+        """Receive raw bytes to the instrument.
+
+        :param size: number of bytes to receive
+        :return: received bytes
+        :return type: bytes
+
+        If a timeout is set, it may return less bytes than requested.
+        If size == -1, then the number of available bytes will be read.
+
+        """
+
+        if size == -1:
+            size = self.visa.get_attribute(self.vi, 'ASRL_AVAIL_NUM')
+            if not size:
+                return bytes()
+
+        if size == 0:
+            size = 1
+            #self.log_debug('waiting {}'.format(size))
+        data = self.visa.read(self.vi, size)
+        #self.log_debug(data)
+        return data
 
 
 class GPIBVisaDriver(MessageVisaDriver):
