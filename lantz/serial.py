@@ -76,7 +76,7 @@ class SerialDriver(TextualMixin, Driver):
         kw = {}
         for key in ('baudrate', 'bytesize', 'parity', 'stopbits',
                     'rtscts', 'dsrdtr', 'xonxoff'):
-            kw.setdefault(key, getattr(self, key.upper()))
+            kw[key] = kwargs.get(key, getattr(self, key.upper()))
 
         kw['bytesize'] = BYTESIZE[kw['bytesize']]
         kw['parity'] = PARITY[kw['parity']]
