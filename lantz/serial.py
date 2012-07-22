@@ -46,7 +46,7 @@ class SerialDriver(TextualMixin, Driver):
     :param xonoff: xonoff flow control enabled.
     :param rtscts: rtscts flow control enabled.
     :param dsrdtr: dsrdtr flow control enabled
-    :param timeout: value in seconds, None to wait for ever or 0 for non-blocking mode
+    :param timeout: value in seconds, None or negative to wait for ever or 0 for non-blocking mode
     :param write_timeout: see timeout
 
     """
@@ -73,15 +73,16 @@ class SerialDriver(TextualMixin, Driver):
         super().__init__(**kwargs)
         self.timeout = timeout
 
+        kw = {}
         for key in ('baudrate', 'bytesize', 'parity', 'stopbits',
                     'rtscts', 'dsrdtr', 'xonxoff'):
-            kwargs.setdefault(key, getattr(self, key.upper()))
+            kw.setdefault(key, getattr(self, key.upper()))
 
-        kwargs['bytesize'] = BYTESIZE[kwargs['bytesize']]
-        kwargs['parity'] = PARITY[kwargs['parity']]
-        kwargs['stopbits'] = STOPBITS[kwargs['stopbits']]
+        kw['bytesize'] = BYTESIZE[kw['bytesize']]
+        kw['parity'] = PARITY[kw['parity']]
+        kw['stopbits'] = STOPBITS[kw['stopbits']]
 
-        self.serial = serial.Serial(None, timeout=timeout, writeTimeout=write_timeout, **kwargs)
+        self.serial = serial.Serial(None, timeout=timeout, writeTimeout=write_timeout, **kw)
 
         self.serial.port = port
 
