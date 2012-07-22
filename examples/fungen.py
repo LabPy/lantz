@@ -3,7 +3,8 @@
 if __name__ == '__main__':
     import argparse
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP, LantzSignalGeneratorSerial
+    from lantz.drivers.examples import (LantzSignalGeneratorTCP, LantzSignalGeneratorSerial,
+                                        LantzSignalGeneratorSerialVisa)
 
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
@@ -14,6 +15,14 @@ if __name__ == '__main__':
     subparser.add_argument('-i', '--interactive', action='store_true',
                            help='Start interactive GUI')
     subparser.set_defaults(func=LantzSignalGeneratorSerial)
+
+    subparser = subparsers.add_parser('serial-visa')
+    subparser.add_argument('-r', '--resource_name', type=str, default='1',
+                           help='Serial port')
+    subparser.add_argument('-i', '--interactive', action='store_true',
+                       help='Start interactive GUI')
+    subparser.set_defaults(func=LantzSignalGeneratorSerialVisa)
+
 
     subparser = subparsers.add_parser('tcp')
     subparser.add_argument('-H', '--host', type=str, default='localhost',

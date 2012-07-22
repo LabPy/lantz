@@ -13,6 +13,7 @@ from lantz import Feat, DictFeat, Q_, Action
 from lantz.serial import SerialDriver
 from lantz.network import TCPDriver
 from lantz.errors import InstrumentError
+from lantz.visa import SerialVisaDriver
 
 
 class LantzSignalGenerator(object):
@@ -117,3 +118,9 @@ class LantzSignalGeneratorTCP(LantzSignalGenerator, TCPDriver):
 
 class LantzSignalGeneratorSerial(LantzSignalGenerator, SerialDriver):
     pass
+
+
+class LantzSignalGeneratorSerialVisa(LantzSignalGenerator, SerialVisaDriver):
+    pass
+
+
