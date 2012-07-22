@@ -53,6 +53,8 @@ def _rst_to_html(rst):
 def _params_doc(rst):
     """Extract
     """
+    if not rst:
+        return ''
     docs = {}
     rst = ' '.join(rst.splitlines())
     key = None
@@ -1005,22 +1007,27 @@ class ArgumentsInputDialog(QDialog):
         Return None if the user cancelled.
 
         """
-        wrapped = func.__wrapped__
+
+        wrapped = getattr(func, '__wrapped__', func)
+        name = wrapped.__name__
+        doc = wrapped.__doc__
         argspec = inspect.getargspec(wrapped)
+
         arguments = {}
         if len(argspec.args) > 1:
             dialog = ArgumentsInputDialog(argspec, parent,
-                                          window_title=wrapped.__name__ + ' arguments',
-                                          doc=_params_doc(wrapped.__doc__))
+                                          window_title=name+ ' arguments',
+                                          doc=_params_doc(doc))
             if not dialog.exec_():
                 return None
             arguments = dialog.arguments
 
         try:
             func(**arguments)
-        except:
+        except Exception as e:
+            logger.exception(e)
             QMessageBox.critical(parent, 'Lantz',
-                                 'Instrument error while calling {}'.format(wrapped.__name__),
+                                 'Instrument error while calling {}'.format(name),
                                  QMessageBox.Ok,
                                  QMessageBox.NoButton)
 

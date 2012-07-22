@@ -55,7 +55,9 @@ class Action(object):
         return self
 
     def __get__(self, instance, owner=None):
-        return functools.partial(self.call, instance)
+        func = functools.partial(self.call, instance)
+        func.__wrapped__ = self.func
+        return func
 
     def call(self, instance, *args, **kwargs):
         name = self.__name__
