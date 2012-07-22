@@ -27,7 +27,7 @@ You can connect each relevant driver Feat to the corresponding widget::
     from Qt.uic import loadUi
 
     # From lantz we import the driver ...
-    from lantz.drivers.examples.fungen import LantzSignalGenerator
+    from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
 
     # and a function named connect_feat that does the work.
     from lantz.ui.qtwidgets import connect_feat
@@ -41,7 +41,7 @@ You can connect each relevant driver Feat to the corresponding widget::
     slider = main.findChild((QWidget, ), 'frequency__slider')
     spin = main.findChild((QWidget, ), 'frequency')
 
-    with LantzSignalGenerator('localhost', 5678) as inst:
+    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
 
         # We connect each widget to each feature
         # The syntax arguments are widget, target (driver), Feat name
@@ -70,7 +70,7 @@ If you have named the widgets according to the Feat and you have use a suffix in
     from Qt.uic import loadUi
 
     # From lantz we import the driver ...
-    from lantz.drivers.examples.fungen import LantzSignalGenerator
+    from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
 
     # and a function named connect_feat that does the work.
     from lantz.ui.qtwidgets import connect_feat
@@ -80,7 +80,7 @@ If you have named the widgets according to the Feat and you have use a suffix in
     # We load the UI from the QtDesigner file. You can also use pyuic4 to generate a class.
     main = loadUi('connect_test.ui')
 
-    with LantzSignalGenerator('localhost', 5678) as inst:
+    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
 
         # We connect the parent widget (main) to the instrument.
         connect_driver(main, inst)

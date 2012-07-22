@@ -63,7 +63,7 @@ If the command is invalid or an occurs in the instrument, the instrument will re
 
 One more thing, following a tutorial about building a driver to communicate with an instrument that you do not have is not much fun. That's why we have created a virtual version of this instrument. From the command line, run the following command:
 
-$ sim-fungen.py
+$ sim-fungen.py tcp
 
 This will start an application that listens for incoming TCP packages on port 5678 from `localhost`.
 
@@ -147,7 +147,7 @@ Let's allow our driver to control the instruments amplitude::
     from lantz import Feat
     from lantz.network import TCPDriver
 
-    class LantzSignalGenerator(TCPDriver):
+    class LantzSignalGeneratorTCP(TCPDriver):
         """Lantz Signal Generator.
         """
 
@@ -236,7 +236,7 @@ Hoping that the Mars Orbiter story convinced you that using units is worth it, l
     from lantz.network import TCPDriver
     from lantz.errors import InstrumentError
 
-    class LantzSignalGenerator(TCPDriver):
+    class LantzSignalGeneratorTCP(TCPDriver):
         """Lantz Signal Generator.
         """
 
@@ -299,7 +299,7 @@ When the communication round-trip to the instrument is too long, you might want 
     from lantz.network import TCPDriver
     from lantz.errors import InstrumentError
 
-    class LantzSignalGenerator(TCPDriver):
+    class LantzSignalGeneratorTCP(TCPDriver):
         """Lantz Signal Generator
         """
 
@@ -359,7 +359,7 @@ We will define offset and frequency like we did with amplitude, and we will also
     from lantz.network import TCPDriver
     from lantz.errors import InstrumentError
 
-    class LantzSignalGenerator(TCPDriver):
+    class LantzSignalGeneratorTCP(TCPDriver):
         """Lantz Signal Generator
         """
 

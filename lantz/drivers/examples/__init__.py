@@ -13,6 +13,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from .fungen import LantzSignalGenerator
+from .fungen import LantzSignalGenerator, LantzSignalGeneratorTCP, LantzSignalGeneratorSerial
 
-__all__ = ['LantzSignalGenerator', ]
+__all__ = ['LantzSignalGenerator', 'LantzSignalGeneratorTCP', 'LantzSignalGeneratorSerial']

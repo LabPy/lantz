@@ -8,28 +8,28 @@ In this tutorial, you will learn how to use Lantz drivers to control an instrume
 
 Following a tutorial about using a driver to communicate with an instrument that you do not have is not much fun. That's why we have created a virtual version of this instrument. From the command line, run the following command::
 
-    $ sim-fungen.py
+    $ sim-fungen.py tcp
 
 This will start an application (i.e. your instrument) that listens for incoming TCP packages (commands) on port 5678 from `localhost`. In the screen you will see the commands received and sent by the instrument.
 
 Your program and the instrument will communicate by exchanging text commands via TCP. But having a Lantz driver already built for your particular instrument releases you for the burden of sending and receiving the messages. Let's start by finding the driver. Lantz drivers are organized inside packages, each package named after the manufacturer. So the `Coherent Argon Laser Innova` 300C driver is in `lantz.drivers.coherent` under the name `ArgonInnova300C`. We follow Python style guide (PEP8) to name packages and modules (lowercase) and classes (CamelCase).
 
-Our simulated device is under the company `examples` and is named `LantzSignalGenerator`. Create a python script named `test_fungen.py` and type::
+Our simulated device is under the company `examples` and is named `LantzSignalGeneratorTCP`. Create a python script named `test_fungen.py` and type::
 
-    from lantz.drivers.examples import LantzSignalGenerator
+    from lantz.drivers.examples import LantzSignalGeneratorTCP
 
-    inst = LantzSignalGenerator('localhost', 5678)
+    inst = LantzSignalGeneratorTCP('localhost', 5678)
     inst.initialize()
     print(inst.idn)
     inst.finalize()
 
 Let's look at the code line-by-line. First we import the class into our script::
 
-    from lantz.drivers.examples import LantzSignalGenerator
+    from lantz.drivers.examples import LantzSignalGeneratorTCP
 
 Then we create an instance of the class, setting the address to localhost and port to 5678::
 
-    inst = LantzSignalGenerator('localhost', 5678)
+    inst = LantzSignalGeneratorTCP('localhost', 5678)
 
 This does not connects to the device. To do so, you call the `initialize` method::
 
@@ -55,18 +55,18 @@ In the window where `sim-fungen.py` is running you will see the message exchange
 
  To find out which other properties and methods are available checkout the documentation. A nice feature of Lantz (thanks to sphinx) is that useful documentation is generated from the driver itself. `idn` is a `Feat` of the driver. Think of a `Feat` as a pimped property. It works just like python properties but it wraps its call with some utilities (more on this later). `idn` is a read-only and as the documentation states it gets the identification information from the device. As `idn` is read-only, the following code will raise an exception::
 
-    from lantz.drivers.examples import LantzSignalGenerator
+    from lantz.drivers.examples import LantzSignalGeneratorTCP
 
-    inst = LantzSignalGenerator('localhost', 5678)
+    inst = LantzSignalGeneratorTCP('localhost', 5678)
     inst.initialize()
     inst.idn = 'A new identification' # <- This will fail as idn is read-only
     inst.finalize()
 
 The problem is that finalize will never be called possibly leaving resources open. You need to wrap your possible failing code into a try-except-finally structure::
 
-    from lantz.drivers.examples import LantzSignalGenerator
+    from lantz.drivers.examples import LantzSignalGeneratorTCP
 
-    inst = LantzSignalGenerator('localhost', 5678)
+    inst = LantzSignalGeneratorTCP('localhost', 5678)
     inst.initialize()
     try:
         inst.idn = 'A new identification' # <- This will fail as idn is read-only
@@ -77,9 +77,9 @@ The problem is that finalize will never be called possibly leaving resources ope
 
 All lantz drivers are also context managers and there fore you can write this in a much more compact way::
 
-    from lantz.drivers.examples import LantzSignalGenerator
+    from lantz.drivers.examples import LantzSignalGeneratorTCP
 
-    with LantzSignalGenerator('localhost', 5678) as inst:
+    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
         inst.idn = 'A new identification' # <- This will fail as idn is read-only
 
 The with statement will create an instance, assign it to `inst` and call `initialize`. The `finalize` will be called independently if there is an exception or not.
@@ -90,9 +90,9 @@ Lantz Feat in depth
 
 Let's query all parameters and print them state::
 
-    from lantz.drivers.examples import LantzSignalGenerator
+    from lantz.drivers.examples import LantzSignalGeneratorTCP
 
-    with LantzSignalGenerator('localhost', 5678) as inst:
+    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
         print('idn: {}'.format(inst.idn))
         print('frequency: {}'.format(inst.frequency))
         print('amplitude: {}'.format(inst.amplitude))
@@ -136,9 +136,9 @@ Multiple queries
 
 You can actually make it simpler. All lantz feats of a given instrument are registered within the driver. You can call the `refresh` method to get them all at once::
 
-    from lantz.drivers.examples import LantzSignalGenerator
+    from lantz.drivers.examples import LantzSignalGeneratorTCP
 
-    with LantzSignalGenerator('localhost', 5678) as inst:
+    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
         state = inst.refresh()
         for key, value in state.items():
             if isinstance(value, dict):

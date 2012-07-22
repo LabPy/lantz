@@ -10,11 +10,12 @@
 """
 
 from lantz import Feat, DictFeat, Q_, Action
+from lantz.serial import SerialDriver
 from lantz.network import TCPDriver
 from lantz.errors import InstrumentError
 
 
-class LantzSignalGenerator(TCPDriver):
+class LantzSignalGenerator(object):
     """Lantz Signal Generator
     """
 
@@ -104,8 +105,15 @@ class LantzSignalGenerator(TCPDriver):
         self.query('!CAL')
 
     @Action()
-    def self_test(self, level, repetitions=3):
+    def self_test(self, level=1, repetitions=3):
         """Reset to .
         """
         self.query('!TES {} {}'.format(level, repetitions))
 
+
+class LantzSignalGeneratorTCP(LantzSignalGenerator, TCPDriver):
+    pass
+
+
+class LantzSignalGeneratorSerial(LantzSignalGenerator, SerialDriver):
+    pass

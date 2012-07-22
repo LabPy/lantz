@@ -271,7 +271,7 @@ Providing a powerful GUI is an important aspect of developing an application for
 
     main = loadUi('connect_test.ui') # Load the GUI
 
-    with LantzSignalGenerator() as fungen: # Instantiate the instrument
+    with LantzSignalGeneratorTCP() as fungen: # Instantiate the instrument
 
         connect_driver(main, fungen) # All signals and slots are connected here!
 
@@ -281,7 +281,7 @@ Additionally it provides automatic generation of Test Panels, a very useful feat
 
     # imports not shown
 
-    with LantzSignalGenerator() as fungen: # Instantiate the instrument
+    with LantzSignalGeneratorTCP() as fungen: # Instantiate the instrument
         start_test_app(inst)               # Create
 
 and you get:
