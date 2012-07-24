@@ -58,7 +58,7 @@ class SerialDriver(TextualMixin, Driver):
     #: -1 is mapped to get the number of bytes pending.
     RECV_CHUNK = -1
 
-    #: comunication parameters
+    #: communication parameters
     BAUDRATE = 9600
     BYTESIZE = 8
     PARITY = 'none'
@@ -114,12 +114,14 @@ class SerialDriver(TextualMixin, Driver):
 
         if size == -1:
             size = self.serial.inWaiting()
+            if not size:
+                return bytes()
 
         if not size:
             size = 1
-        #self.log_debug('waiting {}'.format(size))
+
         data = self.serial.read(size)
-        #self.log_debug(data)
+
         return data
 
     def initialize(self):

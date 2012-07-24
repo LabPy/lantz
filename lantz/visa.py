@@ -117,8 +117,13 @@ class MessageVisaDriver(TextualMixin, Driver):
 
 
 class SerialVisaDriver(MessageVisaDriver):
+    """Base class for drivers that communicate with instruments
+    via serial port using visa.
 
-    #: comunication parameters
+    :param resource_name: the visa resource name or alias (e.g. 'ASRL1::INSTR')
+    """
+
+    #: communication parameters
     BAUDRATE = 9600
     BYTESIZE = 8
     PARITY = 'none'
@@ -150,6 +155,12 @@ class SerialVisaDriver(MessageVisaDriver):
 
         kw['ASRL_FLOW_CNTRL'] = flow
 
+        if self.RECV_TERMINATION and self.RECV_CHUNK > 1:
+            kw['TERMCHAR'] = ord(self.RECV_TERMINATION)
+            kw['ASRL_END_IN'] = Constants.ASRL_END_TERMCHAR
+        else:
+            kw['ASRL_END_IN'] = Constants.ASRL_END_NONE
+
         self._init_attributes.update(kw)
 
 
@@ -170,11 +181,11 @@ class SerialVisaDriver(MessageVisaDriver):
             if not size:
                 return bytes()
 
-        if size == 0:
+        if not size:
             size = 1
-            #self.log_debug('waiting {}'.format(size))
+
         data = self.visa.read(self.vi, size)
-        #self.log_debug(data)
+
         return data
 
 

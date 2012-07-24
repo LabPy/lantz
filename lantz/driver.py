@@ -397,8 +397,13 @@ class TextualMixin(object):
     TIMEOUT = 1
     #: Parsers
     PARSERS = {}
-    #: Size in bytes of the receive chunk
+    #: Size in bytes of the receive chunk (-1 means all bytes in buffer)
     RECV_CHUNK = 1
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__received = ''
 
     @abstractmethod
     def raw_recv(self, size):
@@ -467,20 +472,22 @@ class TextualMixin(object):
         if isinstance(termination, int):
             return str(self.raw_recv(termination), encoding)
 
-        received = ''
         if self.TIMEOUT is None or self.TIMEOUT < 0:
             stop = float('+inf')
         else:
             stop = time.time() + self.TIMEOUT
 
+        received = self.__received
         while not received.endswith(termination):
-            raw_received = self.raw_recv(self.RECV_CHUNK)
-            received += str(raw_received, encoding)
             if time.time() > stop:
                 raise LantzTimeoutError
+            raw_received = self.raw_recv(self.RECV_CHUNK)
+            received += str(raw_received, encoding)
 
         self.log_debug('Received {!r} (len={})'.format(received, len(received)))
-        received = received.strip(termination)
+
+        received, self.__received = received.split(termination, 1)
+
         return received
 
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
