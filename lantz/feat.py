@@ -58,7 +58,7 @@ class Feat(object):
 
     def __init__(self, fget=MISSING, fset=None, doc=None, *,
                  values=None, units=None, limits=None, procs=None,
-                 read_once=False):
+                 read_once=False, in_instance=False):
         self.fget = fget
         self.fset = fset
         self.__doc__ = doc
@@ -69,34 +69,76 @@ class Feat(object):
         if fset and fset.__doc__ and not self.__doc__:
             self.__doc__ = fset.__doc__
 
-        self.values = values
-        self.units = units
-        self.limits = limits
-        self.processors = procs
-        self.read_once = read_once
+        self._meta = {'values': values,
+                      'units': units,
+                      'limits': limits,
+                      'processors': procs}
 
-    def rebuild(self):
-        self.get_processors = []
-        self.set_processors = []
+        self.read_once = read_once
+        self.in_instance = in_instance
+
+    @property
+    def values(self):
+        return self._meta['values']
+
+    @values.setter
+    def values(self, value):
+        self._meta['values'] = value
+        self.rebuild(False)
+
+    @property
+    def units(self):
+        return self._meta['units']
+
+    @units.setter
+    def units(self, value):
+        self._meta['units'] = value
+        self.rebuild(False)
+
+    @property
+    def limits(self):
+        return self._meta['limits']
+
+    @limits.setter
+    def limits(self, value):
+        self._meta['limits'] = value
+        self.rebuild(False)
+
+    @property
+    def processors(self):
+        return self._meta['processors']
+
+    @processors.setter
+    def processors(self, value):
+        self._meta['processors'] = value
+        self.rebuild(False)
+
+    def rebuild(self, build_doc=True):
+        get_processors = []
+        set_processors = []
         if self.values:
-            self.get_processors.append(ReverseMapProcessor(self.values))
-            self.set_processors.append(MapProcessor(self.values))
+            get_processors.append(ReverseMapProcessor(self.values))
+            set_processors.append(MapProcessor(self.values))
         if self.units:
-            self.get_processors.insert(0, ToQuantityProcessor(self.units))
-            self.set_processors.append(FromQuantityProcessor(self.units))
+            get_processors.insert(0, ToQuantityProcessor(self.units))
+            set_processors.append(FromQuantityProcessor(self.units))
         if self.limits:
             if isinstance(self.limits[0], (list, tuple)):
-                self.set_processors.append(RangeProcessor(self.limits))
+                set_processors.append(RangeProcessor(self.limits))
             else:
-                self.set_processors.append(RangeProcessor((self.limits, )))
+                set_processors.append(RangeProcessor((self.limits, )))
         if self.processors:
             for getp, setp in self.processors:
                 if getp is not None:
-                    self.get_processors.insert(0, Processor(getp))
+                    get_processors.insert(0, Processor(getp))
                 if setp is not None:
-                    self.set_processors.append(Processor(setp))
+                    set_processors.append(Processor(setp))
 
-        _dochelper(self)
+        self._meta['get_processors'] = get_processors
+        self._meta['set_processors'] = set_processors
+
+        if build_doc:
+            _dochelper(self)
 
     def __call__(self, func):
         if self.fget is MISSING:

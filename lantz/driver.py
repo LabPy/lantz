@@ -127,6 +127,10 @@ class Driver(metaclass=_DriverType):
                 inst.__dict__[key] = new_dictfeat._internal
                 cls._lantz_features[key] = new_dictfeat
             else:
+                if value.in_instance:
+                    new_feat = copy.copy(value)
+                    inst.__class__ = new_feat
+                    inst._lantz_features[key] = new_feat
                 inst.__dict__[key] = MISSING
 
         inst._executor = None

@@ -390,6 +390,26 @@ class FeatTest(unittest.TestCase):
         self.assertEqual(obj.timing.stats('get_eggs').count, 50)
         self.assertEqual(obj.timing.stats('set_eggs').count, 100)
 
+    def test_in_instance(self):
+
+        class Spam(Driver):
+
+            @Feat()
+            def ham(self_):
+                return 1
+
+            @Feat(in_instance=True, units='ms')
+            def eggs(self_):
+                return 9
+
+        x = Spam()
+        y = Spam()
+        self.assertIs(x._lantz_features['ham']._meta, y._lantz_features['ham']._meta)
+        self.assertIsNot(x._lantz_features['eggs']._meta, y._lantz_features['eggs']._meta)
+        self.assertEqual(x.eggs, y.eggs)
+        x._lantz_features['eggs'].units = 's'
+        x._lantz_features['eggs'].rebuild()
+        self.assertNotEqual(x.eggs, y.eggs)
 
 if __name__ == '__main__':
     unittest.main()
