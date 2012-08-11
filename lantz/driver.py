@@ -510,5 +510,5 @@ class TextualMixin(object):
         ans = self.query(command, send_args=send_args, recv_args=recv_args)
         if format:
             parser = self.PARSERS.setdefault(format, ParseProcessor(format))
-            ans = parser(format)
+            ans = parser(ans)
         return ans
