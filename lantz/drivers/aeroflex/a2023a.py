@@ -22,7 +22,7 @@ class A2023a(SerialDriver):
     """Aeroflex Test Solutions 2023A 9 kHz to 1.2 GHz Signal Generator.
     """
 
-    RECV_TERMINATION = '\n'
+    RECV_TERMINATION = 256
     SEND_TERMINATION = '\n'
 
     @Feat(read_once=True)
