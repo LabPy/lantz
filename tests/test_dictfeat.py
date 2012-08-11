@@ -2,12 +2,14 @@ import logging
 import unittest
 
 from lantz import Driver, DictFeat, Q_
+from lantz.log import get_logger
 
 
 class MemHandler(logging.Handler):
 
     def __init__(self):
         super().__init__()
+        self.setFormatter(logging.Formatter(style='{'))
         self.history = list()
 
     def emit(self, record):
@@ -134,7 +136,7 @@ class DictFeatTest(unittest.TestCase):
 
         hdl = MemHandler()
 
-        logger = logging.getLogger('lantz.driver')
+        logger = get_logger('lantz.driver')
         logger.addHandler(hdl)
         logger.setLevel(logging.DEBUG)
         class Spam(Driver):
@@ -167,7 +169,7 @@ class DictFeatTest(unittest.TestCase):
         hdl = MemHandler()
 
         class Spam(Driver):
-            _logger = logging.getLogger('test.feat')
+            _logger = get_logger('test.feat')
             _logger.addHandler(hdl)
             _logger.setLevel(logging.DEBUG)
 

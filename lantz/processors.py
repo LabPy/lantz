@@ -14,9 +14,8 @@ import warnings
 from functools import wraps, partial
 
 from . import Q_
+from .log import LOGGER as _LOG
 from .stringparser import Parser
-
-_LOG = logging.getLogger('lantz')
 
 
 class DimensionalityWarning(Warning):

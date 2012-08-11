@@ -36,11 +36,11 @@ from Qt.QtGui import (QApplication, QDialog, QWidget, QFont, QSizePolicy,
 
 from .. import Q_, Driver
 from ..feat import MISSING, DictFeat
+from ..log import get_logger
 
 QToolTip.setFont(QFont('SansSerif', 10))
 
-logger = logging.getLogger('lantz.ui')
-logger.addHandler(logging.NullHandler())
+logger = get_logger('lantz.ui', False)
 
 
 def _rst_to_html(rst):

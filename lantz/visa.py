@@ -78,7 +78,7 @@ class MessageVisaDriver(TextualMixin, Driver):
         #stopbits = STOPBITS[stopbits]
 
         self.resource_name = resource_name
-        self.log_debug('Created Instrument {}'.format(self.resource_name))
+        self.log_debug('Created Instrument {}', self.resource_name)
 
     def raw_send(self, data):
         """Send raw bytes to the instrument.
@@ -96,19 +96,19 @@ class MessageVisaDriver(TextualMixin, Driver):
         """Open port
         """
         if not self.is_open():
-            self.log_debug('Opening {}'.format(self.resource_name))
+            self.log_debug('Opening {}', self.resource_name)
             self.vi = self.resource_manager.open_resource(self.resource_name) #, self.access_mode, self.open_timeout
             for key, value in self._init_attributes.items():
                 self.visa.set_attribute(self.vi, key, value)
 
             self.log_debug('The session for {} is {}'.format(self.resource_name, self.vi))
         else:
-            self.log_debug('{} is already open'.format(self.resource_name))
+            self.log_debug('{} is already open', self.resource_name)
 
     def finalize(self):
         """Close port
         """
-        self.log_debug('Closing port {}'.format(self.resource_name))
+        self.log_debug('Closing port {}', self.resource_name)
         self.visa.close(self.vi)
         self.vi = None
 

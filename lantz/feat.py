@@ -149,7 +149,7 @@ class Feat(object):
         # This part calls to the underlying get function wrapping
         # and timing, caching, logging and error handling
         with instance._lock:
-            instance.log_info('Getting {}'.format(name))
+            instance.log_info('Getting {}', name)
 
             try:
                 tic = time.time()
@@ -158,19 +158,19 @@ class Feat(object):
                 else:
                     value = self.fget(instance, key)
             except Exception as e:
-                instance.log_error('While getting {}: {}'.format(name, e))
+                instance.log_error('While getting {}: {}', name, e)
                 raise e
 
             instance.timing.add('get_' + name, time.time() - tic)
 
-            instance.log_debug('(raw) Got {} for {}'.format(value, name))
+            instance.log_debug('(raw) Got {} for {}', value, name)
             try:
                 value = self.post_get(value)
             except Exception as e:
-                instance.log_error('While post-processing {} for {}: {}'.format(value, name, e))
+                instance.log_error('While post-processing {} for {}: {}', value, name, e)
                 raise e
 
-            instance.log_info('Got {} for {}'.format(value, name), lantz_feat=(name, str(value)))
+            instance.log_info('Got {} for {}', value, name, lantz_feat=(name, str(value)))
 
             self.set_cache(instance, value, key)
 
@@ -187,17 +187,17 @@ class Feat(object):
         with instance._lock:
             current_value = self.get_cache(instance, key)
             if not force and value == current_value:
-                instance.log_info('No need to set {0} = {1} (current={2}, force={3})'.format(name, value, current_value, force))
+                instance.log_info('No need to set {} = {} (current={}, force={})', name, value, current_value, force)
                 return
 
-            instance.log_info('Setting {0} = {1} (current={2}, force={3})'.format(name, value, current_value, force))
+            instance.log_info('Setting {} = {} (current={}, force={})', name, value, current_value, force)
 
             try:
                 t_value = self.pre_set(value)
             except Exception as e:
-                instance.log_error('While pre-processing {} for {}: {}'.format(value, name, e))
+                instance.log_error('While pre-processing {} for {}: {}', value, name, e)
                 raise e
-            instance.log_debug('(raw) Setting {} = {}'.format(name, t_value))
+            instance.log_debug('(raw) Setting {} = {}', name, t_value)
 
             try:
                 tic = time.time()
@@ -206,12 +206,12 @@ class Feat(object):
                 else:
                     self.fset(instance, key, t_value)
             except Exception as e:
-                instance.log_error('While setting {} to {}. {}'.format(name, value, e))
+                instance.log_error('While setting {} to {}. {}', name, value, e)
                 raise e
 
             instance.timing.add('set_' + name, time.time() - tic)
 
-            instance.log_info('{} was set to {}'.format(name, value), lantz_feat=(name, str(value)))
+            instance.log_info('{} was set to {}', name, value, lantz_feat=(name, str(value)))
 
             self.set_cache(instance, value, key)
 
@@ -267,8 +267,7 @@ class DictFeat(Feat):
 
     def setitem(self, key, value, force=False):
         if self.keys and not key in self.keys:
-            raise KeyError('{} is not valid key for {} {}'.format(key, self.name,
-                                                                    self.keys))
+            raise KeyError('{} is not valid key for {} {}', key, self.name, self.keys)
         if isinstance(self.keys, dict):
             key = self.keys[key]
 
@@ -295,7 +294,7 @@ class DictFeat(Feat):
             self.setitem(key, value)
 
     def __delete__(self, instance):
-        raise AttributeError('{} is a permanent attribute from {}'.format(self.name, instance.__class__.__name__))
+        raise AttributeError('{} is a permanent attribute from {}', self.name, instance.__class__.__name__)
 
     def __repr__(self):
         return repr(self._internal)

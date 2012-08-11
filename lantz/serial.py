@@ -128,15 +128,15 @@ class SerialDriver(TextualMixin, Driver):
         """Open port
         """
         if not self.serial.isOpen():
-            self.log_debug('Opening port {}'.format(self.serial.port))
+            self.log_debug('Opening port {}', self.serial.port)
             self.serial.open()
         else:
-            self.log_debug('Port {} is already open'.format(self.serial.port))
+            self.log_debug('Port {} is already open', self.serial.port)
 
     def finalize(self):
         """Close port
         """
-        self.log_debug('Closing port {}'.format(self.serial.port))
+        self.log_debug('Closing port {}', self.serial.port)
         return self.serial.close()
 
     def is_open(self):

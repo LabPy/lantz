@@ -61,11 +61,11 @@ class TCPDriver(TextualMixin, Driver):
             raise LantzSocketTimeoutError(str(e))
 
     def initialize(self):
-        self.log_debug('Opening port {}'.format(self.host_port))
+        self.log_debug('Opening port {}', self.host_port)
         return self.socket.connect(self.host_port)
 
     def finalize(self):
-        self.log_debug('Closing port {}'.format(self.host_port))
+        self.log_debug('Closing port {}', self.host_port)
         return self.socket.close()
 
     def is_open(self):

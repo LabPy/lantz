@@ -85,7 +85,7 @@ class Sensicam(LibraryDriver):
             raise InstrumentError(_ERRORS[ret_value])
         elif (ret_value > 0 and
               func_name not in ('GET_COCTIME', 'GET_DELTIME', 'GET_BELTIME', 'GET_EXPTIME')):
-            self.log_warning('While calling {}: {}'.format(func_name, [ret_value]))
+            self.log_warning('While calling {}: {}', func_name, _ERRORS[ret_value])
 
         return ret_value
 

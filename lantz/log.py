@@ -8,6 +8,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
+import types
 
 import pickle
 
@@ -26,18 +27,60 @@ from socketserver import (ThreadingUDPServer, DatagramRequestHandler,
 
 from .stringparser import Parser
 
-LOGGER = logging.getLogger('lantz')
-LOGGER.addHandler(logging.NullHandler())
+class _LogRecord(logging.LogRecord):
+
+    def getMessage(self):
+        """
+        Return the message for this LogRecord.
+
+        Return the message for this LogRecord after merging any user-supplied
+        arguments with the message.
+        """
+        msg = str(self.msg)
+        if self.args:
+            msg = msg.format(*self.args)
+        return msg
+
+
+def _makeRecord(name, level, fn, lno, msg, args, exc_info,
+                func=None, extra=None, sinfo=None):
+    """
+    A factory method which can be overridden in subclasses to create
+    specialized LogRecords.
+    """
+    rv = _LogRecord(name, level, fn, lno, msg, args, exc_info, func,
+                    sinfo)
+    if extra is not None:
+        for key in extra:
+            if (key in ["message", "asctime"]) or (key in rv.__dict__):
+                raise KeyError("Attempt to overwrite %r in LogRecord" % key)
+            rv.__dict__[key] = extra[key]
+    return rv
+
+
+def get_logger(name, add_NullHandler=True, patch_makeRecord=True):
+    """Return a logger with the specified name, creating if necessary.
+
+    if patch_makeRecord, the logger makeRecord will be replaced with a PEP3101 compatible version.
+    """
+    logger = logging.getLogger(name)
+    if add_NullHandler:
+        logger.addHandler(logging.NullHandler())
+    if patch_makeRecord:
+        logger.makeRecord = _makeRecord
+    return logger
+
+LOGGER = get_logger('lantz')
 
 try:
     from colorama import Fore, Back, Style, init as colorama_init
     colorama_init()
     colorama = True
-    DEFAULT_FMT = Style.NORMAL + '%(asctime)s <color>%(levelname)-8s</color>' + Style.RESET_ALL + ' %(message)s'
+    DEFAULT_FMT = Style.NORMAL + '{asctime} <color>{levelname:8s}</color>' + Style.RESET_ALL + ' {message}'
 except Exception as e:
-    LOGGER.info('Log will not be colorized. Could not import colorama: {}'.format(e))
+    LOGGER.info('Log will not be colorized. Could not import colorama: {}', e)
     colorama = False
-    DEFAULT_FMT = '%(asctime)s %(levelname)-8s %(message)s'
+    DEFAULT_FMT = '{asctime} {levelname:8s} {message}'
 
 
 class ColorizingFormatter(logging.Formatter):
@@ -170,7 +213,8 @@ class LogRecordStreamHandler(StreamRequestHandler):
                 while len(chunk) < slen:
                     chunk = chunk + self.connection.recv(slen - len(chunk))
                 obj = pickle.loads(chunk)
-                record = logging.makeLogRecord(obj)
+                record = _LogRecord(None, None, "", 0, "", (), None, None)
+                record.__dict__.update(obj)
                 self.server.handle_record(record)
             except socket.error as e:
                 if not isinstance(e.args, tuple):
@@ -204,7 +248,8 @@ class LogRecordDatagramHandler(DatagramRequestHandler):
         chunk = chunk[4:]
         assert len(chunk) == slen
         obj = pickle.loads(chunk)
-        record = logging.makeLogRecord(obj)
+        record = _LogRecord(None, None, "", 0, "", (), None, None)
+        record.__dict__.update(obj)
         self.server.handle_record(record)
 
     def finish(self):
@@ -265,10 +310,12 @@ def log_to_socket(level=logging.INFO, host='localhost',
                  logging module)
     :return: lantz logger
     """
-    logger = logging.getLogger('lantz')
-    logger.setLevel(level)
-    logger.addHandler(SocketHandler(host, port))
-    return logger
+    handler = SocketHandler(host, port)
+    handler.setLevel(level)
+    LOGGER.addHandler(handler)
+    if LOGGER.getEffectiveLevel() > level:
+        LOGGER.setLevel(level)
+    return LOGGER
 
 
 def log_to_screen(level=logging.INFO, scheme='blackbg'):
@@ -278,14 +325,15 @@ def log_to_screen(level=logging.INFO, scheme='blackbg'):
     :param scheme: color scheme. Valid values are 'bw', 'bright', 'simple', 'whitebg', 'blackg'
     :return: lantz logger
     """
-    logger = logging.getLogger('lantz')
-    logger.setLevel(level)
     handler = logging.StreamHandler()
+    handler.setLevel(level)
     if not colorama:
         scheme = 'bw'
-    handler.setFormatter(ColorizingFormatter(scheme=scheme))
-    logger.addHandler(handler)
-    return logger
+    handler.setFormatter(ColorizingFormatter(scheme=scheme, style='{'))
+    LOGGER.addHandler(handler)
+    if LOGGER.getEffectiveLevel() > level:
+        LOGGER.setLevel(level)
+    return LOGGER
 
 
 def get_address(value, default_port=DEFAULT_TCP_LOGGING_PORT):

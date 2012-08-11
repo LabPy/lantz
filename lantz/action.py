@@ -65,7 +65,7 @@ class Action(object):
         # This part calls to the underlying function wrapping
         # and timing, logging and error handling
         with instance._lock:
-            instance.log_info('Calling {} with ({}, {}))'.format(name, args, kwargs))
+            instance.log_info('Calling {} with ({}, {}))', name, args, kwargs)
 
             try:
                 values = inspect.getcallargs(self.func, *(instance, ) + args, **kwargs)
@@ -76,20 +76,20 @@ class Action(object):
                 else:
                     t_values = self.pre_action(values)
             except Exception as e:
-                instance.log_error('While pre-processing ({}, {}) for {}: {}'.format(args, kwargs, name, e))
+                instance.log_error('While pre-processing ({}, {}) for {}: {}', args, kwargs, name, e)
                 raise e
-            instance.log_debug('(raw) Setting {} = {}'.format(name, t_values))
+            instance.log_debug('(raw) Setting {} = {}', name, t_values)
 
             try:
                 tic = time.time()
                 out = self.func(instance, *t_values)
             except Exception as e:
-                instance.log_error('While calling {} with {}. {}'.format(name, t_values, e))
+                instance.log_error('While calling {} with {}. {}', name, t_values, e)
                 raise e
 
             instance.timing.add(name, time.time() - tic)
 
-            instance.log_info('{} returned {}'.format(name, out))
+            instance.log_info('{} returned {}', name, out)
 
         return out
 

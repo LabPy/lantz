@@ -135,7 +135,7 @@ class LibraryDriver(Driver):
         else:
             raise OSError('library not found')
 
-        self.log_info('LibraryDriver created with {}'.format(name))
+        self.log_info('LibraryDriver created with {}', name)
         self._add_types()
 
 
@@ -164,10 +164,10 @@ class LibraryDriver(Driver):
             if collect:
                 values = [item.value for item in collect]
                 values.insert(0, ret)
-                self.log_debug('Function call {} returned {}. Collected: {}'.format(name, ret, collect))
+                self.log_debug('Function call {} returned {}. Collected: {}', name, ret, collect)
                 return tuple(values)
 
-            self.log_debug('Function call {} returned {}.'.format(name, ret))
+            self.log_debug('Function call {} returned {}.', name, ret)
             return ret
 
         return _inner

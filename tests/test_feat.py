@@ -5,12 +5,13 @@ import unittest
 
 from lantz import Driver, Feat, Q_
 from lantz.feat import MISSING
-
+from lantz.log import get_logger
 
 class MemHandler(logging.Handler):
 
     def __init__(self):
         super().__init__()
+        self.setFormatter(logging.Formatter(style='{'))
         self.history = list()
 
     def emit(self, record):
@@ -195,7 +196,7 @@ class FeatTest(unittest.TestCase):
 
         hdl = MemHandler()
 
-        logger = logging.getLogger('lantz.driver')
+        logger = get_logger('lantz.driver', False)
         logger.addHandler(hdl)
         logger.setLevel(logging.DEBUG)
 
@@ -228,7 +229,7 @@ class FeatTest(unittest.TestCase):
         hdl = MemHandler()
 
         class Spam(Driver):
-            _logger = logging.getLogger('test.feat')
+            _logger = get_logger('test.feat', False)
             _logger.addHandler(hdl)
             _logger.setLevel(logging.DEBUG)
 
@@ -288,7 +289,7 @@ class FeatTest(unittest.TestCase):
         hdl = MemHandler()
 
         class Spam(Driver):
-            _logger = logging.getLogger('test.feat')
+            _logger = get_logger('test.feat', False)
             _logger.addHandler(hdl)
             _logger.setLevel(logging.DEBUG)
 
@@ -305,7 +306,7 @@ class FeatTest(unittest.TestCase):
                 self_._eggs = values
 
         class Spam2(Driver):
-            _logger = logging.getLogger('test.feat')
+            _logger = get_logger('test.feat', False)
             _logger.addHandler(hdl)
             _logger.setLevel(logging.DEBUG)
 

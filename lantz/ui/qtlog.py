@@ -4,7 +4,10 @@ from PyQt4 import QtCore
 from PyQt4 import QtGui
 from PyQt4.QtCore import Qt
 import collections
-logger = logging.getLogger(__name__)
+
+from ..log import get_logger
+
+logger = get_logger(__name__)
 
 
 MessageRole = Qt.UserRole

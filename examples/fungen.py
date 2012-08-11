@@ -37,6 +37,7 @@ if __name__ == '__main__':
 
     import lantz.log
     lantz.log.log_to_screen(lantz.log.DEBUG)
+    lantz.log.log_to_socket(lantz.log.DEBUG)
 
     from lantz import Q_
 

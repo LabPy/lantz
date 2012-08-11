@@ -23,8 +23,9 @@ from .action import Action
 from .stats import RunningStats
 from .errors import LantzTimeoutError
 from .processors import ParseProcessor
+from .log import get_logger
 
-logger = logging.getLogger('lantz.driver')
+logger = get_logger('lantz.driver', False)
 
 def _merge_dicts(*args):
     """ _merge_dicts(dict1, [dict2 [...]]) -> dict1.update(dict2);dict1.update ...
@@ -450,7 +451,7 @@ class TextualMixin(object):
             encoding = self.ENCODING
 
         message = bytes(command + termination, encoding)
-        self.log_debug('Sending {}'.format(message))
+        self.log_debug('Sending {}', message)
         return self.raw_send(message)
 
     def recv(self, termination=None, encoding=None):
@@ -484,7 +485,7 @@ class TextualMixin(object):
             raw_received = self.raw_recv(self.RECV_CHUNK)
             received += str(raw_received, encoding)
 
-        self.log_debug('Received {!r} (len={})'.format(received, len(received)))
+        self.log_debug('Received {!r} (len={})', received, len(received))
 
         received, self.__received = received.split(termination, 1)
 
