@@ -101,7 +101,7 @@ class MessageVisaDriver(TextualMixin, Driver):
             for key, value in self._init_attributes.items():
                 self.visa.set_attribute(self.vi, key, value)
 
-            self.log_debug('The session for {} is {}'.format(self.resource_name, self.vi))
+            self.log_debug('The session for {} is {}', self.resource_name, self.vi)
         else:
             self.log_debug('{} is already open', self.resource_name)
 

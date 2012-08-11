@@ -86,7 +86,7 @@ class SerialDriver(TextualMixin, Driver):
 
         self.serial.port = port
 
-        self.log_debug('Created pyserial port {}'.format(self.serial))
+        self.log_debug('Created pyserial port {}', self.serial.port)
 
     def raw_send(self, data):
         """Send raw bytes to the instrument.
