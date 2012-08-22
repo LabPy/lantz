@@ -133,7 +133,7 @@ doctest:
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
 all:
-	$(MAKE) dirhtml latexpdf epub
+	$(MAKE) html dirhtml latexpdf epub
 	cp _build/epub/Lantz.epub _build/html/_static/lantz-docs.epub
 	cp _build/latex/Lantz.pdf _build/html/_static/lantz-docs.pdf
 	mv _build/dirhtml lantz-docs
@@ -155,5 +155,5 @@ github:
 	touch .nojekyll ; \
 	git add . ; \
 	git commit -a -m "Updated the docs" ; \
-	git push origin gh-pages;
+	git push -f origin gh-pages;
 	rm -rf ~/tmp/lantz-docs
