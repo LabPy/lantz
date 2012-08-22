@@ -4,23 +4,23 @@
 Installing
 ==========
 
-Lantz core requires only Python 3.2+. This guide also assumes that you have installed `virtualenv`_ and `pip`_. If not, please install them by typing::
+This guide describes Lantz requirements and provides platform specific
+installation guides. Examples are given for Python 3.2, installing all
+optional requirements as site-packages and Lantz in a virtual environment
+using `pip`_ and `git`_
 
-    $ easy_install virtualenv pip
+Requirements
+------------
 
-(By the way, check out virtualenv wrapper as a way to easy handle your virtual environments)
-
-.. note::
-
-    Remember that if you have multiple version of python installed in your system, you must always use python 3.
-    Instead of `pip` you need to write `pip-3.2` and instead of `easy_install` you need to write `easy_install-3.2`.
+Lantz core requires only `Python`_ 3.2+.
 
 
 Optional requirements
 ---------------------
 
-Some lantz subpackages have other requirements which are listed below together with a small explanation of where are used.
-Short installation instructions are given, but we refer you to the package documentation for more information. For some
+Some lantz subpackages have other requirements which are listed below together
+with a small explanation of where are used. Short installation instructions are
+given, but we refer you to the package documentation for more information. For some
 packages, a link to the binary distribution is given.
 
     - `Colorama`_ is used to colorize terminal output.
@@ -69,31 +69,32 @@ packages, a link to the binary distribution is given.
 
       or use the `NumPy binaries`_
 
-
-Installing Lantz
-================
-
-If you just want want to use `Lantz`, you can just::
-
-    $ pip install git+gitolite@glugcen.dc.uba.ar:lantz.git#egg=lantz
-
-or from `Lantz at Github`_::
-
-    $ pip install git+git://github.com/hgrecco/lantz.git#egg=lantz
+    - `VISA`_ National Instruments Library for communicating via  GPIB, VXI, PXI,
+      Serial, Ethernet, and/or USB interfaces
 
 
-Building your Lantz development environment
-===========================================
+Linux
+-----
 
-If you want to develop `Lantz`, install the sources.
+Most linux distributions provide packages for Python 3.2, NumPy, PyQt (or PySide)
+and git. Install them.
 
-Linux or Mac
-------------
+Download and install `VISA`_.
 
-Open a terminal and change to the folder where you will create your virtual environment. In this case, we have chosen the home directory::
+Open a terminal to install pip and virtualenv::
+
+    $ curl http://python-distribute.org/distribute_setup.py | python3.2
+    $ curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py | python3.2
+
+Using pip, install all other optional dependencies::
+
+    $ pip-3.2 install virtualenv colorama sphinx pyserial
+
+Change to the folder where you will create your virtual environment. In this
+case, we have chosen the home directory::
 
     $ cd ~
-    $ virtualenv -p python3 --system-site-packages lantzenv
+    $ virtualenv -p python3.2 --system-site-packages lantzenv
     $ cd lantzenv
     $ source bin/activate
 
@@ -101,13 +102,92 @@ and then install an editable package::
 
     $ pip install -e git+gitolite@glugcen.dc.uba.ar:lantz.git#egg=lantz
 
+or from `Lantz at Github`_::
+
+    $ pip install -e git+git://github.com/hgrecco/lantz.git#egg=lantz
+
 You will find the code in `~/lantzenv/src/lantz`.
 
+The folder is a normal git repository from where you can pull and push to keep
+the repo in sync.
+
+Mac
+---
+
+Download and install `Python`_, `NumPy binaries`_, `PyQt binaries`_, `VISA`_
+and `git binaries`_
+
+Open a terminal to install pip and virtualenv::
+
+    $ curl http://python-distribute.org/distribute_setup.py | python3.2
+    $ curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py | python3.2
+
+Using pip, install all other optional dependencies::
+
+    $ pip-3.2 install virtualenv colorama sphinx pyserial
+
+
+Change to the folder where you will create your virtual environment. In this
+ case, we have chosen the home directory::
+
+    $ cd ~
+    $ virtualenv -p python3.2 --system-site-packages lantzenv
+    $ cd lantzenv
+    $ source bin/activate
+
+and then install an editable package::
+
+    $ pip install -e git+gitolite@glugcen.dc.uba.ar:lantz.git#egg=lantz
+
+or from `Lantz at Github`_::
+
+    $ pip install -e git+git://github.com/hgrecco/lantz.git#egg=lantz
+
+You will find the code in `~/lantzenv/src/lantz`.
+
+The folder is a normal git repository from where you can pull and push to keep
+the repo in sync.
 
 Windows
 -------
 
-Open a command windows and change to the folder where you will create your virtual environemnt. In this case, we have chosen the desktop::
+
+.. note::
+
+    We provide a simple script to run all the steps provided below. Download
+    `get-lantz`_ to the folder in which you want to create the virtual environment.
+    The run the sript using a 32 bit version of `Python`_ 3.2+.
+
+    In some of the steps, an installer application will pop-up. Just select all
+    default options except when installing git. There you must choose the options
+    shown in the images below.
+
+    As the script will download and install only necessary packages, it does not
+    need a clean Python to start.
+
+
+Install `Python`_, `NumPy binaries`_, `PyQt binaries`_, `VISA`_ and `git binaries`_.
+
+When installing Git
+
+.. image:: ../_static/guides/git1.png
+   :alt: Options in Git
+
+
+.. image:: ../_static/guides/git2.png
+   :alt: Options in Git
+
+Download and run with Python 3.2::
+
+    - http://python-distribute.org/distribute_setup.py
+    - https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+
+In the command prompt install using pip all other optional dependencies::
+
+    $ C:\Python3.2\Scripts\pip install virtualenv colorama sphinx pyserial
+
+Open a command windows and change to the folder where you will create your
+virtual environment. In this case, we have chosen the desktop::
 
     cd 	%USERPROFILE%\Desktop
     C:\Python32\Scripts\virtualenv --system-site-packages lantzenv
@@ -118,9 +198,14 @@ and then install an editable package::
 
     pip install -e git+gitolite@glugcen.dc.uba.ar:lantz.git#egg=lantz
 
+or from `Lantz at Github`_::
+
+    $ pip install -e git+git://github.com/hgrecco/lantz.git#egg=lantz
+
 You will find the code in `%USERPROFILE%\\Desktop\\lantzenv\\src\\lantz`.
 
-The folder is a normal git repository from where you can pull and push to keep the repo in sync.
+The folder is a normal git repository from where you can pull and push to keep
+the repo in sync.
 
 .. _pip: http://www.pip-installer.org/en/latest/index.html
 .. _virtualenv: http://www.virtualenv.org/en/latest/index.html
@@ -137,3 +222,8 @@ The folder is a normal git repository from where you can pull and push to keep t
 .. _NumPy: http://numpy.scipy.org/
 .. _NumPy binaries: http://sourceforge.net/projects/numpy/files/
 .. _Lantz at Github: https://github.com/hgrecco/lantz
+.. _get-lantz: https://raw.github.com/hgrecco/lantz/master/scripts/get-lantz.py
+.. _Python: http://www.python.org/getit/
+.. _VISA: http://www.ni.com/visa/
+.. _git: http://git-scm.com/
+.. _git binaries: http://git-scm.com/downloads
