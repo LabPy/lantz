@@ -11,6 +11,7 @@
 """
 
 import time
+import copy
 
 from .processors import (Processor, ToQuantityProcessor, FromQuantityProcessor,
                          MapProcessor, ReverseMapProcessor, RangeProcessor)
@@ -58,7 +59,7 @@ class Feat(object):
 
     def __init__(self, fget=MISSING, fset=None, doc=None, *,
                  values=None, units=None, limits=None, procs=None,
-                 read_once=False, in_instance=False):
+                 read_once=False):
         self.fget = fget
         self.fset = fset
         self.__doc__ = doc
@@ -69,76 +70,48 @@ class Feat(object):
         if fset and fset.__doc__ and not self.__doc__:
             self.__doc__ = fset.__doc__
 
-        self._meta = {'values': values,
+        self.info = {'values': values,
                       'units': units,
                       'limits': limits,
                       'processors': procs}
 
         self.read_once = read_once
-        self.in_instance = in_instance
 
-    @property
-    def values(self):
-        return self._meta['values']
+        self.get_processors, self.set_processors = self.rebuild(True)
 
-    @values.setter
-    def values(self, value):
-        self._meta['values'] = value
-        self.rebuild(False)
+    def rebuild(self, build_doc=False, info=None):
+        if not info:
+            info = self.info
 
-    @property
-    def units(self):
-        return self._meta['units']
+        values = info['values']
+        units = info['units']
+        limits = info['limits']
+        processors = info['processors']
 
-    @units.setter
-    def units(self, value):
-        self._meta['units'] = value
-        self.rebuild(False)
-
-    @property
-    def limits(self):
-        return self._meta['limits']
-
-    @limits.setter
-    def limits(self, value):
-        self._meta['limits'] = value
-        self.rebuild(False)
-
-    @property
-    def processors(self):
-        return self._meta['processors']
-
-    @processors.setter
-    def processors(self, value):
-        self._meta['processors'] = value
-        self.rebuild(False)
-
-    def rebuild(self, build_doc=True):
         get_processors = []
         set_processors = []
-        if self.values:
-            get_processors.append(ReverseMapProcessor(self.values))
-            set_processors.append(MapProcessor(self.values))
-        if self.units:
-            get_processors.insert(0, ToQuantityProcessor(self.units))
-            set_processors.append(FromQuantityProcessor(self.units))
-        if self.limits:
-            if isinstance(self.limits[0], (list, tuple)):
-                set_processors.append(RangeProcessor(self.limits))
+        if values:
+            get_processors.append(ReverseMapProcessor(values))
+            set_processors.append(MapProcessor(values))
+        if units:
+            get_processors.insert(0, ToQuantityProcessor(units))
+            set_processors.append(FromQuantityProcessor(units))
+        if limits:
+            if isinstance(limits[0], (list, tuple)):
+                set_processors.append(RangeProcessor(limits))
             else:
-                set_processors.append(RangeProcessor((self.limits, )))
-        if self.processors:
-            for getp, setp in self.processors:
+                set_processors.append(RangeProcessor((limits, )))
+        if processors:
+            for getp, setp in processors:
                 if getp is not None:
                     get_processors.insert(0, Processor(getp))
                 if setp is not None:
                     set_processors.append(Processor(setp))
 
-        self._meta['get_processors'] = get_processors
-        self._meta['set_processors'] = set_processors
-
         if build_doc:
             _dochelper(self)
+
+        return get_processors, set_processors
 
     def __call__(self, func):
         if self.fget is MISSING:
@@ -166,13 +139,26 @@ class Feat(object):
         self.pre_set = func
         return self
 
-    def post_get(self, value):
-        for processor in self.get_processors:
+    def post_get(self, value, instance=None):
+        procs = self.get_processors
+        if instance:
+            try:
+                procs = instance.feats[self.name].get_processors
+            except KeyError:
+                pass
+
+        for processor in procs:
             value = processor(value)
         return value
 
-    def pre_set(self, value):
-        for processor in self.set_processors:
+    def pre_set(self, value, instance=None):
+        procs = self.set_processors
+        if instance:
+            try:
+                procs = instance.feats[self.name].set_processors
+            except KeyError:
+                pass
+        for processor in procs:
             value = processor(value)
         return value
 
@@ -207,7 +193,7 @@ class Feat(object):
 
             instance.log_debug('(raw) Got {} for {}'.format(value, name))
             try:
-                value = self.post_get(value)
+                value = self.post_get(value, instance)
             except Exception as e:
                 instance.log_error('While post-processing {} for {}: {}'.format(value, name, e))
                 raise e
@@ -235,7 +221,7 @@ class Feat(object):
             instance.log_info('Setting {0} = {1} (current={2}, force={3})'.format(name, value, current_value, force))
 
             try:
-                t_value = self.pre_set(value)
+                t_value = self.pre_set(value, instance)
             except Exception as e:
                 instance.log_error('While pre-processing {} for {}: {}'.format(value, name, e))
                 raise e
@@ -290,29 +276,31 @@ class DictFeat(Feat):
     def __init__(self, fget=MISSING, fset=None, doc=None, *,
                  keys=None, **kwargs):
         self.instance = None
-        self.keys = keys
-        if self.keys:
-            self._internal = {key: MISSING for key in self.keys}
+        if keys:
+            self._internal = {key: MISSING for key in keys}
         else:
             self._internal = {}
 
         super().__init__(fget, fset, doc, **kwargs)
+        self.info['keys'] = keys
 
     def getitem(self, key):
-        if self.keys and not key in self.keys:
+        keys = self.info['keys']
+        if keys and not key in keys:
             raise KeyError('{} is not valid key for {} {}'.format(key, self.name,
-                                                                    self.keys))
-        if isinstance(self.keys, dict):
-            key = self.keys[key]
+                                                                    keys))
+        if isinstance(keys, dict):
+            key = keys[key]
 
         return self.get(self.instance, self.instance.__class__, key)
 
     def setitem(self, key, value, force=False):
-        if self.keys and not key in self.keys:
+        keys = self.info['keys']
+        if keys and not key in keys:
             raise KeyError('{} is not valid key for {} {}'.format(key, self.name,
-                                                                    self.keys))
-        if isinstance(self.keys, dict):
-            key = self.keys[key]
+                                                                    keys))
+        if isinstance(keys, dict):
+            key = keys[key]
 
         self.set(self.instance, value, force, key)
 
@@ -343,7 +331,8 @@ class DictFeat(Feat):
         return repr(self._internal)
 
     def get_cache(self, instance, key):
-        if not self.keys and not key in self._internal:
+        keys = self.info['keys']
+        if not keys and not key in self._internal:
             return None
         return self._internal.get(key, MISSING)
 
@@ -362,20 +351,22 @@ def _dochelper(feat):
     doc = ''
     predoc = ''
 
+    info = feat.info
+
     if isinstance(feat, DictFeat):
-        predoc = ':keys: {}\n\n'.format(feat.keys or 'ANY')
+        predoc = ':keys: {}\n\n'.format(feat.info.get('keys', None) or 'ANY')
 
 
-    if feat.values:
-        doc += ':values: {}\n'.format(feat.values)
-    if feat.units:
-        doc += ':units: {}\n'.format(feat.units)
-    if feat.limits:
-        doc += ':limits: {}\n'.format(feat.limits)
-    if feat.processors:
+    if info['values']:
+        doc += ':values: {}\n'.format(info['values'])
+    if info['units']:
+        doc += ':units: {}\n'.format(info['units'])
+    if info['limits']:
+        doc += ':limits: {}\n'.format(info['limits'])
+    if info['processors']:
         docpg = []
         docps = []
-        for getp, setp in feat.processors:
+        for getp, setp in info['processors']:
             if getp is not None:
                 docpg.insert(0, '  - {}'.format(getp))
             if setp is not None:
@@ -391,4 +382,61 @@ def _dochelper(feat):
         doc = '\n\n{}'.format(doc)
 
     feat.__doc__ = predoc + feat.__original_doc__ + doc
+
+
+class FeatProxy(object):
+    """Proxy object for Feat and DictFeat that allows to
+    store instance specific modifiers.
+    """
+
+    def __init__(self, instance, feat):
+        super().__setattr__('instance', instance)
+        super().__setattr__('feat', feat)
+
+    def __getattr__(self, item):
+        if not item in self.feat.info:
+            raise AttributeError()
+
+        try:
+            return self.info[item]
+        except KeyError:
+            return self.feat.info[item]
+
+    def __setattr__(self, key, value):
+        if not key in self.feat.info:
+            raise AttributeError()
+
+        try:
+            info = self.info
+        except KeyError:
+            info = copy.copy(self.feat.info)
+            self.instance._lantz_info[self.feat.name] = info
+
+        info[key] = value
+
+        self.rebuild(build_doc=False)
+
+    def rebuild(self, build_doc=True):
+
+        try:
+            info = self.info
+        except KeyError:
+            info = self.feat.info
+
+        get_p, set_p = self.feat.rebuild(build_doc, info=info)
+        self.instance._lantz_getp[self.feat.name] = get_p
+        self.instance._lantz_setp[self.feat.name] = set_p
+
+    @property
+    def info(self):
+        return self.instance._lantz_info[self.feat.name]
+
+    @property
+    def get_processors(self):
+        return self.instance._lantz_getp[self.feat.name]
+
+    @property
+    def set_processors(self):
+        return self.instance._lantz_setp[self.feat.name]
+
 

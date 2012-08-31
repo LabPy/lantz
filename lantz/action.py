@@ -11,6 +11,7 @@
 """
 
 import time
+import copy
 import inspect
 import functools
 
@@ -39,10 +40,10 @@ class Action(object):
     """
 
     def __init__(self, func = None, *, values=None, units=None, limits=None, procs=None):
-        self.values = values
-        self.units = units
-        self.limits = limits
-        self.processors = procs
+        self.info = {'values': values,
+                     'units': units,
+                     'limits': limits,
+                     'processors': procs}
         self.func = func
         self.args = None
 
@@ -51,13 +52,17 @@ class Action(object):
         self.args = inspect.getfullargspec(func).args
         self.__name__ = func.__name__
         self.__doc__ = func.__doc__
-        self.rebuild()
+        self.action_processors = self.rebuild()
         return self
 
     def __get__(self, instance, owner=None):
         func = functools.partial(self.call, instance)
         func.__wrapped__ = self.func
         return func
+
+    @property
+    def name(self):
+        return self.__name__
 
     def call(self, instance, *args, **kwargs):
         name = self.__name__
@@ -72,9 +77,9 @@ class Action(object):
                 fargs = self.args
                 values = tuple(values[farg] for farg in fargs)[1:]
                 if len(values) == 1:
-                    t_values = (self.pre_action(values[0]), )
+                    t_values = (self.pre_action(values[0], instance), )
                 else:
-                    t_values = self.pre_action(values)
+                    t_values = self.pre_action(values, instance)
             except Exception as e:
                 instance.log_error('While pre-processing ({}, {}) for {}: {}'.format(args, kwargs, name, e))
                 raise e
@@ -93,50 +98,119 @@ class Action(object):
 
         return out
 
-    def pre_action(self, value):
-        for processor in self.action_processors:
+    def pre_action(self, value, instance=None):
+        procs = self.action_processors
+        if instance:
+            try:
+                procs = instance.actions[self.name].processors
+            except KeyError:
+                pass
+        for processor in procs:
             value = processor(value)
         return value
 
-    def rebuild(self):
-        self.action_processors = []
-        largs = len(self.args) - 1
-        name = self.__name__
+    def rebuild(self, build_doc=False, info=None):
+        if not info:
+            info = self.info
 
-        if self.values:
-            proc = MapProcessor(self.values)
+        procs = []
+        largs = len(self.args) - 1
+        name = self.name
+
+        values = info['values']
+        units = info['units']
+        limits = info['limits']
+        processors = info['processors']
+
+        if values:
+            proc = MapProcessor(values)
             lproc = len(proc) if isinstance(proc, Processor) else 1
             if lproc != largs:
                 raise ValueError("In {}: the number of elements in 'values' ({}) "
                                  "must match the number of arguments ({})".format(name, lproc, largs))
-            self.action_processors.append(proc)
+            procs.append(proc)
 
-        if self.units:
-            proc = FromQuantityProcessor(self.units)
+        if units:
+            proc = FromQuantityProcessor(units)
             lproc = len(proc) if isinstance(proc, Processor) else 1
             if lproc != largs:
                 raise ValueError("In {}: the number of elements in 'units' ({}) "
                                  "must match the number of arguments ({})".format(name, lproc, largs))
-            self.action_processors.append(proc)
+            procs.append(proc)
 
-        if self.limits:
-            if isinstance(self.limits[0], (list, tuple)):
-                proc = RangeProcessor(self.limits)
+        if limits:
+            if isinstance(limits[0], (list, tuple)):
+                proc = RangeProcessor(limits)
             else:
-                proc = RangeProcessor((self.limits, ))
+                proc = RangeProcessor((limits, ))
 
             lproc = len(proc) if isinstance(proc, Processor) else 1
             if lproc != largs:
                 raise ValueError("In {}: the number of elements in 'limits' ({}) "
                                  "must match the number of arguments ({})".format(name, lproc, largs))
 
-            self.action_processors.append(proc)
+            procs.append(proc)
 
-        if self.processors:
-            for processor in self.processors:
+        if processors:
+            for processor in processors:
                 proc = Processor(processor)
                 lproc = len(proc) if isinstance(proc, Processor) else 1
                 if lproc != largs:
                     raise ValueError("In {}: the number of elements in 'processor' ({}) "
                                      "must match the number of arguments ({})".format(name, len(proc), largs))
-                self.action_processors.append(proc)
+                procs.append(proc)
+
+        return procs
+
+
+class ActionProxy(object):
+    """Proxy object for Actions that allows to
+    store instance specific modifiers.
+    """
+
+    def __init__(self, instance, action):
+        super().__setattr__('instance', instance)
+        super().__setattr__('action', action)
+
+    def __getattr__(self, item):
+        if not item in self.action.info:
+            raise AttributeError()
+
+        try:
+            return self.info[item]
+        except KeyError:
+            return self.action.info[item]
+
+    def __setattr__(self, key, value):
+        if not key in self.action.info:
+            raise AttributeError()
+
+        try:
+            info = self.info
+        except KeyError:
+            info = copy.copy(self.action.info)
+            self.instance._lantz_info[self.action.name] = info
+
+        info[key] = value
+
+        self.rebuild(build_doc=False)
+
+    def rebuild(self, build_doc=True):
+
+        try:
+            info = self.info
+        except KeyError:
+            info = self.feat.info
+
+        procs = self.action.rebuild(build_doc, info=info)
+        self.instance._lantz_setp[self.action.name] = procs
+
+    @property
+    def info(self):
+        return self.instance._lantz_info[self.action.name]
+
+    @property
+    def processors(self):
+        return self.instance._lantz_setp[self.action.name]
+
+

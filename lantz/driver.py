@@ -18,8 +18,8 @@ from functools import partial, wraps
 from concurrent import futures
 from collections import defaultdict, namedtuple
 
-from .feat import Feat, DictFeat, MISSING
-from .action import Action
+from .feat import Feat, DictFeat, MISSING, FeatProxy
+from .action import Action, ActionProxy
 from .stats import RunningStats
 from .errors import LantzTimeoutError
 from .processors import ParseProcessor
@@ -43,6 +43,19 @@ def _merge_dicts(*args):
         out.update(arg)
 
     return out
+
+
+class ProxyDict(object):
+    """Read only dictionary that maps feat name to Proxy objects
+    """
+
+    def __init__(self, instance, collection, callable):
+        self.instance = instance
+        self.collection = collection
+        self.callable = callable
+
+    def __getitem__(self, item):
+        return self.callable(self.instance, self.collection[item])
 
 
 def repartial(func, *parameters, **kparms):
@@ -78,7 +91,6 @@ class _DriverType(type):
                 if isinstance(value, (Feat, DictFeat)):
                     value.name = key
                     feats[key] = value
-                    value.rebuild()
                 elif isinstance(value, Action):
                     value.rebuild()
                     actions[key] = value
@@ -127,11 +139,25 @@ class Driver(metaclass=_DriverType):
                 inst.__dict__[key] = new_dictfeat._internal
                 cls._lantz_features[key] = new_dictfeat
             else:
-                if value.in_instance:
-                    new_feat = copy.copy(value)
-                    inst.__class__ = new_feat
-                    inst._lantz_features[key] = new_feat
                 inst.__dict__[key] = MISSING
+
+
+        # The following dictionaries store instance specific information
+        # about Feats, DictFeats and Actions, using attribute names as keys.
+        # For example, to change the units of a feat of an specific instance.
+        # the user will execute:
+        #   instance.feats[feat_name].units = new_units
+        # This will store:
+        #   instance._lantz_info[feat_name]['units'] = new_units
+
+        #: Instance specific information about modifiers
+        inst._lantz_info = {}
+
+        #: Instance specific information get processors
+        inst._lantz_getp = {}
+
+        #: Instance specific information set processors
+        inst._lantz_setp = {}
 
         inst._executor = None
         inst._lock = threading.RLock()
@@ -386,6 +412,14 @@ class Driver(metaclass=_DriverType):
         except ValueError:
             self.log_warning('Cannot delete on changed callback: {}, {}, {}',
                              feat_name, func, key)
+
+    @property
+    def feats(self):
+        return ProxyDict(self, self._lantz_features, FeatProxy)
+
+    @property
+    def actions(self):
+        return ProxyDict(self, self._lantz_actions, ActionProxy)
 
 
 class TextualMixin(object):

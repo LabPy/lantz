@@ -398,18 +398,19 @@ class FeatTest(unittest.TestCase):
             def ham(self_):
                 return 1
 
-            @Feat(in_instance=True, units='ms')
+            @Feat(units='ms')
             def eggs(self_):
                 return 9
 
         x = Spam()
         y = Spam()
-        self.assertIs(x._lantz_features['ham']._meta, y._lantz_features['ham']._meta)
-        self.assertIsNot(x._lantz_features['eggs']._meta, y._lantz_features['eggs']._meta)
+        self.assertEqual(str(x.eggs.units), 'millisecond')
+        self.assertEqual(x.feats['eggs'].units, y.feats['eggs'].units)
         self.assertEqual(x.eggs, y.eggs)
-        x._lantz_features['eggs'].units = 's'
-        x._lantz_features['eggs'].rebuild()
+        x.feats['eggs'].units = 's'
+        self.assertNotEqual(x.feats['eggs'].units, y.feats['eggs'].units)
         self.assertNotEqual(x.eggs, y.eggs)
+        self.assertEqual(str(x.eggs.units), 'second')
 
 if __name__ == '__main__':
     unittest.main()

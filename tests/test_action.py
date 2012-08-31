@@ -40,5 +40,14 @@ class ActionTest(unittest.TestCase):
         fut = obj.run2_async(2)
         self.assertEqual(fut.result(), 42 * 2)
 
+    def test_instance_specific(self):
+        x = aDriver()
+        y = aDriver()
+        val = Q_(3, 's')
+        self.assertEqual(x.run4(val), y.run4(val))
+        x.actions['run4'].units = 's'
+        self.assertNotEqual(x.run4(val), y.run4(val))
+        self.assertEqual(x.run4(val), 3)
+
 if __name__ == '__main__':
     unittest.main()
