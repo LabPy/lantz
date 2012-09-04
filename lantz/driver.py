@@ -45,6 +45,26 @@ def _merge_dicts(*args):
     return out
 
 
+class MetaSelf(type):
+
+    def __getattr__(self, item):
+        return Self(item)
+
+
+class Self(metaclass=MetaSelf):
+
+    def __init__(self, item, default=MISSING):
+        self.item = item
+        self.default = default
+
+    def __get__(self, instance, owner=None):
+        return getattr(instance, self.item)
+
+    def __call__(self, default_value):
+        self.default = default_value
+        return self
+
+
 class ProxyDict(object):
     """Read only dictionary that maps feat name to Proxy objects
     """
@@ -115,6 +135,16 @@ class _DriverType(type):
 
 _REGISTERED = defaultdict(int)
 
+def _set(inst, feat_name, feat_attr):
+    def _inner(value):
+        setattr(inst.feats[feat_name], feat_attr, value)
+    return _inner
+
+def _raise_must_change(dependent, feat_name, operation):
+    def _inner(value):
+        raise Exception("You must get or set '{}' before trying to {} '{}'".format(dependent, operation, feat_name))
+    return _inner
+
 
 class Driver(metaclass=_DriverType):
     """Base class for all drivers.
@@ -130,17 +160,6 @@ class Driver(metaclass=_DriverType):
             inst = new_meth(cls)
         else:
             inst = new_meth(cls, *args, **kwargs)
-
-        for key, value in cls._lantz_features.items():
-            if isinstance(value, DictFeat):
-                new_dictfeat = copy.copy(value)
-                new_dictfeat.instance = inst  # TODO WEAK
-                new_dictfeat._internal = copy.copy(value._internal)
-                inst.__dict__[key] = new_dictfeat._internal
-                cls._lantz_features[key] = new_dictfeat
-            else:
-                inst.__dict__[key] = MISSING
-
 
         # The following dictionaries store instance specific information
         # about Feats, DictFeats and Actions, using attribute names as keys.
@@ -174,6 +193,26 @@ class Driver(metaclass=_DriverType):
 
         inst.log_extra = {'lantz_driver': cls.__name__,
                           'lantz_name': inst.name}
+
+        for feat_name, feat in cls._lantz_features.items():
+            if isinstance(feat, DictFeat):
+                new_dictfeat = copy.copy(feat)
+                new_dictfeat.instance = inst  # TODO WEAK
+                new_dictfeat._internal = copy.copy(feat._internal)
+                inst.__dict__[feat_name] = new_dictfeat._internal
+                cls._lantz_features[feat_name] = new_dictfeat
+            else:
+                inst.__dict__[feat_name] = MISSING
+
+            for attr_name, attr_value in feat.info.items():
+                if not isinstance(attr_value, Self):
+                    continue
+                inst.add_on_changed(attr_value.item, _set(inst, feat_name, attr_name))
+                if attr_value.default is MISSING:
+                    feat.get_processors = (_raise_must_change(attr_value.item, feat_name, 'get'), )
+                    feat.set_processors = (_raise_must_change(attr_value.item, feat_name, 'set'), )
+                else:
+                    setattr(inst, attr_value.item, attr_value.default)
 
         inst.log_info('Created')
         return inst
