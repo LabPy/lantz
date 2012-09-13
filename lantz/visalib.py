@@ -51,7 +51,10 @@ else:
     FUNCTYPE = ct.CFUNCTYPE
 
 #: Default library path, used when none is provided to VisaLibrary.
-LIBRARY_PATH = find_library('visa')
+for library_path in ('visa', 'visa32'):
+    LIBRARY_PATH = find_library(library_path)
+    if LIBRARY_PATH is not None:
+        break
 
 #: Resource extended information
 ResourceInfo = namedtuple('ResourceInfo', 'interface_type interface_board_number resource_class resource_name alias')
@@ -667,8 +670,9 @@ class VisaLibrary(object):
         obj.library_path = library_path
         obj.session = None
         obj.status = 0
-        obj.lib = ct.CDLL(library_path)
 
+        obj.lib = LIBTYPE(library_path)
+            
         obj.lock = threading.RLock()
 
         obj._add_types()
