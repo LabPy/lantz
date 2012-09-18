@@ -72,7 +72,7 @@ class App(cmd.Cmd):
                   'You can talk to the device using "send", "recv" or "query.\n'
                   '\\n is added and expected at the end of each message'.format(args))
             self.prompt = '(open) '
-        except e:
+        except Exception as e:
             print(e)
 
     def complete_open(self, text, line, begidx, endidx):
