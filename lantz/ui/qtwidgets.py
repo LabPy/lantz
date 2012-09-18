@@ -377,6 +377,9 @@ class DictFeatWidget(QWidget):
         """
         return self._value_widget.writable
 
+    def value_from_feat(self):
+        return self._value_widget.value_from_feat()
+
 
 class LabeledFeatWidget(QWidget):
     """Widget containing a label, a control, and a get a set button.

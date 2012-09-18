@@ -15,6 +15,7 @@
 
 from .fungen import (LantzSignalGenerator, LantzSignalGeneratorTCP, LantzSignalGeneratorSerial,
                      LantzSignalGeneratorSerialVisa)
+from .voltmeter import LantzVoltmeterTCP
 
 __all__ = ['LantzSignalGenerator', 'LantzSignalGeneratorTCP', 'LantzSignalGeneratorSerial',
-           'LantzSignalGeneratorSerialVisa']
+           'LantzSignalGeneratorSerialVisa', 'LantzVoltmeterTCP']

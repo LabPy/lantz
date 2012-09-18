@@ -52,6 +52,7 @@ if __name__ == '__main__':
             start_test_app(inst)
         else:
             print('The identification of this instrument is : ' + inst.idn)
+            print(inst.amplitude)
             inst.amplitude = 3 * volt
             inst.offset = 200 * milivolt
             inst.frequency = 20 * Hz
