@@ -9,6 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
+import os
 import ctypes
 from ctypes.util import find_library
 from itertools import chain
@@ -27,7 +28,7 @@ class Library(object):
         if isinstance(library, str):
             self.library_name = library
 
-            if library.lower().endswith('.dll'):
+            if os.name == 'nt':
                 library = ctypes.WinDLL(library)
             else:
                 library = ctypes.CDLL(library)
