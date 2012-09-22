@@ -45,7 +45,7 @@ class ActionTest(unittest.TestCase):
         y = aDriver()
         val = Q_(3, 's')
         self.assertEqual(x.run4(val), y.run4(val))
-        x.actions['run4'].units = 's'
+        x.actions.run4.units = 's'
         self.assertNotEqual(x.run4(val), y.run4(val))
         self.assertEqual(x.run4(val), 3)
 

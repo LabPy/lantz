@@ -2,7 +2,7 @@ import logging
 import unittest
 
 from lantz import Driver, DictFeat, Q_
-
+from lantz.feat import  MISSING
 
 class MemHandler(logging.Handler):
 
@@ -229,6 +229,61 @@ class DictFeatTest(unittest.TestCase):
         self.assertEqual(obj.eggs[28], 46)
         self.assertRaises(KeyError, lambda x: obj.eggs['spam'], None)
         self.assertRaises(KeyError, lambda x: obj.eggs['answer'], None)
+
+    def test_of_instance(self):
+
+        class Spam(Driver):
+
+            def __init__(self_):
+                super().__init__()
+                self_._eggs = {1: 9}
+
+            @DictFeat()
+            def eggs(self_, key):
+                return self_._eggs[key]
+
+            @eggs.setter
+            def eggs(self_, key, value):
+                self_._eggs[key] = value
+
+        obj = Spam()
+        obj2 = Spam()
+
+        self.assertEqual(obj.eggs.instance, obj)
+        self.assertEqual(obj2.eggs.instance, obj2)
+
+        self.assertEqual(obj.recall("eggs"), {})
+        self.assertEqual(obj.eggs[1], 9)
+        self.assertEqual(obj.recall("eggs"), {1: 9})
+        obj.eggs[1] = 10
+        self.assertEqual(obj._eggs[1], 10)
+        self.assertEqual(obj.eggs[1], 10)
+        self.assertEqual(obj.recall("eggs")[1], 10)
+        obj._eggs = {1: 0}
+        self.assertEqual(obj.recall("eggs")[1], 10)
+        self.assertEqual(obj.eggs[1], 0)
+        self.assertEqual(obj.recall("eggs")[1], 0)
+        self.assertEqual(obj2.recall("eggs"), {})
+
+
+    def test_in_instance(self):
+
+        class Spam(Driver):
+
+            @DictFeat(keys=(1, 2, 3), units='ms')
+            def eggs(self_, key):
+                return 9
+
+        x = Spam()
+        y = Spam()
+        self.assertEqual(str(x.eggs[1].units), 'millisecond')
+        self.assertEqual(x.feats.eggs[1].units, y.feats.eggs[1].units)
+        self.assertEqual(x.eggs[1], y.eggs[1])
+        x.feats.eggs[1].units = 's'
+        self.assertNotEqual(x.feats.eggs[1].units, y.feats.eggs[1].units)
+        self.assertNotEqual(x.eggs[1], y.eggs[1])
+        self.assertEqual(str(x.eggs[1].units), 'second')
+        self.assertEqual(str(x.eggs[2].units), 'millisecond')
 
 if __name__ == '__main__':
     unittest.main()

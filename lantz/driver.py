@@ -18,7 +18,7 @@ from functools import partial, wraps
 from concurrent import futures
 from collections import defaultdict, namedtuple
 
-from .feat import Feat, DictFeat, MISSING, FeatProxy
+from .feat import Feat, DictFeat, MISSING, FeatProxy, Signal
 from .action import Action, ActionProxy
 from .stats import RunningStats
 from .errors import LantzTimeoutError
@@ -46,12 +46,20 @@ def _merge_dicts(*args):
 
 
 class MetaSelf(type):
+    """Metaclass for Self object
+    """
 
     def __getattr__(self, item):
         return Self(item)
 
 
 class Self(metaclass=MetaSelf):
+    """Self objects are used in during Driver class declarations
+    to refer to the object that is going to be instantiated.
+
+    >>> Self.units('s')
+    <Self.units('ms')>
+    """
 
     def __init__(self, item, default=MISSING):
         self.item = item
@@ -64,8 +72,11 @@ class Self(metaclass=MetaSelf):
         self.default = default_value
         return self
 
+    def __repr__(self):
+        return "<Self.{}('{}')>".format(self.item, self.default)
 
-class ProxyDict(object):
+
+class Proxy(object):
     """Read only dictionary that maps feat name to Proxy objects
     """
 
@@ -74,8 +85,15 @@ class ProxyDict(object):
         self.collection = collection
         self.callable = callable
 
+    def __getattr__(self, item):
+        return self.callable(self.instance, self.collection[item])
+
     def __getitem__(self, item):
         return self.callable(self.instance, self.collection[item])
+
+    def __iter__(self):
+        for key, value in self.collection:
+            yield key, self.callable(value)
 
 
 def repartial(func, *parameters, **kparms):
@@ -136,8 +154,9 @@ class _DriverType(type):
 _REGISTERED = defaultdict(int)
 
 def _set(inst, feat_name, feat_attr):
-    def _inner(value):
-        setattr(inst.feats[feat_name], feat_attr, value)
+    def _inner(value, *args):
+        proxy = inst.feats[feat_name]
+        setattr(proxy, feat_attr, value)
     return _inner
 
 def _raise_must_change(dependent, feat_name, operation):
@@ -161,29 +180,10 @@ class Driver(metaclass=_DriverType):
         else:
             inst = new_meth(cls, *args, **kwargs)
 
-        # The following dictionaries store instance specific information
-        # about Feats, DictFeats and Actions, using attribute names as keys.
-        # For example, to change the units of a feat of an specific instance.
-        # the user will execute:
-        #   instance.feats[feat_name].units = new_units
-        # This will store:
-        #   instance._lantz_info[feat_name]['units'] = new_units
-
-        #: Instance specific information about modifiers
-        inst._lantz_info = {}
-
-        #: Instance specific information get processors
-        inst._lantz_getp = {}
-
-        #: Instance specific information set processors
-        inst._lantz_setp = {}
-
         inst._executor = None
         inst._lock = threading.RLock()
         inst.__unfinished_tasks = 0
         inst.timing = RunningStats()
-
-        inst.on_changed = defaultdict(list)
 
         if name:
             inst.name = name
@@ -195,24 +195,17 @@ class Driver(metaclass=_DriverType):
                           'lantz_name': inst.name}
 
         for feat_name, feat in cls._lantz_features.items():
-            if isinstance(feat, DictFeat):
-                new_dictfeat = copy.copy(feat)
-                new_dictfeat.instance = inst  # TODO WEAK
-                new_dictfeat._internal = copy.copy(feat._internal)
-                inst.__dict__[feat_name] = new_dictfeat._internal
-                cls._lantz_features[feat_name] = new_dictfeat
-            else:
-                inst.__dict__[feat_name] = MISSING
-
-            for attr_name, attr_value in feat.info.items():
+            setattr(inst, feat_name + '_changed', Signal())
+            for attr_name, attr_value in feat.modifiers[MISSING][MISSING].items():
                 if not isinstance(attr_value, Self):
                     continue
                 inst.add_on_changed(attr_value.item, _set(inst, feat_name, attr_name))
                 if attr_value.default is MISSING:
-                    feat.get_processors = (_raise_must_change(attr_value.item, feat_name, 'get'), )
-                    feat.set_processors = (_raise_must_change(attr_value.item, feat_name, 'set'), )
+                    feat.get_processors[MISSING][MISSING] = (_raise_must_change(attr_value.item, feat_name, 'get'), )
+                    feat.set_processors[MISSING][MISSING] = (_raise_must_change(attr_value.item, feat_name, 'set'), )
                 else:
-                    setattr(inst, attr_value.item, attr_value.default)
+                    feat.modifiers[MISSING][MISSING][attr_value.item] = attr_value.default
+                    feat.rebuild(build_doc=False, store=True)
 
         inst.log_info('Created')
         return inst
@@ -224,6 +217,14 @@ class Driver(metaclass=_DriverType):
     @name.setter
     def name(self, value):
         self.__name = value
+
+    def __aagetattr__(self, item):
+        print(item)
+        if item.endswith('_changed') and item[:-8] in self._lantz_features:
+            print('>>here')
+            signal = Signal()
+            setattr(self, item, signal)
+            return signal
 
     def __submit_by_name(self, fname, *args, **kwargs):
         return self._submit(getattr(self, fname), *args, **kwargs)
@@ -416,49 +417,33 @@ class Driver(metaclass=_DriverType):
 
         if keys:
             if isinstance(keys, (list, tuple, set)):
-                return {key: self.__dict__[key] for key in keys}
-            return self.__dict__[keys]
-        return {key: self.__dict__[key] for key in self._lantz_features.keys()}
+                return {key: self._lantz_features[key].get_cache(self) for key in keys}
+            return self._lantz_features[keys].get_cache(self)
+        return {key: value.get_cache(self) for key, value in self._lantz_features.keys()}
 
-    def add_on_changed(self, feat_name, func, key=MISSING):
+    def add_on_changed(self, feat_name, func):
         """Add callback to be triggered when a Feat/DictFeat value changes.
 
         :param feat_name: name of the Feat/DictFeat.
-        :param func: callback that takes a single value
-        :param key: (optional) For DictFeat, indicates the key to be monitored.
-                    Use None to trigger the callback when any key us changed.
+        :param func: callback that takes a single value.
         """
-        if key is MISSING:
-            self.on_changed[feat_name].append(func)
-        else:
-            self.on_changed[(feat_name, key)].append(func)
+        getattr(self, feat_name + '_changed').connect(func)
 
-    def del_on_changed(self, feat_name, func, key=MISSING):
+    def del_on_changed(self, feat_name, func):
         """Delete callback. See add_on_changed.
 
         :param feat_name: name of the Feat/DictFeat.
-        :param func: callback that takes a single value
-        :param key: (optional) For DictFeat, indicates the key to be monitored.
-                    Use None to trigger the callback when any key us changed.
+        :param func: callback that takes a single value.
         """
-        if key is MISSING:
-            callbacks = self.on_changed[feat_name]
-        else:
-            callbacks = self.on_changed[(feat_name, key)]
-
-        try:
-            del callbacks[callbacks.index(func)]
-        except ValueError:
-            self.log_warning('Cannot delete on changed callback: {}, {}, {}',
-                             feat_name, func, key)
+        getattr(self, feat_name + '_changed').disconnect(func)
 
     @property
     def feats(self):
-        return ProxyDict(self, self._lantz_features, FeatProxy)
+        return Proxy(self, self._lantz_features, FeatProxy)
 
     @property
     def actions(self):
-        return ProxyDict(self, self._lantz_actions, ActionProxy)
+        return Proxy(self, self._lantz_actions, ActionProxy)
 
 
 class TextualMixin(object):

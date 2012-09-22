@@ -332,7 +332,7 @@ class FeatTest(unittest.TestCase):
         self.assertEqual(setattr(obj, "eggs", (Q_(3, 'ms'), 4)), None)
         self.assertQuantityEqual(obj.eggs, (Q_(3 / 1000, 's'), 4))
 
-    def test_ofinstance(self):
+    def test_of_instance(self):
 
         class Spam(Driver):
 
@@ -394,10 +394,6 @@ class FeatTest(unittest.TestCase):
 
         class Spam(Driver):
 
-            @Feat()
-            def ham(self_):
-                return 1
-
             @Feat(units='ms')
             def eggs(self_):
                 return 9
@@ -405,12 +401,14 @@ class FeatTest(unittest.TestCase):
         x = Spam()
         y = Spam()
         self.assertEqual(str(x.eggs.units), 'millisecond')
-        self.assertEqual(x.feats['eggs'].units, y.feats['eggs'].units)
+        self.assertEqual(x.feats.eggs.units, y.feats.eggs.units)
         self.assertEqual(x.eggs, y.eggs)
-        x.feats['eggs'].units = 's'
-        self.assertNotEqual(x.feats['eggs'].units, y.feats['eggs'].units)
+        x.feats.eggs.units = 's'
+        self.assertNotEqual(x.feats.eggs.units, y.feats.eggs.units)
         self.assertNotEqual(x.eggs, y.eggs)
         self.assertEqual(str(x.eggs.units), 'second')
+
+
 
 if __name__ == '__main__':
     unittest.main()

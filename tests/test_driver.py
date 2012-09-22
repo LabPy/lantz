@@ -344,7 +344,7 @@ class DriverTest(unittest.TestCase):
         self.assertRaises(Exception, getattr, x, 'value')
         self.assertRaises(Exception, setattr, x, 'value', 1)
         x.units = 'ms'
-        self.assertEqual(x.feats['value'].units, 'ms')
+        self.assertEqual(x.feats.value.units, 'ms')
         self.assertEqual(x.value, Q_(1, 'ms'))
 
 
@@ -365,11 +365,10 @@ class DriverTest(unittest.TestCase):
                 self._units = value
 
         x = X()
-        print(x.feats['value'].info)
-        self.assertEqual(x.feats['value'].units, 's')
+        self.assertEqual(x.feats.value.units, 's')
         self.assertEqual(x.value, Q_(1, 's'))
         x.units = 'ms'
-        self.assertEqual(x.feats['value'].units, 'ms')
+        self.assertEqual(x.feats.value.units, 'ms')
         self.assertEqual(x.value, Q_(1, 'ms'))
 
 

@@ -15,8 +15,35 @@ import copy
 import inspect
 import functools
 
-from .processors import (Processor, ToQuantityProcessor, FromQuantityProcessor,
-                         MapProcessor, ReverseMapProcessor, RangeProcessor)
+from weakref import WeakKeyDictionary
+
+from .processors import (Processor, FromQuantityProcessor,
+                         MapProcessor, RangeProcessor)
+
+from .feat import MISSING
+
+
+def _dget(adict, instance=MISSING):
+    """Helper function to get an element by key
+    from a dictionary defaulting to key=MISSING
+    """
+
+    try:
+        return adict[instance]
+    except KeyError:
+        return adict[MISSING]
+
+def _dset(adict, value, instance=MISSING):
+    """Helper function to set an element by key
+    copying taken the value from MISSING.
+    """
+    if instance not in adict:
+        adict[instance] = copy.deepcopy(adict[MISSING])
+
+    if isinstance(adict[instance], dict):
+        adict[instance].update(value)
+    else:
+        adict[instance] = value
 
 
 class Action(object):
@@ -40,10 +67,15 @@ class Action(object):
     """
 
     def __init__(self, func = None, *, values=None, units=None, limits=None, procs=None):
-        self.info = {'values': values,
-                     'units': units,
-                     'limits': limits,
-                     'processors': procs}
+
+        #: instance: key: value
+        self.modifiers = WeakKeyDictionary()
+
+        self.action_processors = {MISSING: ()}
+        self.modifiers[MISSING] = {'values': values,
+                                   'units': units,
+                                   'limits': limits,
+                                   'processors': procs}
         self.func = func
         self.args = None
 
@@ -52,7 +84,7 @@ class Action(object):
         self.args = inspect.getfullargspec(func).args
         self.__name__ = func.__name__
         self.__doc__ = func.__doc__
-        self.action_processors = self.rebuild()
+        self.rebuild(store=True)
         return self
 
     def __get__(self, instance, owner=None):
@@ -99,28 +131,23 @@ class Action(object):
         return out
 
     def pre_action(self, value, instance=None):
-        procs = self.action_processors
-        if instance:
-            try:
-                procs = instance.actions[self.name].processors
-            except KeyError:
-                pass
+        procs = _dget(self.action_processors, instance)
         for processor in procs:
             value = processor(value)
         return value
 
-    def rebuild(self, build_doc=False, info=None):
-        if not info:
-            info = self.info
+    def rebuild(self, instance=MISSING, build_doc=False, modifiers=None, store=False):
+        if not modifiers:
+            modifiers = _dget(self.modifiers, instance)
 
         procs = []
         largs = len(self.args) - 1
         name = self.name
 
-        values = info['values']
-        units = info['units']
-        limits = info['limits']
-        processors = info['processors']
+        values = modifiers['values']
+        units = modifiers['units']
+        limits = modifiers['limits']
+        processors = modifiers['processors']
 
         if values:
             proc = MapProcessor(values)
@@ -160,6 +187,9 @@ class Action(object):
                                      "must match the number of arguments ({})".format(name, len(proc), largs))
                 procs.append(proc)
 
+        if store:
+            _dset(self.action_processors, procs, instance)
+
         return procs
 
 
@@ -173,44 +203,20 @@ class ActionProxy(object):
         super().__setattr__('action', action)
 
     def __getattr__(self, item):
-        if not item in self.action.info:
+        modifiers = _dget(self.action.modifiers, self.instance)
+
+        if item not in modifiers:
             raise AttributeError()
 
-        try:
-            return self.info[item]
-        except KeyError:
-            return self.action.info[item]
+        return modifiers[item]
 
-    def __setattr__(self, key, value):
-        if not key in self.action.info:
+    def __setattr__(self, item, value):
+        _modifiers = _dget(self.action.modifiers, MISSING)
+
+        if item not in _modifiers:
             raise AttributeError()
 
-        try:
-            info = self.info
-        except KeyError:
-            info = copy.copy(self.action.info)
-            self.instance._lantz_info[self.action.name] = info
+        _dset(self.action.modifiers, {item: value}, self.instance)
 
-        info[key] = value
-
-        self.rebuild(build_doc=False)
-
-    def rebuild(self, build_doc=True):
-
-        try:
-            info = self.info
-        except KeyError:
-            info = self.feat.info
-
-        procs = self.action.rebuild(build_doc, info=info)
-        self.instance._lantz_setp[self.action.name] = procs
-
-    @property
-    def info(self):
-        return self.instance._lantz_info[self.action.name]
-
-    @property
-    def processors(self):
-        return self.instance._lantz_setp[self.action.name]
-
+        self.action.rebuild(self.instance, build_doc=False, store=True)
 
