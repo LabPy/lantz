@@ -137,7 +137,9 @@ class Driver(metaclass=_DriverType):
 
         inst.on_changed = defaultdict(list)
 
-        if name:
+        if hasattr(inst, 'name'):
+            pass
+        elif name:
             inst.name = name
         else:
             inst.name = '{}{:d}'.format(cls.__name__, _REGISTERED[cls.__name__])
