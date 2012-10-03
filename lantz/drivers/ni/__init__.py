@@ -13,7 +13,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from .daqe import NI6052E
+from . import daqmx
 
-__all__ = ['NI6052E', ]
 
