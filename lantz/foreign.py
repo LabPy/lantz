@@ -24,7 +24,7 @@ class Library(object):
                     and the function itself. It should return a callable.
     """
 
-    def __init__(self, library, wrapper):
+    def __init__(self, library, wrapper, prefix=''):
         if isinstance(library, str):
             self.library_name = library
 
@@ -33,13 +33,29 @@ class Library(object):
             else:
                 library = ctypes.CDLL(library)
 
+        self.prefix = prefix
         self.internal = library
         self.wrapper = wrapper
+
+    def __get_func(self, name):
+        if self.prefix:
+            try:
+                return getattr(self.internal, self.prefix + name)
+            except Exception:
+                pass
+
+        try:
+            return getattr(self.internal, name)
+        except Exception:
+            if self.prefix:
+                raise AttributeError('Could not find ({}){} in {}'.format(self.prefix, name, self.internal))
+            raise AttributeError('Could not find {} in {}'.format(name, self.internal))
 
     def __getattr__(self, name):
         if name.startswith('__') and name.endswith('__'):
             raise AttributeError(name)
-        func = self.wrapper(name, getattr(self.internal, name))
+
+        func = self.wrapper(name, self.__get_func(name))
         setattr(self, name, func)
         return func
 
@@ -57,7 +73,9 @@ TYPES = {'c': ctypes.c_char,
          'q': ctypes.c_longlong,
          'Q': ctypes.c_ulonglong,
          'f': ctypes.c_float,
-         'd': ctypes.c_double}
+         'd': ctypes.c_double,
+         'u32': ctypes.c_uint32,
+         'i32': ctypes.c_int32}
 
 class RetStr(object):
 
@@ -117,8 +135,9 @@ class LibraryDriver(Driver):
     To use this class you must override LIBRARY_NAME
     """
 
-    #:Name of the library
+    #: Name of the library
     LIBRARY_NAME = ''
+    LIBRARY_PREFIX = ''
 
     def __init__(self, *args, **kwargs):
         library_name = kwargs.pop('library_name', None)
@@ -128,13 +147,12 @@ class LibraryDriver(Driver):
             if name is None:
                 continue
             try:
-                self.lib = Library(name, self._wrapper)
-                self.log_debug('Loaded library {}')
+                self.lib = Library(name, self._wrapper, self.LIBRARY_PREFIX)
                 break
             except OSError:
                 pass
         else:
-            raise OSError('library not found')
+            raise OSError('While instantiating {}: library not found'.format(self.__class__.__name__))
 
         self.log_info('LibraryDriver created with {}', name)
         self._add_types()
@@ -146,21 +164,31 @@ class LibraryDriver(Driver):
     def _return_handler(self, func_name, ret_value):
         return ret_value
 
+    def _preprocess_args(self, name, *args):
+        new_args = []
+        collect = []
+        for arg in args:
+            if isinstance(arg, (RetStr, RetTuple, RetValue)):
+                collect.append(arg)
+                #new_args.append(ctypes.byref(arg.buffer))
+                new_args.append(arg.buffer)
+            elif isinstance(arg, str):
+                new_args.append(bytes(arg, 'ascii'))
+            else:
+                new_args.append(arg)
+
+        return new_args, collect
+
     def _wrapper(self, name, func):
         def _inner(*args):
-            new_args = []
-            collect = []
-            for arg in args:
-                if isinstance(arg, (RetStr, RetTuple, RetValue)):
-                    collect.append(arg)
-                    #new_args.append(ctypes.byref(arg.buffer))
-                    new_args.append(arg.buffer)
-                elif isinstance(arg, str):
-                    new_args.append(bytes(arg, 'ascii'))
-                else:
-                    new_args.append(arg)
 
-            ret = self._return_handler(name, func(*new_args))
+            new_args, collect = self._preprocess_args(name, *args)
+            try:
+                ret = func(*new_args)
+            except Exception as e:
+                raise Exception('While calling {} with {} (was {}): {}'.format(name, new_args, args, e))
+
+            ret = self._return_handler(name, ret)
 
             if collect:
                 values = [item.value for item in collect]
@@ -172,6 +200,7 @@ class LibraryDriver(Driver):
             return ret
 
         return _inner
+
 
 def iter_lib(library_name):
     if not library_name:
