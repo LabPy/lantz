@@ -182,7 +182,7 @@ class Processor(object):
 
     def __len__(self):
         if isinstance(self.processors, tuple):
-            return len(self.processor)
+            return len(self.processors)
         return 1
 
 
