@@ -22,6 +22,10 @@ class aDriver(Driver):
     def run4(self, value):
         return value
 
+    @Action(values=({1, 2, 3}, {'a': 1, 'b': 2}, str))
+    def run5(self, x, y, z):
+        return x, y, z
+
 
 class ActionTest(unittest.TestCase):
 
@@ -39,6 +43,12 @@ class ActionTest(unittest.TestCase):
         self.assertEqual(fut.result(), 42)
         fut = obj.run2_async(2)
         self.assertEqual(fut.result(), 42 * 2)
+
+    def test_multiple_values(self):
+        obj = aDriver()
+        self.assertEqual(obj.run5(1, 'a', 3), (1, 1, '3'))
+
+
 
 if __name__ == '__main__':
     unittest.main()
