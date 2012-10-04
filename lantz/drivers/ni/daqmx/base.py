@@ -93,9 +93,11 @@ class _Base(LibraryDriver):
         return getattr(self.lib, name.format(self.operation_direction.title()))
 
     def _add_types(self):
+
+        super()._add_types()
         T = Types
         self.lib.CreateAIVoltageChan.argtypes = [T.TaskHandle, T.string, T.string, T.int32, T.float64, T.float64, T.int32, T.string]
-
+        self.lib.ReadAnalogScalarF64.argtypes = [T.TaskHandle, T.float64, T._, T._]
 
 class _ObjectDict(object):
 
