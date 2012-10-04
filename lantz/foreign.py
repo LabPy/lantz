@@ -16,6 +16,34 @@ from itertools import chain
 
 from lantz import Driver
 
+
+class Wrapper(object):
+
+    def __init__(self, name, wrapped, wrapper):
+        self.name = name
+        self.wrapped = wrapped
+        self.wrapper = wrapper
+
+    def __call__(self, *args):
+        return self.wrapper(self.name, self.wrapped, *args)
+
+    @property
+    def argtypes(self):
+        return self.wrapped.argtypes
+
+    @argtypes.setter
+    def argtypes(self, value):
+        self.wrapped.argtypes = value
+
+    @property
+    def restype(self):
+        return self.wrapped.restype
+
+    @restype.setter
+    def restype(self, value):
+        self.wrapped.restype = value
+
+
 class Library(object):
     """Library wrapper
 
@@ -24,7 +52,7 @@ class Library(object):
                     and the function itself. It should return a callable.
     """
 
-    def __init__(self, library, wrapper, prefix=''):
+    def __init__(self, library, prefix='', wrapper=None):
         if isinstance(library, str):
             self.library_name = library
 
@@ -33,9 +61,9 @@ class Library(object):
             else:
                 library = ctypes.CDLL(library)
 
+        self.wrapper = wrapper
         self.prefix = prefix
         self.internal = library
-        self.wrapper = wrapper
 
     def __get_func(self, name):
         if self.prefix:
@@ -55,7 +83,11 @@ class Library(object):
         if name.startswith('__') and name.endswith('__'):
             raise AttributeError(name)
 
-        func = self.wrapper(name, self.__get_func(name))
+        func = self.__get_func(name)
+
+        if self.wrapper:
+            func = Wrapper(name, func, self.wrapper)
+
         setattr(self, name, func)
         return func
 
@@ -75,7 +107,10 @@ TYPES = {'c': ctypes.c_char,
          'f': ctypes.c_float,
          'd': ctypes.c_double,
          'u32': ctypes.c_uint32,
-         'i32': ctypes.c_int32}
+         'i32': ctypes.c_int32,
+         'f32': ctypes.c_float,
+         'f64': ctypes.c_double}
+
 
 class RetStr(object):
 
@@ -95,6 +130,7 @@ class RetStr(object):
         else:
             return self.buffer.value
 
+
 class RetValue(object):
 
     def __init__(self, type):
@@ -109,6 +145,7 @@ class RetValue(object):
     @property
     def value(self):
         return self.buffer[0]
+
 
 class RetTuple(object):
 
@@ -147,7 +184,7 @@ class LibraryDriver(Driver):
             if name is None:
                 continue
             try:
-                self.lib = Library(name, self._wrapper, self.LIBRARY_PREFIX)
+                self.lib = Library(name, self.LIBRARY_PREFIX, self._wrapper)
                 break
             except OSError:
                 pass
@@ -170,7 +207,6 @@ class LibraryDriver(Driver):
         for arg in args:
             if isinstance(arg, (RetStr, RetTuple, RetValue)):
                 collect.append(arg)
-                #new_args.append(ctypes.byref(arg.buffer))
                 new_args.append(arg.buffer)
             elif isinstance(arg, str):
                 new_args.append(bytes(arg, 'ascii'))
@@ -179,27 +215,23 @@ class LibraryDriver(Driver):
 
         return new_args, collect
 
-    def _wrapper(self, name, func):
-        def _inner(*args):
+    def _wrapper(self, name, func, *args):
+        new_args, collect = self._preprocess_args(name, *args)
+        try:
+            ret = func(*new_args)
+        except Exception as e:
+            raise Exception('While calling {} with {} (was {}): {}'.format(name, new_args, args, e))
 
-            new_args, collect = self._preprocess_args(name, *args)
-            try:
-                ret = func(*new_args)
-            except Exception as e:
-                raise Exception('While calling {} with {} (was {}): {}'.format(name, new_args, args, e))
+        ret = self._return_handler(name, ret)
 
-            ret = self._return_handler(name, ret)
+        if collect:
+            values = [item.value for item in collect]
+            values.insert(0, ret)
+            self.log_debug('Function call {} returned {}. Collected: {}', name, ret, collect)
+            return tuple(values)
 
-            if collect:
-                values = [item.value for item in collect]
-                values.insert(0, ret)
-                self.log_debug('Function call {} returned {}. Collected: {}', name, ret, collect)
-                return tuple(values)
-
-            self.log_debug('Function call {} returned {}.', name, ret)
-            return ret
-
-        return _inner
+        self.log_debug('Function call {} returned {}.', name, ret)
+        return ret
 
 
 def iter_lib(library_name):
