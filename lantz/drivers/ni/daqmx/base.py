@@ -107,6 +107,7 @@ class _ObjectDict(object):
         self._internal = {} if dictionary is None else dictionary
 
     def __getitem__(self, item):
+
         if item in self._internal:
             return self._internal[item]
 
@@ -114,6 +115,7 @@ class _ObjectDict(object):
             raise KeyError('{} not found'.format(item))
 
         value = self.obj_creator(item)
+
         self._internal[item] = value
 
         return value
@@ -364,15 +366,35 @@ class Task(_Base):
 
     """
 
+    _REGISTRY = {}
+
+    @classmethod
+    def register_class(cls, klass):
+        cls._REGISTRY[klass.IO_TYPE] = klass
+
+    @classmethod
+    def typed_task(cls, io_type):
+        return cls._REGISTRY[io_type]
+
+    def _load_task(self, name):
+        err, self.__task_handle = self.lib.LoadTask(name, RetValue('u32'))
+        self.name = name
+        self.log_debug('Loaded task with {} ({})'.format(self.name, self.__task_handle))
+
+    def _create_task(self, name):
+        err, self.__task_handle = self.lib.CreateTask(name, RetValue('u32'))
+        err, self.name = self.lib.GetTaskName(*RetStr(default_buf_size))
+        self.log_debug('Created task with {} ({})'.format(self.name, self.__task_handle))
+
     def __init__(self, name='', *args, **kwargs):
         super().__init__(name, *args, **kwargs)
-        try:
-            err, self.__task_handle = self.lib.LoadTask(name, RetValue('u32'))
-            self.name = name
-        except Exception as e:
-            print(e)
-            err, self.__task_handle = self.lib.CreateTask(name, RetValue('u32'))
-            err, self.name = self.lib.GetTaskName(*RetStr(default_buf_size))
+        if not name:
+            self._create_task(name)
+        else:
+            try:
+                self._load_task(name)
+            except Exception as e:
+                self._create_task(name)
 
         self.sample_mode = None
         self.channels = _ObjectDict(self._channel_names, self._create_channel_from_name, self._CHANNELS)
@@ -421,10 +443,12 @@ class Task(_Base):
         if channel.task is self.channels:
             return
         elif channel.task is None:
-            func_name, pars = channel.assign_task(self)
-            getattr(self.lib, func_name)(*pars)
+            channel.task = self
         else:
             raise ValueError('Cannot add a channel that is already in another task')
+
+    def execute_fun(self, func_name, *args):
+        return getattr(self.lib, func_name)(*args)
 
     def clear(self):
         """Clear the task.
@@ -1481,10 +1505,28 @@ class Channel(_Base):
     or generation, and can include scaling information.
     """
 
+    IO_TYPE = None
 
     def __init__(self, task=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._task = None
+        if task == 'create':
+            task = Task.typed_task(self.IO_TYPE)()
+            print(task)
         self.task = task
+
+    @property
+    def task(self):
+        return self._task
+
+    @task.setter
+    def task(self, value):
+        if not self._task is None:
+            raise Exception
+        self._task = value
+        if value is not None:
+            self.log_debug('Creating channel {} with {}'.format(self.CREATE_FUN, self._create_args))
+            value.execute_fun(self.CREATE_FUN, *self._create_args)
 
     def _preprocess_args(self, name, *args):
         """Injects device_name to all call to the library

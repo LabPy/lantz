@@ -60,7 +60,9 @@ class VoltageInputChannel(Channel):
     :param units: units to use to return the voltage measurements
     """
 
-    CHANNEL_TYPE = 'AI'
+    IO_TYPE = 'AI'
+
+    CREATE_FUN = 'CreateAIVoltageChan'
 
     terminal_map = dict (default = Constants.Val_Cfg_Default,
                          rse = Constants.Val_RSE,
@@ -69,15 +71,11 @@ class VoltageInputChannel(Channel):
                          pseudodiff = Constants.Val_PseudoDiff)
 
     def __init__(self, phys_channel, name='', terminal='default',
-                 min_max=(-1., -1.), units='volts', task=None):
+                 min_max=(-10., 10.), units='volts', task=None):
 
         if not name:
-            name = phys_channel
+            name = ''#phys_channel
 
-        if task is 'create':
-            self.task = Task()
-
-        super().__init__(task, name)
         terminal_val = self.terminal_map[terminal]
 
         if units != 'volts':
@@ -90,13 +88,7 @@ class VoltageInputChannel(Channel):
         self._create_args = (phys_channel, name, terminal_val,
                              min_max[0], min_max[1], units, custom_scale_name)
 
-
-
-    def assign_task(self, task):
-        if not self.task is None:
-            raise Exception
-        self.task = task
-        return 'CreateAIVoltageChan', self._create_args
+        super().__init__(task=task, name=name)
 
 
 class VoltageOutputChannel(Channel):

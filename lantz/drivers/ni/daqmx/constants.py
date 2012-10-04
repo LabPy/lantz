@@ -1508,7 +1508,14 @@ class Constants(metaclass=RichEnum):
 
 import ctypes as ct
 
+class DoNothing(object):
+
+    def from_param(self, param):
+        return param
+
 class Types(metaclass=RichEnum):
+
+    _ = DoNothing()
 
     void_p = ct.c_void_p
 
@@ -1516,7 +1523,7 @@ class Types(metaclass=RichEnum):
     #TaskHandle = ct.c_uint32
     bool32 = ct.c_uint32
 
-    string = ct.c_char
+    string = ct.c_char_p
 
     int8 = ct.c_int8
     uInt8 = ct.c_uint8

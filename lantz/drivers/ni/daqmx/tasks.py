@@ -26,7 +26,7 @@ class AnalogInputTask(Task):
     """Analog Input Task
     """
 
-    CHANNEL_TYPE = 'AI'
+    IO_TYPE = 'AI'
 
     @Feat()
     def max_convert_rate(self):
@@ -520,3 +520,6 @@ class CounterOutputTask(Task):
     """
 
     channel_type = 'CO'
+
+
+Task.register_class(AnalogInputTask)
