@@ -403,10 +403,10 @@ class TextualMixin(object):
     #: Size in bytes of the receive chunk (-1 means all bytes in buffer)
     RECV_CHUNK = 1
 
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__received = ''
+    #: String containing the part of the message after RECV_TERMINATION
+    #: Used in software based finding of termination character when
+    #: RECV_CHUNK > 1
+    _received = ''
 
     @abstractmethod
     def raw_recv(self, size):
@@ -480,7 +480,7 @@ class TextualMixin(object):
         else:
             stop = time.time() + self.TIMEOUT
 
-        received = self.__received
+        received = self._received
         while not received.endswith(termination):
             if time.time() > stop:
                 raise LantzTimeoutError
@@ -489,7 +489,7 @@ class TextualMixin(object):
 
         self.log_debug('Received {!r} (len={})', received, len(received))
 
-        received, self.__received = received.split(termination, 1)
+        received, self._received = received.split(termination, 1)
 
         return received
 
