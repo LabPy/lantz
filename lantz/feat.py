@@ -383,7 +383,8 @@ class DictFeat(Feat):
         if isinstance(keys, dict):
             keys = keys.values()
         if keys and key not in keys:
-            raise KeyError
+            raise KeyError('{} is not valid key for {} {}'.format(key, self.name,
+                                                                  keys))
         if key is MISSING:
             return self.value[instance]
         else:
@@ -458,7 +459,7 @@ class FeatProxy(object):
         modifiers = _dget(self.feat.modifiers, self.instance, self.key)
 
         if item not in modifiers:
-            raise AttributeError()
+            return getattr(self.feat, item)
 
         return modifiers[item]
 

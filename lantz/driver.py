@@ -85,15 +85,22 @@ class Proxy(object):
         self.collection = collection
         self.callable = callable
 
+    def __contains__(self, item):
+        return item in self.collection
+
     def __getattr__(self, item):
         return self.callable(self.instance, self.collection[item])
 
     def __getitem__(self, item):
         return self.callable(self.instance, self.collection[item])
 
-    def __iter__(self):
-        for key, value in self.collection:
-            yield key, self.callable(value)
+    def items(self):
+        for key, value in self.collection.items():
+            yield key, self.callable(self.instance, value)
+
+    def keys(self):
+        for key in self.collection.keys():
+            yield key
 
 
 def repartial(func, *parameters, **kparms):
@@ -140,16 +147,11 @@ class _DriverType(type):
 
         if hasattr(cls, '_lantz_features'):
             feats.update(cls._lantz_features)
-            cls._lantz_features = feats
-        else:
-            cls._lantz_features = feats
+        cls._lantz_features = feats
 
         if hasattr(cls, '_lantz_actions'):
             actions.update(cls._lantz_actions)
-            cls._lantz_actions = actions
-        else:
-            cls._lantz_actions = actions
-
+        cls._lantz_actions = actions
 
 _REGISTERED = defaultdict(int)
 
@@ -196,15 +198,17 @@ class Driver(metaclass=_DriverType):
 
         for feat_name, feat in cls._lantz_features.items():
             setattr(inst, feat_name + '_changed', Signal())
+
+        for feat_name, feat in cls._lantz_features.items():
             for attr_name, attr_value in feat.modifiers[MISSING][MISSING].items():
                 if not isinstance(attr_value, Self):
                     continue
-                inst.add_on_changed(attr_value.item, _set(inst, feat_name, attr_name))
+                getattr(inst, attr_value.item + '_changed').connect(_set(inst, feat_name, attr_name))
                 if attr_value.default is MISSING:
                     feat.get_processors[MISSING][MISSING] = (_raise_must_change(attr_value.item, feat_name, 'get'), )
                     feat.set_processors[MISSING][MISSING] = (_raise_must_change(attr_value.item, feat_name, 'set'), )
                 else:
-                    feat.modifiers[MISSING][MISSING][attr_value.item] = attr_value.default
+                    feat.modifiers[MISSING][MISSING][attr_name] = attr_value.default
                     feat.rebuild(build_doc=False, store=True)
 
         inst.log_info('Created')
@@ -217,14 +221,6 @@ class Driver(metaclass=_DriverType):
     @name.setter
     def name(self, value):
         self.__name = value
-
-    def __aagetattr__(self, item):
-        print(item)
-        if item.endswith('_changed') and item[:-8] in self._lantz_features:
-            print('>>here')
-            signal = Signal()
-            setattr(self, item, signal)
-            return signal
 
     def __submit_by_name(self, fname, *args, **kwargs):
         return self._submit(getattr(self, fname), *args, **kwargs)
@@ -420,22 +416,6 @@ class Driver(metaclass=_DriverType):
                 return {key: self._lantz_features[key].get_cache(self) for key in keys}
             return self._lantz_features[keys].get_cache(self)
         return {key: value.get_cache(self) for key, value in self._lantz_features.keys()}
-
-    def add_on_changed(self, feat_name, func):
-        """Add callback to be triggered when a Feat/DictFeat value changes.
-
-        :param feat_name: name of the Feat/DictFeat.
-        :param func: callback that takes a single value.
-        """
-        getattr(self, feat_name + '_changed').connect(func)
-
-    def del_on_changed(self, feat_name, func):
-        """Delete callback. See add_on_changed.
-
-        :param feat_name: name of the Feat/DictFeat.
-        :param func: callback that takes a single value.
-        """
-        getattr(self, feat_name + '_changed').disconnect(func)
 
     @property
     def feats(self):

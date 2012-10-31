@@ -352,24 +352,24 @@ class DriverTest(unittest.TestCase):
 
         class X(Driver):
 
-            @Feat(units=Self.units('s'))
-            def value(self):
+            @Feat(units=Self.a_value_units('s'))
+            def a_value(self):
                 return 1
 
             @Feat()
-            def units(self):
+            def a_value_units(self):
                 return self._units
 
-            @units.setter
-            def units(self, value):
-                self._units = value
+            @a_value_units.setter
+            def a_value_units(self, new_units):
+                self._units = new_units
 
         x = X()
-        self.assertEqual(x.feats.value.units, 's')
-        self.assertEqual(x.value, Q_(1, 's'))
-        x.units = 'ms'
-        self.assertEqual(x.feats.value.units, 'ms')
-        self.assertEqual(x.value, Q_(1, 'ms'))
+        self.assertEqual(x.feats.a_value.units, 's')
+        self.assertEqual(x.a_value, Q_(1, 's'))
+        x.a_value_units = 'ms'
+        self.assertEqual(x.feats.a_value.units, 'ms')
+        self.assertEqual(x.a_value, Q_(1, 'ms'))
 
 
 if __name__ == '__main__':
