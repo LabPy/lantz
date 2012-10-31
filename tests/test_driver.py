@@ -3,6 +3,7 @@ from time import sleep
 
 from lantz import Driver, Feat, DictFeat, Action, Q_
 from lantz.feat import MISSING
+from lantz.driver import Self
 
 SLEEP = .1
 WAIT = .2
@@ -318,6 +319,58 @@ class DriverTest(unittest.TestCase):
         self.assertEqual(y.action2(), 'action2')
         self.assertEqual(z.action1(), 'action1 in Z')
         self.assertEqual(n.action1(), 'action1')
+
+    def test_Self_exceptions(self):
+
+        class X(Driver):
+
+            @Feat(units=Self.units)
+            def value(self):
+                return 1
+
+            @value.setter
+            def value(self, value):
+                pass
+
+            @Feat()
+            def units(self):
+                return self._units
+
+            @units.setter
+            def units(self, value):
+                self._units = value
+
+        x = X()
+        self.assertRaises(Exception, getattr, x, 'value')
+        self.assertRaises(Exception, setattr, x, 'value', 1)
+        x.units = 'ms'
+        self.assertEqual(x.feats.value.units, 'ms')
+        self.assertEqual(x.value, Q_(1, 'ms'))
+
+
+    def test_Self(self):
+
+        class X(Driver):
+
+            @Feat(units=Self.a_value_units('s'))
+            def a_value(self):
+                return 1
+
+            @Feat()
+            def a_value_units(self):
+                return self._units
+
+            @a_value_units.setter
+            def a_value_units(self, new_units):
+                self._units = new_units
+
+        x = X()
+        self.assertEqual(x.feats.a_value.units, 's')
+        self.assertEqual(x.a_value, Q_(1, 's'))
+        x.a_value_units = 'ms'
+        self.assertEqual(x.feats.a_value.units, 'ms')
+        self.assertEqual(x.a_value, Q_(1, 'ms'))
+
 
 if __name__ == '__main__':
     unittest.main()

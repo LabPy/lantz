@@ -1,4 +1,4 @@
-    # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
     lantz.ui
     ~~~~~~~~
@@ -71,9 +71,6 @@ _QtHook.register()
 
 # If PyQt4 bindings are used, patch them.
 if qtbindings == 'PyQt4':
-    import sip
-    sip.setapi('QString', 2)
-    sip.setapi('QVariant', 2)
     import Qt.QtCore as core
     core.Signal = core.pyqtSignal
     core.Slot = core.pyqtSlot

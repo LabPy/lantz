@@ -11,6 +11,8 @@
 """
 
 import time
+import copy
+from weakref import WeakKeyDictionary
 
 from .processors import (Processor, ToQuantityProcessor, FromQuantityProcessor,
                          MapProcessor, ReverseMapProcessor, RangeProcessor)
@@ -28,7 +30,58 @@ class _NamedObject(object):
     def __str__(self):
         return self.name
 
+    def __hash__(self):
+        return id(self)
+
+    def __deepcopy__(self, memo):
+        return self
+
 MISSING = _NamedObject('MISSING')
+
+
+class Signal(object):
+    """PyQt like signal
+    """
+
+    def __init__(self):
+        self.slots = []
+
+    def connect(self, slot, type=0):
+        self.slots.append(slot)
+
+    def disconnect(self, slot=None):
+        if slot is None:
+            self.slots = []
+
+        self.slots.remove(slot)
+
+    def emit(self, *args):
+        for slot in self.slots:
+            slot(*args)
+
+
+def _dget(adict, instance=MISSING, key=MISSING):
+
+    try:
+        adict = adict[instance]
+    except KeyError:
+        adict = adict[MISSING]
+    try:
+        return adict[key]
+    except KeyError:
+        return adict[MISSING]
+
+def _dset(adict, value, instance=MISSING, key=MISSING):
+    if instance not in adict:
+        adict[instance] = copy.deepcopy(adict[MISSING])
+
+    if key not in adict[instance]:
+        adict[instance][key] = copy.deepcopy(adict[instance][MISSING])
+
+    if isinstance(adict[instance][key], dict):
+        adict[instance][key].update(value)
+    else:
+        adict[instance][key] = value
 
 
 class Feat(object):
@@ -56,6 +109,7 @@ class Feat(object):
 
     """
 
+
     def __init__(self, fget=MISSING, fset=None, doc=None, *,
                  values=None, units=None, limits=None, procs=None,
                  read_once=False):
@@ -64,39 +118,67 @@ class Feat(object):
         self.__doc__ = doc
         self.name = '?'
 
+        #: instance: value
+        self.value = WeakKeyDictionary()
+
+        #: instance: key: value
+        self.modifiers = WeakKeyDictionary()
+        self.get_processors = WeakKeyDictionary()
+        self.set_processors = WeakKeyDictionary()
+
         if fget is not MISSING and fget.__doc__ and not self.__doc__:
             self.__doc__ = fget.__doc__
         if fset and fset.__doc__ and not self.__doc__:
             self.__doc__ = fset.__doc__
 
-        self.values = values
-        self.units = units
-        self.limits = limits
-        self.processors = procs
+        self.modifiers[MISSING] = {MISSING: {'values': values,
+                                             'units': units,
+                                             'limits': limits,
+                                             'processors': procs}}
+        self.get_processors[MISSING] = {MISSING: ()}
+        self.set_processors[MISSING] = {MISSING: ()}
+
         self.read_once = read_once
 
-    def rebuild(self):
-        self.get_processors = []
-        self.set_processors = []
-        if self.values:
-            self.get_processors.append(ReverseMapProcessor(self.values))
-            self.set_processors.append(MapProcessor(self.values))
-        if self.units:
-            self.get_processors.insert(0, ToQuantityProcessor(self.units))
-            self.set_processors.append(FromQuantityProcessor(self.units))
-        if self.limits:
-            if isinstance(self.limits[0], (list, tuple)):
-                self.set_processors.append(RangeProcessor(self.limits))
-            else:
-                self.set_processors.append(RangeProcessor((self.limits, )))
-        if self.processors:
-            for getp, setp in self.processors:
-                if getp is not None:
-                    self.get_processors.insert(0, Processor(getp))
-                if setp is not None:
-                    self.set_processors.append(Processor(setp))
+        self.rebuild(build_doc=True, store=True)
 
-        _dochelper(self)
+    def rebuild(self, instance=MISSING, key=MISSING, build_doc=False, modifiers=None, store=False):
+        if not modifiers:
+            modifiers = _dget(self.modifiers, instance, key)
+
+        values = modifiers['values']
+        units = modifiers['units']
+        limits = modifiers['limits']
+        processors = modifiers['processors']
+
+        get_processors = []
+        set_processors = []
+        if values:
+            get_processors.append(ReverseMapProcessor(values))
+            set_processors.append(MapProcessor(values))
+        if units:
+            get_processors.insert(0, ToQuantityProcessor(units))
+            set_processors.append(FromQuantityProcessor(units))
+        if limits:
+            if isinstance(limits[0], (list, tuple)):
+                set_processors.append(RangeProcessor(limits))
+            else:
+                set_processors.append(RangeProcessor((limits, )))
+        if processors:
+            for getp, setp in processors:
+                if getp is not None:
+                    get_processors.insert(0, Processor(getp))
+                if setp is not None:
+                    set_processors.append(Processor(setp))
+
+        if build_doc:
+            _dochelper(self)
+
+        if store:
+            _dset(self.get_processors, get_processors, instance, key)
+            _dset(self.set_processors, set_processors, instance, key)
+
+        return get_processors, set_processors
 
     def __call__(self, func):
         if self.fget is MISSING:
@@ -124,13 +206,13 @@ class Feat(object):
         self.pre_set = func
         return self
 
-    def post_get(self, value):
-        for processor in self.get_processors:
+    def post_get(self, value, instance=None, key=MISSING):
+        for processor in _dget(self.get_processors, instance, key):
             value = processor(value)
         return value
 
-    def pre_set(self, value):
-        for processor in self.set_processors:
+    def pre_set(self, value, instance=None, key=MISSING):
+        for processor in _dget(self.set_processors, instance, key):
             value = processor(value)
         return value
 
@@ -165,7 +247,7 @@ class Feat(object):
 
             instance.log_debug('(raw) Got {} for {}', value, name)
             try:
-                value = self.post_get(value)
+                value = self.post_get(value, instance, key)
             except Exception as e:
                 instance.log_error('While post-processing {} for {}: {}', value, name, e)
                 raise e
@@ -193,7 +275,7 @@ class Feat(object):
             instance.log_info('Setting {} = {} (current={}, force={})', name, value, current_value, force)
 
             try:
-                t_value = self.pre_set(value)
+                t_value = self.pre_set(value, instance, key)
             except Exception as e:
                 instance.log_error('While pre-processing {} for {}: {}', value, name, e)
                 raise e
@@ -224,15 +306,21 @@ class Feat(object):
     def __delete__(self, instance):
         raise AttributeError('{} is a permanent feat of {}'.format(self.name, instance.__class__.__name__))
 
-    def get_cache(self, instance, key):
-        return instance.__dict__[self.name]
+    def get_cache(self, instance, key=MISSING):
+        try:
+            return self.value[instance]
+        except KeyError:
+            return MISSING
 
-    def set_cache(self, instance, value, key):
-        if value == instance.__dict__[self.name]:
+    def set_cache(self, instance, value, key=MISSING):
+        old_value = self.get_cache(instance, key)
+
+        if value == old_value:
             return
-        instance.__dict__[self.name] = value
-        for callback in instance.on_changed[self.name]:
-            callback(value)
+
+        self.value[instance] = value
+
+        getattr(instance, self.name + '_changed').emit(value, old_value)
 
 
 class DictFeat(Feat):
@@ -247,42 +335,34 @@ class DictFeat(Feat):
 
     def __init__(self, fget=MISSING, fset=None, doc=None, *,
                  keys=None, **kwargs):
-        self.instance = None
-        self.keys = keys
-        if self.keys:
-            self._internal = {key: MISSING for key in self.keys}
-        else:
-            self._internal = {}
-
         super().__init__(fget, fset, doc, **kwargs)
+        self.modifiers[MISSING][MISSING]['keys'] = keys
 
-    def getitem(self, key):
-        if self.keys and not key in self.keys:
+
+    def getitem(self, instance, key):
+        keys = _dget(self.modifiers, instance, key)['keys']
+        if keys and not key in keys:
             raise KeyError('{} is not valid key for {} {}'.format(key, self.name,
-                                                                    self.keys))
-        if isinstance(self.keys, dict):
-            key = self.keys[key]
+                                                                    keys))
+        if isinstance(keys, dict):
+            key = keys[key]
 
-        return self.get(self.instance, self.instance.__class__, key)
+        return self.get(instance, instance.__class__, key)
 
-    def setitem(self, key, value, force=False):
-        if self.keys and not key in self.keys:
-            raise KeyError('{} is not valid key for {} {}', key, self.name, self.keys)
-        if isinstance(self.keys, dict):
-            key = self.keys[key]
+    def setitem(self, instance, key, value, force=False):
+        keys = _dget(self.modifiers, instance, key)['keys']
+        if keys and not key in keys:
+            raise KeyError('{} is not valid key for {} {}'.format(key, self.name,
+                                                                    keys))
+        if isinstance(keys, dict):
+            key = keys[key]
 
-        self.set(self.instance, value, force, key)
-
-    def __getitem__(self, key):
-        return self.getitem(key)
-
-    def __setitem__(self, key, value):
-        self.setitem(key, value)
+        self.set(instance, value, force, key)
 
     def __get__(self, instance, owner=None):
         if not instance:
             return self
-        return instance._lantz_features[self.name]
+        return _DictFeatAccesor(instance, self)
 
     def __set__(self, instance, value):
         if not isinstance(value, dict):
@@ -291,25 +371,38 @@ class DictFeat(Feat):
                                  'obj.prop[index] = value or obj.prop = dict')
 
         for key, value in value.items():
-            self.setitem(key, value)
+            self.setitem(instance, key, value)
 
     def __delete__(self, instance):
         raise AttributeError('{} is a permanent attribute from {}', self.name, instance.__class__.__name__)
 
-    def __repr__(self):
-        return repr(self._internal)
+    def get_cache(self, instance, key=MISSING):
+        keys = _dget(self.modifiers, instance, key)['keys']
+        if instance not in self.value:
+            self.value[instance] = dict()
+        if isinstance(keys, dict):
+            keys = keys.values()
+        if keys and key not in keys:
+            raise KeyError('{} is not valid key for {} {}'.format(key, self.name,
+                                                                  keys))
+        if key is MISSING:
+            return self.value[instance]
+        else:
+            return self.value[instance].get(key, MISSING)
 
-    def get_cache(self, instance, key):
-        if not self.keys and not key in self._internal:
-            return None
-        return self._internal.get(key, MISSING)
+    def set_cache(self, instance, value, key=MISSING):
+        old_value = self.get_cache(instance, key)
 
-    def set_cache(self, instance, value, key):
-        self._internal[key] = value
-        for callback in instance.on_changed[self.name]:
-            callback(value)
-        for callback in instance.on_changed[(self.name, key)]:
-            callback(value)
+        if value == old_value:
+            return
+
+        if key is MISSING:
+            assert isinstance(value, dict)
+            self.value[instance] = value
+        else:
+            self.value[instance][key] = value
+
+        getattr(instance, self.name + '_changed').emit(value, old_value, {'key': key})
 
 
 def _dochelper(feat):
@@ -319,20 +412,22 @@ def _dochelper(feat):
     doc = ''
     predoc = ''
 
+    modifiers = feat.modifiers[MISSING][MISSING]
+
     if isinstance(feat, DictFeat):
-        predoc = ':keys: {}\n\n'.format(feat.keys or 'ANY')
+        predoc = ':keys: {}\n\n'.format(modifiers.get('keys', None) or 'ANY')
 
 
-    if feat.values:
-        doc += ':values: {}\n'.format(feat.values)
-    if feat.units:
-        doc += ':units: {}\n'.format(feat.units)
-    if feat.limits:
-        doc += ':limits: {}\n'.format(feat.limits)
-    if feat.processors:
+    if modifiers['values']:
+        doc += ':values: {}\n'.format(modifiers['values'])
+    if modifiers['units']:
+        doc += ':units: {}\n'.format(modifiers['units'])
+    if modifiers['limits']:
+        doc += ':limits: {}\n'.format(modifiers['limits'])
+    if modifiers['processors']:
         docpg = []
         docps = []
-        for getp, setp in feat.processors:
+        for getp, setp in modifiers['processors']:
             if getp is not None:
                 docpg.insert(0, '  - {}'.format(getp))
             if setp is not None:
@@ -349,3 +444,54 @@ def _dochelper(feat):
 
     feat.__doc__ = predoc + feat.__original_doc__ + doc
 
+
+class FeatProxy(object):
+    """Proxy object for Feat that allows to
+    store instance specific modifiers.
+    """
+
+    def __init__(self, instance, feat, key=MISSING):
+        super().__setattr__('instance', instance)
+        super().__setattr__('feat', feat)
+        super().__setattr__('key', key)
+
+    def __getattr__(self, item):
+        modifiers = _dget(self.feat.modifiers, self.instance, self.key)
+
+        if item not in modifiers:
+            return getattr(self.feat, item)
+
+        return modifiers[item]
+
+    def __setattr__(self, item, value):
+        _modifiers = _dget(self.feat.modifiers, MISSING, MISSING)
+
+        if item not in _modifiers:
+            raise AttributeError()
+
+        _dset(self.feat.modifiers, {item: value}, self.instance, self.key)
+
+        self.feat.rebuild(self.instance, self.key, build_doc=False, store=True)
+
+    def __getitem__(self, key):
+        if not isinstance(self.feat, DictFeat):
+            raise TypeError
+        return self.__class__(self.instance, self.feat, key)
+
+
+class _DictFeatAccesor(object):
+    """Helper class to provide indexed access to DictFeat.
+    """
+
+    def __init__(self, instance, dictfeat):
+        self.df = dictfeat
+        self.instance = instance
+
+    def __getitem__(self, key):
+        return DictFeat.getitem(self.df, self.instance, key)
+
+    def __setitem__(self, key, value):
+        DictFeat.setitem(self.df, self.instance, key, value)
+
+    def __repr__(self):
+        return repr(self.df.value[self.instance])

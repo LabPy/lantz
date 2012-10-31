@@ -48,6 +48,14 @@ class ActionTest(unittest.TestCase):
         obj = aDriver()
         self.assertEqual(obj.run5(1, 'a', 3), (1, 1, '3'))
 
+    def test_instance_specific(self):
+        x = aDriver()
+        y = aDriver()
+        val = Q_(3, 's')
+        self.assertEqual(x.run4(val), y.run4(val))
+        x.actions.run4.units = 's'
+        self.assertNotEqual(x.run4(val), y.run4(val))
+        self.assertEqual(x.run4(val), 3)
 
 
 if __name__ == '__main__':

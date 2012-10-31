@@ -105,7 +105,7 @@ class WidgetMixin(object):
 
     In any case, after wrapping a widget you need to bind it to a feat::
 
-    >>> feat = driver._lantz_feat[feat_name]
+    >>> feat = driver.feats[feat_name]
     >>> widget.bind_feat(feat)
 
     Finally, you need to
@@ -179,14 +179,14 @@ class WidgetMixin(object):
         return self._feat.fset is not None
 
     @Slot(QVariant)
-    def on_widget_value_changed(self, new_value):
+    def on_widget_value_changed(self, value, old_value=MISSING, other=MISSING):
         """When the widget is changed by the user, update the driver with
         the new value.
         """
         if self._update_on_change:
             self.value_to_feat()
 
-    def on_feat_value_changed(self, value):
+    def on_feat_value_changed(self, value, old_value=MISSING, other=MISSING):
         """When the driver value is changed, update the widget if necessary.
         """
         if self.value() != value:
@@ -201,10 +201,12 @@ class WidgetMixin(object):
     @feat_key.setter
     def feat_key(self, value):
         if self._lantz_target:
+            getattr(self._lantz_target, self._feat.name + '_changed').disconnect(self.on_feat_value_changed)
             self._lantz_target.del_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
         self._feat_key = value
         if self._lantz_target:
-            self._lantz_target.add_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
+            getattr(self._lantz_target, self._feat.name + '_changed').connect(self.on_feat_value_changed)
+            #self._lantz_target.add_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
         self.value_from_feat()
 
     @property
@@ -216,11 +218,13 @@ class WidgetMixin(object):
     @lantz_target.setter
     def lantz_target(self, target):
         if self._lantz_target:
-            self._lantz_target.del_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
+            getattr(self._lantz_target, self._feat.name + '_changed').disconnect(self.on_feat_value_changed)
+            #self._lantz_target.del_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
             self.valueChanged.disconnect()
         if target:
             self._lantz_target = target
-            self._lantz_target.add_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
+            getattr(self._lantz_target, self._feat.name + '_changed').connect(self.on_feat_value_changed)
+            #self._lantz_target.add_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
             #if feat_key is MISSING:
             #    self.on_feat_value_changed(self._lantz_target.recall(self._feat.name))
             #else:
@@ -230,7 +234,15 @@ class WidgetMixin(object):
 
     def bind_feat(self, feat):
         self._feat = feat
-        self._feat_key = MISSING
+        try:
+            keys = feat.keys
+        except:
+            keys = None
+
+        if keys:
+            self._feat_key = keys[0]
+        else:
+            self._feat_key = MISSING
         self.setReadOnly(not self.writable)
 
     @classmethod
@@ -253,7 +265,7 @@ class WidgetMixin(object):
     def from_feat(cls, feat, parent=None):
         """Return a widget appropriate to represent a lantz feature.
 
-        :param feat: a lantz feature, the result of inst._lantz_feat[feat_name].
+        :param feat: a lantz feature proxy, the result of inst.feats[feat_name].
         :param parent: parent widget.
         """
 
@@ -331,11 +343,11 @@ class DictFeatWidget(QWidget):
         self._value_widget = wid
 
     @Slot(QVariant)
-    def _combobox_changed(self, value):
+    def _combobox_changed(self, value, old_value=MISSING, other=MISSING):
         self._value_widget.feat_key = self._keys[self._key_widget.currentIndex()]
 
     @Slot(QVariant)
-    def _lineedit_changed(self, value):
+    def _lineedit_changed(self, value, old_value=MISSING, other=MISSING):
         self._value_widget.feat_key = self._key_widget.text()
 
     def value(self):
@@ -511,7 +523,7 @@ class DriverTestWidget(QWidget):
         self.widgets = []
 
         # Feat
-        for feat_name, feat in sorted(target._lantz_features.items()):
+        for feat_name, feat in sorted(target.feats.items()):
             try:
                 feat_widget = LabeledFeatWidget(self, target, feat)
 
@@ -538,7 +550,7 @@ class DriverTestWidget(QWidget):
         actions_label.setFixedWidth(120)
 
         self.actions_combo = QComboBox(self)
-        self.actions_combo.addItems(list(target._lantz_actions.keys()))
+        self.actions_combo.addItems(list(target.actions.keys()))
 
         actions_button = QPushButton(self)
         actions_button.setFixedWidth(60)
@@ -634,7 +646,7 @@ def connect_feat(widget, target, feat_name=None, feat_key=MISSING):
         widget.lantz_target = target
         return
 
-    feat =  target._lantz_features[feat_name]
+    feat =  target.feats[feat_name]
 
     WidgetMixin.wrap(widget)
     widget.bind_feat(feat)
@@ -665,7 +677,7 @@ def connect_driver(parent, target, *, prefix='', sep='__'):
             name = name[len(prefix):]
         if sep in name:
             name, _ = name.split(sep, 1)
-        if name in target._lantz_features:
+        if name in target.feats:
             connect_feat(wid, target, name)
 
 

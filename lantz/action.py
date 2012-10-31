@@ -11,11 +11,39 @@
 """
 
 import time
+import copy
 import inspect
 import functools
 
-from .processors import (Processor, ToQuantityProcessor, FromQuantityProcessor,
-                         MapProcessor, ReverseMapProcessor, RangeProcessor)
+from weakref import WeakKeyDictionary
+
+from .processors import (Processor, FromQuantityProcessor,
+                         MapProcessor, RangeProcessor)
+
+from .feat import MISSING
+
+
+def _dget(adict, instance=MISSING):
+    """Helper function to get an element by key
+    from a dictionary defaulting to key=MISSING
+    """
+
+    try:
+        return adict[instance]
+    except KeyError:
+        return adict[MISSING]
+
+def _dset(adict, value, instance=MISSING):
+    """Helper function to set an element by key
+    copying taken the value from MISSING.
+    """
+    if instance not in adict:
+        adict[instance] = copy.deepcopy(adict[MISSING])
+
+    if isinstance(adict[instance], dict):
+        adict[instance].update(value)
+    else:
+        adict[instance] = value
 
 
 class Action(object):
@@ -39,10 +67,15 @@ class Action(object):
     """
 
     def __init__(self, func = None, *, values=None, units=None, limits=None, procs=None):
-        self.values = values
-        self.units = units
-        self.limits = limits
-        self.processors = procs
+
+        #: instance: key: value
+        self.modifiers = WeakKeyDictionary()
+
+        self.action_processors = {MISSING: ()}
+        self.modifiers[MISSING] = {'values': values,
+                                   'units': units,
+                                   'limits': limits,
+                                   'processors': procs}
         self.func = func
         self.args = None
 
@@ -51,13 +84,17 @@ class Action(object):
         self.args = inspect.getfullargspec(func).args
         self.__name__ = func.__name__
         self.__doc__ = func.__doc__
-        self.rebuild()
+        self.rebuild(store=True)
         return self
 
     def __get__(self, instance, owner=None):
         func = functools.partial(self.call, instance)
         func.__wrapped__ = self.func
         return func
+
+    @property
+    def name(self):
+        return self.__name__
 
     def call(self, instance, *args, **kwargs):
         name = self.__name__
@@ -72,9 +109,9 @@ class Action(object):
                 fargs = self.args
                 values = tuple(values[farg] for farg in fargs)[1:]
                 if len(values) == 1:
-                    t_values = (self.pre_action(values[0]), )
+                    t_values = (self.pre_action(values[0], instance), )
                 else:
-                    t_values = self.pre_action(values)
+                    t_values = self.pre_action(values, instance)
             except Exception as e:
                 instance.log_error('While pre-processing ({}, {}) for {}: {}', args, kwargs, name, e)
                 raise e
@@ -93,50 +130,93 @@ class Action(object):
 
         return out
 
-    def pre_action(self, value):
-        for processor in self.action_processors:
+    def pre_action(self, value, instance=None):
+        procs = _dget(self.action_processors, instance)
+        for processor in procs:
             value = processor(value)
         return value
 
-    def rebuild(self):
-        self.action_processors = []
-        largs = len(self.args) - 1
-        name = self.__name__
+    def rebuild(self, instance=MISSING, build_doc=False, modifiers=None, store=False):
+        if not modifiers:
+            modifiers = _dget(self.modifiers, instance)
 
-        if self.values:
-            proc = MapProcessor(self.values)
+        procs = []
+        largs = len(self.args) - 1
+        name = self.name
+
+        values = modifiers['values']
+        units = modifiers['units']
+        limits = modifiers['limits']
+        processors = modifiers['processors']
+
+        if values:
+            proc = MapProcessor(values)
             lproc = len(proc) if isinstance(proc, Processor) else 1
             if lproc != largs:
                 raise ValueError("In {}: the number of elements in 'values' ({}) "
                                  "must match the number of arguments ({})".format(name, lproc, largs))
-            self.action_processors.append(proc)
+            procs.append(proc)
 
-        if self.units:
-            proc = FromQuantityProcessor(self.units)
+        if units:
+            proc = FromQuantityProcessor(units)
             lproc = len(proc) if isinstance(proc, Processor) else 1
             if lproc != largs:
                 raise ValueError("In {}: the number of elements in 'units' ({}) "
                                  "must match the number of arguments ({})".format(name, lproc, largs))
-            self.action_processors.append(proc)
+            procs.append(proc)
 
-        if self.limits:
-            if isinstance(self.limits[0], (list, tuple)):
-                proc = RangeProcessor(self.limits)
+        if limits:
+            if isinstance(limits[0], (list, tuple)):
+                proc = RangeProcessor(limits)
             else:
-                proc = RangeProcessor((self.limits, ))
+                proc = RangeProcessor((limits, ))
 
             lproc = len(proc) if isinstance(proc, Processor) else 1
             if lproc != largs:
                 raise ValueError("In {}: the number of elements in 'limits' ({}) "
                                  "must match the number of arguments ({})".format(name, lproc, largs))
 
-            self.action_processors.append(proc)
+            procs.append(proc)
 
-        if self.processors:
-            for processor in self.processors:
+        if processors:
+            for processor in processors:
                 proc = Processor(processor)
                 lproc = len(proc) if isinstance(proc, Processor) else 1
                 if lproc != largs:
                     raise ValueError("In {}: the number of elements in 'processor' ({}) "
                                      "must match the number of arguments ({})".format(name, len(proc), largs))
-                self.action_processors.append(proc)
+                procs.append(proc)
+
+        if store:
+            _dset(self.action_processors, procs, instance)
+
+        return procs
+
+
+class ActionProxy(object):
+    """Proxy object for Actions that allows to
+    store instance specific modifiers.
+    """
+
+    def __init__(self, instance, action):
+        super().__setattr__('instance', instance)
+        super().__setattr__('action', action)
+
+    def __getattr__(self, item):
+        modifiers = _dget(self.action.modifiers, self.instance)
+
+        if item not in modifiers:
+            raise AttributeError()
+
+        return modifiers[item]
+
+    def __setattr__(self, item, value):
+        _modifiers = _dget(self.action.modifiers, MISSING)
+
+        if item not in _modifiers:
+            raise AttributeError()
+
+        _dset(self.action.modifiers, {item: value}, self.instance)
+
+        self.action.rebuild(self.instance, build_doc=False, store=True)
+
