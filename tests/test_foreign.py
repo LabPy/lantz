@@ -21,7 +21,7 @@ class MyDriver(LibraryDriver):
 
 class MyWrongDriver(LibraryDriver):
 
-    LIBRARY_NAME = 'simplelib2.dylib'
+    LIBRARY_NAME = 'no_simplelib.dylib'
 
 class ForeignTest(unittest.TestCase):
 

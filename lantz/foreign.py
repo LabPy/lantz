@@ -11,6 +11,7 @@
 
 import os
 import ctypes
+import inspect
 from ctypes.util import find_library
 from itertools import chain
 
@@ -180,9 +181,11 @@ class LibraryDriver(Driver):
         library_name = kwargs.pop('library_name', None)
         super().__init__(*args, **kwargs)
 
-        for name in chain(iter_lib(library_name), iter_lib(self.LIBRARY_NAME)):
+        folder = os.path.dirname(inspect.getfile(self.__class__))
+        for name in chain(iter_lib(library_name, folder), iter_lib(self.LIBRARY_NAME, folder)):
             if name is None:
                 continue
+            self.log_debug('Trying to open library: {}'.format(name))
             try:
                 self.lib = Library(name, self.LIBRARY_PREFIX, self._wrapper)
                 break
@@ -234,13 +237,18 @@ class LibraryDriver(Driver):
         return ret
 
 
-def iter_lib(library_name):
+def iter_lib(library_name, folder=''):
     if not library_name:
         raise StopIteration
     if isinstance(library_name, str):
+        if folder:
+            yield os.path.join(folder, library_name)
         yield library_name
         yield find_library(library_name.split('.')[0])
     else:
+        for name in library_name:
+            if folder:
+                yield os.path.join(folder, name)
         for name in library_name:
             yield name
             yield find_library(name.split('.')[0])
