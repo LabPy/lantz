@@ -220,6 +220,7 @@ class LibraryDriver(Driver):
 
     def _wrapper(self, name, func, *args):
         new_args, collect = self._preprocess_args(name, *args)
+
         try:
             ret = func(*new_args)
         except Exception as e:
@@ -227,6 +228,9 @@ class LibraryDriver(Driver):
 
         ret = self._return_handler(name, ret)
 
+        return self._postprocess(name, ret, collect)
+
+    def _postprocess(self, name, ret, collect):
         if collect:
             values = [item.value for item in collect]
             values.insert(0, ret)
