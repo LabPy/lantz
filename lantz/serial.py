@@ -71,7 +71,7 @@ class SerialDriver(TextualMixin, Driver):
 
     def __init__(self, port=1, timeout=1, write_timeout=1, **kwargs):
         super().__init__(**kwargs)
-        self.timeout = timeout
+        self.TIMEOUT = timeout
 
         kw = {}
         for key in ('baudrate', 'bytesize', 'parity', 'stopbits',

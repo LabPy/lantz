@@ -73,10 +73,6 @@ class MessageVisaDriver(TextualMixin, Driver):
 
         self.visa = self.resource_manager.visa
 
-        #bytesize = BYTESIZE[bytesize]
-        #parity = PARITY[parity]
-        #stopbits = STOPBITS[stopbits]
-
         self.resource_name = resource_name
         self.log_debug('Created Instrument {}', self.resource_name)
 
@@ -97,7 +93,7 @@ class MessageVisaDriver(TextualMixin, Driver):
         """
         if not self.is_open():
             self.log_debug('Opening {}', self.resource_name)
-            self.vi = self.resource_manager.open_resource(self.resource_name) #, self.access_mode, self.open_timeout
+            self.vi = self.resource_manager.open_resource(self.resource_name)
             for key, value in self._init_attributes.items():
                 self.visa.set_attribute(self.vi, key, value)
 
