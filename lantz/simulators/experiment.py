@@ -1,13 +1,20 @@
 # -*- coding: utf-8 -*-
+"""
+    lantz.simulators.experiment
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    An experiment connecting an actuator and a sensor.
+
+    :copyright: 2012 by The Lantz Authors
+    :license: BSD, see LICENSE for more details.
+"""
+
 from threading import Thread, activeCount
 from time import sleep
 import logging
 import queue
 
-import sim_fungen
-import sim_voltmeter
-import sim_instrument
-
+from . import fungen, voltmeter, instrument
 
 class StudiedObject(object):
     def __init__(self, read_from_actuator):
@@ -35,7 +42,7 @@ class Namespace():
 def create_actuator_server(actuator):
     logging.info('Creating fungen server')
     args = Namespace('localhost', 5678)
-    actuator_server = sim_instrument.main_tcp(actuator, args)
+    actuator_server = instrument.main_tcp(actuator, args)
     logging.info('Fungen: interrupt the program with Ctrl-C')
     try:
         actuator_server.serve_forever()
@@ -47,7 +54,7 @@ def create_actuator_server(actuator):
 def create_sensor_server(sensor):
     logging.info('Creating voltmeter server')
     args = Namespace('localhost', 5679)
-    sensor_server = sim_instrument.main_tcp(sensor, args)
+    sensor_server = instrument.main_tcp(sensor, args)
     logging.info('Voltmeter: interrupt the program with Ctrl-C')
     try:
         sensor_server.serve_forever()
@@ -56,7 +63,7 @@ def create_sensor_server(sensor):
     finally:
         sensor_server.shutdown()
 
-def serve_forever():
+def serve_forever(obj):
     try:
         while activeCount() == 3:
             obj.action()
@@ -64,16 +71,19 @@ def serve_forever():
     except KeyboardInterrupt:
         logging.info('Experiment: Ending.')
 
-if __name__ == "__main__":
-    fungen = sim_fungen.SimFunctionGenerator()
-    obj = StudiedObject(fungen.generator_output)
-    voltmeter = sim_voltmeter.SimVoltmeter(obj.present_value, fungen.generator_output)
-    fthread = Thread(target=create_actuator_server, args=(fungen, ))
-    vthread = Thread(target=create_sensor_server, args=(voltmeter, ))
+def main():
+    fg = fungen.SimFunctionGenerator()
+    obj = StudiedObject(fg.generator_output)
+    vm = voltmeter.SimVoltmeter(obj.present_value, fg.generator_output)
+    fthread = Thread(target=create_actuator_server, args=(fg, ))
+    vthread = Thread(target=create_sensor_server, args=(vm, ))
     fthread.daemon = True
     vthread.daemon = True
     fthread.start()
     vthread.start()
 
     sleep(1)
-    serve_forever()
+    serve_forever(obj)
+
+if __name__ == "__main__":
+    main()

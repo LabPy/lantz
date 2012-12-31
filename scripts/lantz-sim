@@ -1,0 +1,23 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+    lantz-sim
+    ~~~~~~~~~
+
+    Run simulators
+
+    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
+"""
+
+from lantz.simulators import SIMULATORS
+
+if __name__=='__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Run Lantz simulators.')
+    parser.add_argument('simulator', choices=list(SIMULATORS.keys()))
+    args, pending = parser.parse_known_args()
+    print('Dispatching ' + args.simulator)
+    SIMULATORS[args.simulator](pending)
+

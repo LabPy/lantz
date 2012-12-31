@@ -1,4 +1,15 @@
 # -*- coding: utf-8 -*-
+"""
+    lantz.simulators.instrument
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    An simple framework to wrap a simulated instrument into
+    a Serial or TCP receiver.
+
+    :copyright: 2012 by The Lantz Authors
+    :license: BSD, see LICENSE for more details.
+"""
+
 import logging
 import socket
 import socketserver
@@ -46,7 +57,6 @@ class SerialServer(SerialDriver):
 
 
 def create_TCPInstrumentHandler(instrument):
-    print('create_TCPIH with %s' % instrument)
     class TCPHandler(socketserver.StreamRequestHandler):
 
         TERMINATION = '\n'
@@ -92,9 +102,6 @@ class InstrumentHandler(object):
         try:
             sig, value = data[0], data[1:].split()
             prop = value[0].lower()
-            print(sig)
-            print(value)
-            print(prop)
             try:
                 current = getattr(self, prop)
             except AttributeError:

@@ -1,9 +1,22 @@
 # -*- coding: utf-8 -*-
+"""
+    lantz.simulators.fungen
+    ~~~~~~~~~~~~~~~~~~~~~~~
+
+    A simulated function generator.
+    See specification in the Lantz documentation.
+
+    :copyright: 2012 by The Lantz Authors
+    :license: BSD, see LICENSE for more details.
+"""
+
 import time
 import logging
 import math
 
-from sim_instrument import SimError, InstrumentHandler, main_tcp, main_serial
+from . import SIMULATORS
+
+from .instrument import SimError, InstrumentHandler, main_tcp, main_serial
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s',
                     datefmt='%Y-%d-%m %H:%M:%S')
@@ -60,8 +73,8 @@ class SimFunctionGenerator(InstrumentHandler):
             logging.info('Testing level %s. (%s/%s)', level, rep + 1, repetitions)
 
     def generator_output(self):
-        '''This function generates the output, used in the 'experiment' example
-        '''
+        """This function generates the output, used in the 'experiment' example
+        """
         if self.out == 1:
             dt = time.time() - self.start_time
             value = self._amp * math.sin(2 * math.pi * self.fre * dt) + self.off
@@ -70,10 +83,9 @@ class SimFunctionGenerator(InstrumentHandler):
         return value
 
 
-
-if __name__ == "__main__":
+def main(args=None):
     import argparse
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='Function Generator Simulator')
     subparsers = parser.add_subparsers()
 
     subparser = subparsers.add_parser('serial')
@@ -89,7 +101,7 @@ if __name__ == "__main__":
     subparser.set_defaults(func=main_tcp)
 
     instrument = SimFunctionGenerator()
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     server = args.func(instrument, args)
 
     logging.info('interrupt the program with Ctrl-C')
@@ -99,3 +111,8 @@ if __name__ == "__main__":
         logging.info('Ending')
     finally:
         server.shutdown()
+
+SIMULATORS['fungen'] = main
+
+if __name__ == "__main__":
+    main()

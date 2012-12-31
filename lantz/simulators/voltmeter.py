@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
+"""
+    lantz.simulators.voltmeter
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    A simulated voltmeter.
+
+    :copyright: 2012 by The Lantz Authors
+    :license: BSD, see LICENSE for more details.
+"""
+
 import time
 import logging
 
-from sim_instrument import SimError, InstrumentHandler, main_tcp, main_serial
+from .instrument import SimError, InstrumentHandler, main_tcp, main_serial
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s',
                     datefmt='%Y-%d-%m %H:%M:%S')
@@ -54,7 +64,7 @@ class SimVoltmeter(InstrumentHandler):
         return value
 
 
-if __name__ == "__main__":
+def main(args=None):
     import argparse
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
@@ -76,8 +86,7 @@ if __name__ == "__main__":
         return random.random * 10 - 5
 
     instrument = SimVoltmeter(measure, measure)
-    args = parser.parse_args()
-    print(args)
+    args = parser.parse_args(args)
     server = args.func(instrument, args)
 
     logging.info('interrupt the program with Ctrl-C')
@@ -87,3 +96,10 @@ if __name__ == "__main__":
         logging.info('Ending')
     finally:
         server.shutdown()
+
+from . import SIMULATORS
+
+SIMULATORS['voltmeter'] = main
+
+if __name__ == "__main__":
+    main()
