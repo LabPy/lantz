@@ -9,3 +9,5 @@ docs/drivers
 .idea
 _test*
 update_*
+dist
+MANIFEST
