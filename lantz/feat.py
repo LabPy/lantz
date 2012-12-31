@@ -14,8 +14,10 @@ import time
 import copy
 from weakref import WeakKeyDictionary
 
+from . import Q_
 from .processors import (Processor, ToQuantityProcessor, FromQuantityProcessor,
                          MapProcessor, ReverseMapProcessor, RangeProcessor)
+
 
 class _NamedObject(object):
     """A class to construct named sentinels.
@@ -317,6 +319,9 @@ class Feat(object):
 
         if value == old_value:
             return
+
+        if isinstance(value, Q_):
+            value = copy.copy(value)
 
         self.value[instance] = value
 
