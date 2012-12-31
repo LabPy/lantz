@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>316</width>
+    <height>481</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Frequency Scan</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QGroupBox" name="configBox">
+      <property name="title">
+       <string>Configuration</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QFormLayout" name="formLayout">
+         <property name="fieldGrowthPolicy">
+          <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="amplitudeLabel">
+           <property name="text">
+            <string>Amplitude</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QDoubleSpinBox" name="amplitude"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="offsetLabel">
+           <property name="text">
+            <string>Offset</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="offset"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="waveformLabel">
+           <property name="text">
+            <string>Waveform</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="waveform"/>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="frequencyLabel">
+           <property name="text">
+            <string>Frequency</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QDoubleSpinBox" name="frequency"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Scan parameters</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QFormLayout" name="formLayout_2">
+         <property name="fieldGrowthPolicy">
+          <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="startLabel">
+           <property name="text">
+            <string>Start</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QDoubleSpinBox" name="start">
+           <property name="suffix">
+            <string> Hz</string>
+           </property>
+           <property name="maximum">
+            <double>100000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="stopLabel">
+           <property name="text">
+            <string>Stop</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="stop">
+           <property name="suffix">
+            <string> Hz</string>
+           </property>
+           <property name="maximum">
+            <double>100000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="stepLabel">
+           <property name="text">
+            <string>Step</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QDoubleSpinBox" name="step">
+           <property name="suffix">
+            <string> Hz</string>
+           </property>
+           <property name="maximum">
+            <double>100000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="waitLabel">
+           <property name="text">
+            <string>Wait</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QDoubleSpinBox" name="wait">
+           <property name="suffix">
+            <string> s</string>
+           </property>
+           <property name="maximum">
+            <double>1000000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.100000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QProgressBar" name="progress">
+         <property name="value">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="scan">
+         <property name="text">
+          <string>Scan!</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>316</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <tabstops>
+  <tabstop>amplitude</tabstop>
+  <tabstop>offset</tabstop>
+  <tabstop>waveform</tabstop>
+  <tabstop>start</tabstop>
+  <tabstop>stop</tabstop>
+  <tabstop>step</tabstop>
+  <tabstop>wait</tabstop>
+  <tabstop>scan</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

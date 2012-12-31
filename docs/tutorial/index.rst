@@ -4,11 +4,13 @@
 Tutorials
 =========
 
-If you haven't install `Lantz` yet, checkout :ref:`installing`
-
 .. toctree::
    :numbered:
 
+   installing
    using
+   using-feats
    building
+   cli-app
+   gui-app
 

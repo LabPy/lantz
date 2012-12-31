@@ -1,14 +1,27 @@
 .. _tutorial-building:
 
-=========================
 Building your own drivers
 =========================
 
+In this part of the tutorial, we are going to build the driver of an hypothetical signal
+generator. Following a tutorial about building a driver to communicate with
+an instrument that you do not have is not much fun. That's why we have created
+a virtual version of this instrument. From the command line, run the following
+command::
+
+    $ lantz-sim fungen tcp
+
+This will start an application that listens for incoming TCP packages on port 5678 from `localhost`.
+
+.. note::
+   If you have done the previous tutorial, you will build from scratch the
+   same driver that is included in Lantz.
+
 
 The instrument
-==============
+--------------
 
-In this tutorial, we are going to build the driver of hypothetical signal generator with the following characteristics:
+The signal generator has the following characteristics:
 
 - 1 Analog output
 
@@ -61,24 +74,18 @@ The response to successful **GET** commands is the requested value.
 The response to successful **SET** commands is the string OK.
 If the command is invalid or an occurs in the instrument, the instrument will respond with the string ERROR. For example, the command ``?DIS 19`` is invalid because the parameter *B* should be in [1, 8].
 
-One more thing, following a tutorial about building a driver to communicate with an instrument that you do not have is not much fun. That's why we have created a virtual version of this instrument. From the command line, run the following command:
-
-$ sim-fungen.py tcp
-
-This will start an application that listens for incoming TCP packages on port 5678 from `localhost`.
-
 
 A basic driver
-==============
+--------------
 
-
-Having look at the instrument, we will now create the driver. First create a python file named `tutorial.py` in your folder of choice and edit it to look like this::
+Having look at the instrument, we will now create the driver. Open the project folder that you created in the previous tutorial (:ref:`tutorial-using`). Create a python file named `mydriver.py` (I know is a bad name but it is just to stress that
+ it is yours) and change it to look like this::
 
 
     from lantz import Feat
     from lantz.network import TCPDriver
 
-    class SignalGenerator(TCPDriver):
+    class LantzSignalGeneratorTCP(TCPDriver):
         """Lantz Signal Generator.
         """
 
@@ -93,7 +100,7 @@ Having look at the instrument, we will now create the driver. First create a pyt
 
 
     if __name__ == '__main__':
-        with SignalGenerator('localhost', 5678) as inst:
+        with LantzSignalGeneratorTCP('localhost', 5678) as inst:
             print('The identification of this instrument is : ' + inst.idn)
 
 
@@ -106,20 +113,24 @@ Inside the method (in this case is a getter) goes the code to communicate with t
 
 Finally, inside the `__name__ == '__main__'` we instantiate the SignalGenerator specifying host and port (these are arguments of the TCPDriver constructor, more on this later) and we print the identification.
 
-If you have `sim-fungen.py` running in your computer, you can test your new driver. From the command line, cd into your working directory and then run the following command::
+If you have the simulator running, you can test your new driver. From the command line, cd into the project directory and then run the following command::
 
-$ python tutorial.py
+    $ python mydriver.py
+
+.. note:: If you have different versions of python installed, remember to use
+          the one in which you have installed Lantz. You might need to use
+          `python3` instead of `python`.
 
 You should see `LSG Serial #1234`.
 
-Lantz uses the python logging module. Let's see what's its going on under the hood by logging to screen in debug mode::
+Let's see what's its going on under the hood by logging to screen in debug mode::
 
     from lantz.log import log_to_screen, DEBUG  # <-- This is new
 
     from lantz import Feat
     from lantz.network import TCPDriver
 
-    class SignalGenerator(TCPDriver):
+    class LantzSignalGeneratorTCP(TCPDriver):
         """Lantz Signal Generator.
         """
 
@@ -137,7 +148,7 @@ Lantz uses the python logging module. Let's see what's its going on under the ho
 
     if __name__ == '__main__':
         log_to_screen(DEBUG)
-        with SignalGenerator('localhost', 5678) as inst:
+        with LantzSignalGeneratorTCP('localhost', 5678) as inst:
             print('The identification of this instrument is : ' + inst.idn)
 
 You can adjust the level of information provided by changing the LOGGING_LEVEL. You can also display the logging in another window to avoid cluttering but this comes later.
@@ -179,8 +190,7 @@ Let's allow our driver to control the instruments amplitude::
         from lantz.log import log_to_screen, DEBUG
 
         log_to_screen(DEBUG)
-        with SignalGenerator('localhost', 5678) as inst:
-            inst = SignalGenerator('localhost', 5678)
+        with LantzSignalGeneratorTCP('localhost', 5678) as inst:
             print('The identification of this instrument is : ' + inst.idn)
             print('Setting amplitude to 3')
             inst.amplitude = 3
@@ -193,42 +203,52 @@ We have defined another Feat, now with a getter and a setter. The getter sends `
 
 In the current version of this driver, if we try to set the amplitude to 20 V the command will fill in the instrument but the driver will not know. Lets add some error checking::
 
-            @amplitude.setter
-            def amplitude(self, value):
-                if self.query('!AMP {:.2f}'.format(value)) != "OK":
-                    raise Exception
+    # import ...
+
+    class LantzSignalGeneratorTCP(TCPDriver):
+
+        # Code from previous example
+        # ...
+
+        @amplitude.setter
+        def amplitude(self, value):
+            if self.query('!AMP {:.2f}'.format(value)) != "OK":
+                raise Exception
 
 
-Is that simple. We just check the response. If different from `OK` we raise an Exception. Change the script to set the amplitude to 20 and run it one more time. You should something like this::
+Is that simple. We just check the response. If different from `OK` we raise an Exception. Change the script to set the amplitude to 20 and run it one more time. You should something like this in the log::
 
     Exception: While setting amplitude to 20.
 
-We do not know why the command has failed but we know which command has failed. Lantz has filled the description of the exception to say that the driver failed while setting the amplitude to 20.
+We do not know why the command has failed but we know which command has failed.
 
-.. TODO The exception message right now is
+Because all commands should be checked for `ERROR`, we will override query to do it. Reset amplitude to the original and add the following, add the following import to the top of the file, and redefine the query function to the class::
 
-        Received ERROR
-         (len=6)
-        While setting amplitude to 20 volt.
-        Closing port ('localhost', 5678)
-        Traceback (most recent call last):
-            ...
-        Exception
-
-
-Because all commands should be checked for `ERROR`, we will override query to do it. Add the following import to the top of the file, and the query function to the class::
-
+    # import ...
     from lantz.errors import InstrumentError
 
-    def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
-        answer = super().query(command, send_args=send_args, recv_args=recv_args)
-        if answer == 'ERROR':
-            raise InstrumentError
-        return answer
+    class LantzSignalGeneratorTCP(TCPDriver):
+
+        # Code from previous example
+        # ...
+
+        @amplitude.setter
+        def amplitude(self, value):
+            self.query('!AMP {:.1f}'.format(value))
+
+        def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
+            answer = super().query(command, send_args=send_args, recv_args=recv_args)
+            if answer == 'ERROR':
+                raise InstrumentError
+            return answer
+
+The `query` function mediates all queries to the instrument. In our redefined
+version, we call the original first (`super().query(...)`) and then we check
+for errors. In this way we have added error checking for all queries!.
 
 
 Putting units to work
-=====================
+---------------------
 
 Hoping that the Mars Orbiter story convinced you that using units is worth it, let's modify the driver to use them::
 
@@ -276,7 +296,7 @@ Hoping that the Mars Orbiter story convinced you that using units is worth it, l
         milivolt = Q_(1, 'mV')
 
         log_to_screen(DEBUG)
-        with SignalGenerator('localhost', 5678) as inst:
+        with LantzSignalGeneratorTCP('localhost', 5678) as inst:
             print('The identification of this instrument is : ' + inst.idn)
             print('Setting amplitude to 3')
             inst.amplitude = 3 * volt
@@ -285,17 +305,26 @@ Hoping that the Mars Orbiter story convinced you that using units is worth it, l
             print('Current amplitude: {}'.format(inst.amplitude))
 
 
-We have just added in the Feat definition that the units is Volts. Lantz uses the quantities package to manage units. We now import `Q_` which is a shortcut for `quantities.Quantity` and we declare the volt and the milivolt. We now set the amplitude to 3 Volts and 1000 milivolts.
+We have just added in the Feat definition that the units is Volts. Lantz uses the Pint_ package to manage units. We now import `Q_` which is a shortcut for `Pint.Quantity` and we declare the volt and the milivolt. We now set the amplitude to 3 Volts and 1000 milivolts.
 
 Run the script and notice how Lantz will do the conversion for you. This allows to use the output of one instrument as the output of another without handling the unit conversion. Additionally, it allows you to replace this signal generator by another that might require the amplitude in different units without changing your code.
 
 Limits
-======
+------
 
-When the communication round-trip to the instrument is too long, you might want to catch some of the errors before hand. You can use `limits` to check::
+When the communication round-trip to the instrument is too long, you might want to catch some of the errors before hand. You can use `limits` to check for valid range of the parameter. Limits syntax is::
 
+    limits([start,] stop[, step])
 
-    from lantz import Feat,
+    limits(10)          # means from 0 to 10 (the 10 is valid)
+    limits(2, 10)       # means from 2 to 10 (the 10 is valid)
+    limits(2, 10, 2)    # means from 2 to 10, with a step of 2 (the 10 is valid)
+
+If you provide a value outside the valid range, Lantz will raise a ValueError.
+If the steps parameter is set but you provide a value not compatible with it,
+it will be silently rounded. Let's put this to work for amplitude, frequency and offset::
+
+    from lantz import Feat
     from lantz.network import TCPDriver
     from lantz.errors import InstrumentError
 
@@ -348,10 +377,16 @@ When the communication round-trip to the instrument is too long, you might want 
         def frequency(self, value):
             self.query('!FRE {:.2f}'.format(value))
 
-If you try to set a value outside the valid range, a ValueErorr will be raised and the command will never be sent to the instrument.
+If you try to set a value outside the valid range, a ValueErorr will be raised and the command will never be sent to the instrument. Give it a try::
+
+    inst.amplitude = 20
+
+Automatic rounding::
+
+    inst.offset = 0.012 # rounded to 0.01
 
 Mapping values
-==============
+--------------
 
 We will define offset and frequency like we did with amplitude, and we will also define output enabled and waveform::
 
@@ -436,7 +471,7 @@ We will define offset and frequency like we did with amplitude, and we will also
         Hz = Q_(1, 'Hz')
 
         log_to_screen(DEBUG)
-        with SignalGenerator('localhost', 5678) as inst:
+        with LantzSignalGeneratorTCP('localhost', 5678) as inst:
             print('The identification of this instrument is : ' + inst.idn)
             print('Setting amplitude to 3')
             inst.amplitude = 3 * volt
@@ -455,10 +490,17 @@ This means that we can write the body of the getter/setter expecting a instrumen
 
 
 Properties with items: DictFeat
-===============================
+-------------------------------
 
 It is quite common that scientific equipment has many of certain features (such as axes, channels, etc). For example, this signal generator has 8 digital outputs. A simple solution would be to access them as feats named dout1, dout2 and so on. But this is not elegant (consider a DAQ with 32 digital inputs) and makes coding to programatically access to channel N very annoying. To solve this Lantz provides a dictionary like feature named :class:`DictFeat`. Let's see this in action::
 
+
+    # import ...
+
+    class LantzSignalGeneratorTCP(TCPDriver):
+
+        # Code from previous example
+        # ...
 
         @DictFeat(values={True: 1, False: 0})
         def dout(self, key):
@@ -475,9 +517,16 @@ In the driver definition, very little has changed. :class:`DictFeat` acts like t
 
 You will use this in the following way::
 
-        inst.dout[4] = True
+    inst.dout[4] = True
 
 By default, any key (in this case, channel) is valid and Lantz leaves to the underlying instrument to reject invalid ones. In some cases, for example when the instrument does not deal properly with unexpected parameters, you might want to restrict them using the optional parameter `keys` ::
+
+    # import ...
+
+    class LantzSignalGeneratorTCP(TCPDriver):
+
+        # Code from previous example
+        # ...
 
         @DictFeat(values={True: 1, False: 0}, keys=list(range(1,9)))
         def dout(self, key):
@@ -492,13 +541,20 @@ By default, any key (in this case, channel) is valid and Lantz leaves to the und
 
 Remember that range(1, 9) excludes 9. In this way, Lantz will Raise an exception without talking to the instrument when the following code::
 
-        >>> inst.dout[10] = True
-        Traceback:
-            ...
-        KeyError: 10 is not valid key for dout [1, 2, 3, 4, 5, 6, 7, 8]
+    >>> inst.dout[10] = True
+    Traceback:
+        ...
+    KeyError: 10 is not valid key for dout [1, 2, 3, 4, 5, 6, 7, 8]
 
 
 We will create now a read-read only DictFeat for the digital input::
+
+    # import ...
+
+    class LantzSignalGeneratorTCP(TCPDriver):
+
+        # Code from previous example
+        # ...
 
         @DictFeat(values={True: 1, False: 0}, keys=list(range(1,9)))
         def din(self, key):
@@ -508,7 +564,7 @@ We will create now a read-read only DictFeat for the digital input::
 
 
 Drivers methods: Action
-=======================
+-----------------------
 
 
 Bound methods that will trigger interaction with the instrument are decorated with :class:`Action`::
@@ -524,3 +580,10 @@ and within the class we will add::
 
 
 .. TODO: expand this section and add !CAL to the driver. Add section `Interactive`
+
+
+.. rubric::
+   You can use the the driver that you have created in you projects.
+   Learn how in the next part of the tutorial: :ref:`tutorial-cli-app`.
+
+.. _Pint: https://pint.readthedocs.org/

@@ -202,7 +202,7 @@ If you want to send a command to an instrument only once during a particular scr
 Units
 -----
 
-Instrumentation software need to deal with physical units, and therefore you need to deal with them. Keeping track of the units of each variable in time consuming and error prone, and derives into annoying naming practices such as `freq_in_KHz`. Lantz aims to reduce the burden of this by incorporating units using the Quantities package. The Quantity object si abbreviated withing Lantz as `Q_` and can be imported from the root::
+Instrumentation software need to deal with physical units, and therefore you need to deal with them. Keeping track of the units of each variable in time consuming and error prone, and derives into annoying naming practices such as `freq_in_KHz`. Lantz aims to reduce the burden of this by incorporating units using the Pint_ package. The Quantity object si abbreviated withing Lantz as `Q_` and can be imported from the root::
 
     from lantz import Q_
 
@@ -291,3 +291,5 @@ and you get:
 
 
 Check out the :ref:`tutorials` to get started!
+
+.. _Pint: https://pint.readthedocs.org/

@@ -4,49 +4,8 @@
 Contributing
 ============
 
-You are most welcome to contribute to Lantz with code, documentation and translations. Please read the following document for guidelines.
-
-
-File system structure
----------------------
-
-The distribution is organized in the following folders:
-
-**docs**
-
-    Documentation in reStructuredText_ format with Sphinx_ makefile. Files must have a ``.rst`` extension
-
-    To generate, for example, HTML documentation change into this folder and run::
-
-        $ make html
-
-    You will find the generated documentation in ``docs/_build/html/index.html``
-
-**examples**
-
-    Root folder for the examples.      
-
-**lantz**
-
-    Root folder containing the core functionality
-
-        **ui**
-
-            User interface related code.
-
-        **drivers**
-
-            There is a package folder for each manufacturer and module file for each instrument model (or family of models). All files are named using lowercase. Class drivers are named according to the model. If the model starts with a number, then the first letter of the manufacturer should be prefixed. Finally, all classes should be imported in the __init__.py of the corresponding package.
-
-
-**scripts**
-
-    Python scripts to provide simple command line functionality.
-
-**tests**
-
-    Test cases.
-
+You are most welcome to contribute to Lantz with code, documentation and
+translations. Please read the following document for guidelines.
 
 Python style
 ------------
@@ -55,7 +14,8 @@ Python style
 
     * Document every class and method according to :pep:`257`.
 
-    * Before submitting your code, use a tool like `pep8.py`_ and `pylint.py`_ to check for style.
+    * Before submitting your code, use a tool like `pep8.py`_ and
+      `pylint.py`_ to check for style.
 
     * `Feat` and `DictFeat` should be named with a noun or an adjective.
 
@@ -67,8 +27,8 @@ Python style
 Header
 ------
 
-All files must have first the encoding indication, and then a header indicating the
-module, a small description and the copyright message. For example:
+All files must have first the encoding indication, and then a header indicating
+the module, a small description and the copyright message. For example:
 
 .. code-block:: python
 
@@ -83,48 +43,16 @@ module, a small description and the copyright message. For example:
          :license: BSD, see LICENSE for more details.
      """
 
-
-Version control system
-----------------------
-
-Lantz uses Git_ as version control system.
-
-There are always at least two branches:
-    * master: appropriate for users. It must always be in a working state.
-    * develop: appropriate for developers. Might not be in a working state.
-
-The master branch only accepts atomic, small commits. Larger changes that might break the master branch should happen in the develop branch. The develop branch will be merged into the master after deep testing. If you want to refactor major parts of the code or try new ideas, create a dedicated branch. This branch will merged into develop once tested.
-
-
-Submitting your changes
------------------------
-
-Changes must be submitted for merging as patches or pull requests.
-
-Before doing so, please check that:
-    * The new code is functional.
-    * The new code follows the style guidelines.
-    * The new code is documented.
-    * All tests are passed.
-    * Any new file contains an appropriate header.
-    * You commit to the head of the appropriate branch (usually develop).
-
-Commits must include a one-line description of the intended change followed, if necessary, by an empty line and detailed description. You can send your patch by e-mail to `lantz.contributor@gmail.com`::
-
-    $ git format-patch origin/develop..develop
-    0001-Changed-Driver-class-to-enable-inheritance-of-Action.patch
-    0002-Added-RECV_CHUNK-to-TextualMixin.patch
-
-
-or send a pull request.
-
-
 Copyright
 ---------
 
-Files in the Lantz repository don't list author names, both to avoid clutter and to avoid having to keep the lists up to date. Instead, your name will appear in the Git change log and in the AUTHORS file. The Lantz maintainer will update this file when you have submitted your first commit.
+Files in the Lantz repository don't list author names, both to avoid clutter
+and to avoid having to keep the lists up to date. Instead, your name will
+appear in the Git change log and in the AUTHORS file. The Lantz maintainer
+will update this file when you have submitted your first commit.
 
-Before your first contribution you must submit the :ref:`Contributor Agreement <agreement>`. Code that you contribute should use the standard copyright header::
+Before your first contribution you must submit the :ref:`Contributor Agreement <agreement>`.
+Code that you contribute should use the standard copyright header::
 
     :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
@@ -142,6 +70,10 @@ Finally, we have a small Zen
     Provide solutions for common scenarios.
     Leave the special cases for the people who actually need them.
     Logging is great, do it often!
+
+
+The easiest way is to start :ref:`contributing-drivers`. Once that you gain
+experience with `Lantz` you can start :ref:`contributing-core`.
 
 
 .. _pep8.py: http://pypi.python.org/pypi/pep8/

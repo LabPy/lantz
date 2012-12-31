@@ -125,6 +125,10 @@ span.linkdescr {
     font-size: 90%;
 }
 
+img.floatinglantz {
+    float: right;
+}
+
 /* -- general index --------------------------------------------------------- */
 
 table.indextable td {
