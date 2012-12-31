@@ -3,6 +3,16 @@
 
 from distutils.core import setup
 
+import os
+
+folder = os.path.dirname(os.path.abspath(__file__))
+folder = os.path.join(folder, 'lantz', 'drivers')
+paths = os.listdir(folder)
+
+companies = [path for path in paths
+             if os.path.isdir(os.path.join(folder, path))
+             and os.path.exists(os.path.join(folder, path, '__init__.py'))]
+
 setup(name='Lantz',
       version='0.1',
       description='Instrumentation framework',
@@ -17,8 +27,14 @@ setup(name='Lantz',
       author='Hernan E. Grecco',
       author_email='hernan.grecco@gmail.com',
       url='http://lantz.glugcen.dc.uba.ar/',
-      packages=['lantz'],
-      extras_require = {
+      packages=['lantz',
+                'lantz.ui',
+                'lantz.drivers'] +
+               ['lantz.drivers.' + company for company in companies],
+      package_data={'lantz': ['default_en.txt']},
+      zip_safe=False,
+      platforms='any',
+      extra_require = {
                         'colorama':  ['colorama'],
                         'numpy': ['numpy'],
                         'ui': ['sip', 'pyqt4']
@@ -35,7 +51,8 @@ setup(name='Lantz',
         'Topic :: Scientific/Engineering',
         'Topic :: Software Development :: Libraries'
       ],
-      scripts=['scripts/lantz-monitor.py',
-               'scripts/lantz-scan.py',
-               'scripts/lantz-visa-shell.py']
+      scripts=['scripts/lantz-monitor',
+               'scripts/lantz-scan',
+               'scripts/lantz-visa-shell',
+               'scripts/lantz-visa-sim']
 )

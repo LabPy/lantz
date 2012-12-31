@@ -10,6 +10,7 @@ if not sys.version_info >= (3, 2, 1):
 import os
 import time
 import platform
+import argparse
 import subprocess
 import urllib.request
 import concurrent.futures
@@ -17,6 +18,13 @@ import concurrent.futures
 if platform.architecture()[0] != '32bit' or not sys.platform.startswith('win'):
     print('Only 32bit Python running on Windows is currently supported by get-lantz.py')
     sys.exit(2)
+
+parser = argparse.ArgumentParser('Get Lantz!')
+parser.add_argument('-e', '--editable', action='store_true',
+                    help='Install Lantz as an editable package')
+args = parser.parse_args()
+
+
 
 URLS = {'setuptools': ('distribute_setup.py', 'http://python-distribute.org/{}'),
         'pip': ('get-pip.py', 'https://raw.github.com/pypa/pip/master/contrib/{}'),
@@ -27,6 +35,8 @@ URLS = {'setuptools': ('distribute_setup.py', 'http://python-distribute.org/{}')
         'matplotlib': ('', ''),
         'visa': ('visa520full.exe', 'http://ftp.ni.com/support/softlib/visa/NI-VISA/5.2/win/{}')}
 
+if not args.editable:
+    del URLS['git']
 
 def download(filename, url):
 
@@ -53,12 +63,13 @@ for check in ('setuptools', 'pip', 'PyQt4', 'numpy', 'scipy'):
         INSTALL.append(check)
         print('Adding {} to install list'.format(check))
 
-try:
-    subprocess.call(['git', '--version'])
-    print('No need to install git')
-except Exception as e:
-    print('Adding git to install list')
-    INSTALL.append('git')
+if args.editable:
+    try:
+        subprocess.call(['git', '--version'])
+        print('No need to install git')
+    except Exception as e:
+        print('Adding git to install list')
+        INSTALL.append('git')
 
 
 INSTALL.append('visa')
@@ -85,14 +96,17 @@ for key in ('PyQt4', 'numpy', 'scipy', 'git', 'visa'):
         subprocess.call([URLS[key][0], ])
 
 PIP = os.path.join(os.path.dirname(sys.executable), 'Scripts', 'pip')
-for package in ('colorama', 'pyserial', 'sphinx', 'virtualenv', 'pyyaml'):
-    subprocess.call([PIP, 'install', package])
+
+if args.editable:
+    for package in ('colorama', 'pyserial', 'sphinx', 'virtualenv', 'pyyaml'):
+        subprocess.call([PIP, 'install', package])
 
 
-print(' Creating VENV '.center(20, '-'))
-VENV = os.path.join(os.path.dirname(sys.executable), 'Scripts', 'virtualenv')
-subprocess.call([VENV, '-p', sys.executable, '--system-site-packages', 'lantzenv'])
+    print(' Creating VENV '.center(20, '-'))
+    VENV = os.path.join(os.path.dirname(sys.executable), 'Scripts', 'virtualenv')
+    subprocess.call([VENV, '-p', sys.executable, '--system-site-packages', 'lantzenv'])
 
-PIPE = os.path.join('lantzenv', 'Scripts', 'pip')
-subprocess.call([PIPE, 'install', '-e', 'git+git://github.com/hgrecco/lantz.git#egg=lantz'])
-
+    PIPE = os.path.join('lantzenv', 'Scripts', 'pip')
+    subprocess.call([PIPE, 'install', '-e', 'git+git://github.com/hgrecco/lantz.git#egg=lantz'])
+else:
+    subprocess.call([PIP, 'install', '-r', 'https://github.com/hgrecco/lantz/requirements-full.txt'])

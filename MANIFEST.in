@@ -1,0 +1,9 @@
+include LICENSE AUTHORS README
+recursive-include tests *
+recursive-include examples *
+recursive-include docs *
+recursive-include lantz/drivers *
+recursive-include lantz/ui *
+global-exclude *.pyc *.pyo .DS_Store
+prune docs/_build
+prune docs/_themes/.git

@@ -1,0 +1,5 @@
+colorama
+sphinx
+pyserial
+numpy
+lantz
