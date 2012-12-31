@@ -214,7 +214,7 @@ class Driver(metaclass=_DriverType):
                     feat.modifiers[MISSING][MISSING][attr_name] = attr_value.default
                     feat.rebuild(build_doc=False, store=True)
 
-        inst.log_info('Created')
+        inst.log_info('Created ' + inst.name)
         return inst
 
     @property
