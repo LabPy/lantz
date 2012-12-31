@@ -31,7 +31,7 @@ class LantzSignalGenerator(object):
             raise InstrumentError
         return answer
 
-    @Feat()
+    @Feat(read_once=True)
     def idn(self):
         return self.query('?IDN')
 
