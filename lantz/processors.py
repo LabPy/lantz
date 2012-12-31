@@ -269,7 +269,7 @@ class MapProcessor(Processor):
     @classmethod
     def to_callable(cls, obj):
         if isinstance(obj, dict):
-            return partial(getitem, obj)
+            return get_mapping(obj)
         if isinstance(obj, set):
             return check_membership(obj)
         raise TypeError('MapProcessor argument must be a dict or a callable, '
@@ -298,7 +298,7 @@ class ReverseMapProcessor(Processor):
             obj = cls.__reversed_cache.setdefault(id(obj),
                                                   {value: key for key, value
                                                    in obj.items()})
-            return partial(getitem, obj)
+            return get_mapping(obj)
         if isinstance(obj, set):
             return check_membership(obj)
         raise TypeError('ReverseMapProcessor argument must be a dict or a callable, '
@@ -381,6 +381,25 @@ def check_membership(container):
 
     def _inner(value):
         if value not in container:
-            raise ValueError('{} not in {}'.format(value, container))
+            raise ValueError('{!r} not in {}'.format(value, container))
         return value
+    return _inner
+
+
+def get_mapping(container):
+    """
+        >>> getter = get_mapping({'A': 42, 'B': 43})
+        >>> getter('A')
+        42
+        >>> checker(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: 0 not in ('A', 'B')
+
+    """
+
+    def _inner(key):
+        if key not in container:
+            raise ValueError("{!r} not in {}".format(key, tuple(container.keys())))
+        return container[key]
     return _inner
