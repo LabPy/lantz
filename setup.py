@@ -29,9 +29,13 @@ setup(name='Lantz',
       url='http://lantz.glugcen.dc.uba.ar/',
       packages=['lantz',
                 'lantz.ui',
+                'lantz.simulators',
                 'lantz.drivers'] +
                ['lantz.drivers.' + company for company in companies],
-      package_data={'lantz': ['default_en.txt']},
+      install_requires = [
+        'pint',
+        'stringparser',
+      ],
       zip_safe=False,
       platforms='any',
       extra_require = {
@@ -54,5 +58,5 @@ setup(name='Lantz',
       scripts=['scripts/lantz-monitor',
                'scripts/lantz-scan',
                'scripts/lantz-visa-shell',
-               'scripts/lantz-visa-sim']
+               'scripts/lantz-sim']
 )

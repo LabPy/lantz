@@ -25,7 +25,7 @@ from socketserver import (ThreadingUDPServer, DatagramRequestHandler,
                           ThreadingTCPServer, StreamRequestHandler)
 
 
-from .stringparser import Parser
+from stringparser import Parser
 
 class _LogRecord(logging.LogRecord):
 

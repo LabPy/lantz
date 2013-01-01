@@ -15,7 +15,7 @@ from functools import wraps, partial
 
 from . import Q_
 from .log import LOGGER as _LOG
-from .stringparser import Parser
+from stringparser import Parser
 
 
 class DimensionalityWarning(Warning):

@@ -12,7 +12,7 @@
 
 __version__ = '0.1'
 
-from .pint import UnitRegistry
+from pint import UnitRegistry
 Q_ = UnitRegistry().Quantity
 
 from .log import LOGGER
