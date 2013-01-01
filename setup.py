@@ -14,7 +14,7 @@ companies = [path for path in paths
              and os.path.exists(os.path.join(folder, path, '__init__.py'))]
 
 setup(name='Lantz',
-      version='0.1',
+      version='0.2',
       description='Instrumentation framework',
       long_description=('Lantz is an automation and instrumentation toolkit '
                         'with a clean, well-designed and consistent interface. '
