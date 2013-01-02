@@ -101,7 +101,7 @@ OSX
 
 5. Using pip, install Lantz and its dependencies other optional dependencies::
 
-    $ pip-3.2 install -r https://github.com/hgrecco/lantz/requirements-full.txt
+    $ pip-3.2 install sphinx pyserial colorama lantz
 
 
 .. _windows:
@@ -132,7 +132,7 @@ Download and run with Python 3.2::
 
 In the command prompt install using pip all other optional dependencies::
 
-    $ C:\Python3.2\Scripts\pip install -r https://github.com/hgrecco/lantz/requirements-full.txt
+    $ C:\Python3.2\Scripts\pip install sphinx pyserial colorama lantz
 
 
 .. rubric::

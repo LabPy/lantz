@@ -97,16 +97,10 @@ for key in ('PyQt4', 'numpy', 'scipy', 'git', 'visa'):
 
 PIP = os.path.join(os.path.dirname(sys.executable), 'Scripts', 'pip')
 
+REQS = ['colorama', 'pyserial', 'sphinx', 'pyyaml']
+
 if args.editable:
-    for package in ('colorama', 'pyserial', 'sphinx', 'virtualenv', 'pyyaml'):
-        subprocess.call([PIP, 'install', package])
-
-
-    print(' Creating VENV '.center(20, '-'))
-    VENV = os.path.join(os.path.dirname(sys.executable), 'Scripts', 'virtualenv')
-    subprocess.call([VENV, '-p', sys.executable, '--system-site-packages', 'lantzenv'])
-
-    PIPE = os.path.join('lantzenv', 'Scripts', 'pip')
-    subprocess.call([PIPE, 'install', '-e', 'git+git://github.com/hgrecco/lantz.git#egg=lantz'])
+    subprocess.call([PIP, 'install', ] + REQS)
+    subprocess.call([PIP, 'install', '-e', 'lantz'])
 else:
-    subprocess.call([PIP, 'install', '-r', 'https://github.com/hgrecco/lantz/requirements-full.txt'])
+    subprocess.call([PIP, 'install', ] + REQS + ['lantz'])
