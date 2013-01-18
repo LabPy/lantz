@@ -79,7 +79,7 @@ class TDS2024(VisaDriver):
         commands = 'XZE?;XIN?;YZE?;YMU?;YOFF?'
         #params = self.query(":WFMPRE:XZE?;XIN?;YZE?;YMU?;YOFF?;")
         params = self.query(':WFMPRE:{}'.format(commands))
-        params = {k: float(v) for k, v in zip(commands.split(';'), commands.split(';'))}
+        params = {k: float(v) for k, v in zip(commands.split(';'), params.split(';'))}
         return params
 
     @Action()
