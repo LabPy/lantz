@@ -98,13 +98,13 @@ class Andor(LibraryDriver):
         return ret_value
 
     def initialize(self):
-        """Initialise Library.
+        """Initialize Library.
         """
         self.lib.AT_InitialiseLibrary()
         self.open()
 
     def finalize(self):
-        """Finalise Library. Concluding function.
+        """Finalize Library. Concluding function.
         """
         self.close()
         self.lib.AT_FinaliseLibrary()

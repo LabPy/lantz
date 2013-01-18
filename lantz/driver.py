@@ -466,7 +466,7 @@ class TextualMixin(object):
 
     @abstractmethod
     def raw_recv(self, size):
-        """Receive raw bytes to the instrument. No encoding or termination
+        """Receive raw bytes from the instrument. No encoding or termination
         character should be applied.
 
         This method must be implemented by base classes.
