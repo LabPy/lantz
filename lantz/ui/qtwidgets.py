@@ -24,7 +24,7 @@ except ImportError:
         def publish_parts(rst, *args, **kwargs):
             return rst
 
-from Qt.QtCore import QVariant, Qt, QSize, Slot, Signal, Property
+from Qt.QtCore import Qt, QSize, Slot, Signal, Property
 from Qt.QtGui import (QApplication, QDialog, QWidget, QFont, QSizePolicy,
                       QColor, QPalette, QToolTip, QMessageBox,
                       QLabel, QPushButton, QDialogButtonBox,
@@ -178,7 +178,7 @@ class WidgetMixin(object):
             return False
         return self._feat.fset is not None
 
-    @Slot(QVariant)
+    @Slot()
     def on_widget_value_changed(self, value, old_value=MISSING, other=MISSING):
         """When the widget is changed by the user, update the driver with
         the new value.
@@ -342,11 +342,11 @@ class DictFeatWidget(QWidget):
         layout.addWidget(wid)
         self._value_widget = wid
 
-    @Slot(QVariant)
+    @Slot()
     def _combobox_changed(self, value, old_value=MISSING, other=MISSING):
         self._value_widget.feat_key = self._keys[self._key_widget.currentIndex()]
 
-    @Slot(QVariant)
+    @Slot()
     def _lineedit_changed(self, value, old_value=MISSING, other=MISSING):
         self._value_widget.feat_key = self._key_widget.text()
 
@@ -564,7 +564,7 @@ class DriverTestWidget(QWidget):
 
         layout.addLayout(alayout)
 
-    @Slot(QVariant)
+    @Slot()
     def on_run_clicked(self):
         ArgumentsInputDialog.run(getattr(self._lantz_target, self.actions_combo.currentText()), self)
 
