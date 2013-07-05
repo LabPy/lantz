@@ -66,6 +66,10 @@ class MiniLasEvo(SerialDriver):
         # TODO: Code reporting?
         return ans
 
+    def initialize(self):
+        super().initialize()
+
+
     @Feat(read_once=True)
     def idn(self):
         """Identification of the device
@@ -176,6 +180,8 @@ class MiniLasEvo(SerialDriver):
     
     def initialize(self):
         super().initialize()
+        self.enabled = True
+        self.power = 0
         self.feats.power.limits = (0, self.maximum_power.magnitude)
 
     @Feat(units='mW')
