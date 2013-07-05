@@ -66,10 +66,6 @@ class MiniLasEvo(SerialDriver):
         # TODO: Code reporting?
         return ans
 
-    def initialize(self):
-        super().initialize()
-
-
     @Feat(read_once=True)
     def idn(self):
         """Identification of the device
