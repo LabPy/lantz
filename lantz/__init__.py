@@ -10,7 +10,9 @@
     :license: BSD, see LICENSE for more details.
 """
 
-__version__ = '0.1'
+import pkg_resources
+
+__version__ = pkg_resources.get_distribution('lantz').version
 
 from pint import UnitRegistry
 Q_ = UnitRegistry().Quantity
@@ -18,6 +20,20 @@ Q_ = UnitRegistry().Quantity
 from .log import LOGGER
 from .driver import Driver, Feat, DictFeat, Action
 
-
-
 __all__ = ['Driver', 'Action', 'Feat', 'DictFeat', 'Q_']
+
+
+def run_pyroma(data):
+    import sys
+    from zest.releaser.utils import ask
+    if not ask("Run pyroma on the package before uploading?"):
+        return
+    try:
+        from pyroma import run
+        result = run(data['tagdir'])
+        if result != 10:
+            if not ask("Continue?"):
+                sys.exit(1)
+    except ImportError:
+        if not ask("pyroma not available. Continue?"):
+            sys.exit(1)
