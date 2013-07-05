@@ -1,10 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 import os
+import codecs
 
+
+def read(filename):
+    return codecs.open(filename, encoding='utf-8').read()
+
+
+long_description = '\n\n'.join([read('README'),
+                                read('AUTHORS'),
+                                read('CHANGES')])
+
+__doc__ = long_description
 folder = os.path.dirname(os.path.abspath(__file__))
 folder = os.path.join(folder, 'lantz', 'drivers')
 paths = os.listdir(folder)
@@ -14,16 +28,10 @@ companies = [path for path in paths
              and os.path.exists(os.path.join(folder, path, '__init__.py'))]
 
 setup(name='Lantz',
-      version='0.2',
+      version='0.3.dev0',
+      license='BSD',
       description='Instrumentation framework',
-      long_description=('Lantz is an automation and instrumentation toolkit '
-                        'with a clean, well-designed and consistent interface. '
-                        'It provides a core of commonly used functionalities for '
-                        'building applications that communicate with scientific '
-                        'instruments allowing rapid application prototyping, '
-                        'development and testing. Lantz benefits from Python’s '
-                        'extensive library flexibility as a glue language to wrap '
-                        'existing drivers and DLLs.'),
+      long_description=long_description,
       author='Hernan E. Grecco',
       author_email='hernan.grecco@gmail.com',
       url='http://lantz.glugcen.dc.uba.ar/',
@@ -32,6 +40,7 @@ setup(name='Lantz',
                 'lantz.simulators',
                 'lantz.drivers'] +
                ['lantz.drivers.' + company for company in companies],
+      test_suite='pint.testsuite.testsuite',
       install_requires = [
         'pint',
         'stringparser',
@@ -43,8 +52,13 @@ setup(name='Lantz',
                         'numpy': ['numpy'],
                         'ui': ['sip', 'pyqt4']
                         },
+      entry_points={
+           'zest.releaser.releaser.after_checkout': [
+              'pyroma = lantz:run_pyroma',
+           ],
+        },
       classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
@@ -52,6 +66,8 @@ setup(name='Lantz',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
         'Topic :: Scientific/Engineering',
         'Topic :: Software Development :: Libraries'
       ],

@@ -1,4 +1,4 @@
-include LICENSE AUTHORS README
+include LICENSE AUTHORS README CHANGES
 recursive-include tests *
 recursive-include examples *
 recursive-include docs *
