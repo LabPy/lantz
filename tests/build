@@ -1,1 +1,0 @@
-gcc -fPIC -m32 -shared -o simplelib.dylib simplelib.c
