@@ -11,3 +11,4 @@ _test*
 update_*
 dist
 MANIFEST
+.tox

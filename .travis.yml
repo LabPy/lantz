@@ -1,0 +1,15 @@
+language: python
+
+python:
+  - "3.2"
+  - "3.3"
+
+branches:
+  only:
+    - master
+    - devel
+
+install: 
+    - pip install . --use-mirrors
+
+script: python setup.py test
