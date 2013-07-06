@@ -5,7 +5,11 @@ export LANG=en_US.UTF-8
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
+ifeq ($(wildcard sphinx-build), )
+	SPHINXBUILD   = sphinx-build
+else
+	SPHINXBUILD   = ./sphinx-build
+endif
 PAPER         =
 BUILDDIR      = _build
 
