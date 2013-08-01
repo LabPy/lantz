@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     lantz.drivers.prior
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~
 
     :company: PRIOR Scientific
     :description: Microscope Automation & Custom Solutions
