@@ -15,6 +15,7 @@
 """
 
 from .tds2024b import TDS2024
+from .tds1002b import TDS1002b
 
-__all__ = ['TDS2024', ]
+__all__ = ['TDS2024', 'TDS1002b']
 

@@ -470,8 +470,8 @@ class TextualMixin(object):
         This method must be implemented by base classes.
 
         :param size: number of bytes to receive.
-        :return: received bytes.
-        :rtype: bytes.
+        :return: received bytes, eom
+        :rtype: bytes, bool
         """
         raise NotImplemented
 
@@ -532,7 +532,8 @@ class TextualMixin(object):
             stop = time.time() + self.TIMEOUT
 
         received = self._received
-        while not termination in received:
+        eom = False
+        while not (termination in received or eom):
             if time.time() > stop:
                 raise LantzTimeoutError
             raw_received = self.raw_recv(recv_chunk)
