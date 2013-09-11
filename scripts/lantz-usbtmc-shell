@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-    lantz-visa-shell
+    lantz-usbtmc-shell
     ~~~~~~~~~~~~~~~~
 
-    VISA shell for interactive testing.
+    USBTMC shell for interactive testing.
 
     :copyright: (c) 2012 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
@@ -13,20 +13,20 @@
 import sys
 import cmd
 
-from lantz import visa
+from lantz.usb import DeviceInfo
+from lantz.drivers import usbtmc
 
 class App(cmd.Cmd):
     """VISA shell for interactive testing.
     """
 
-    intro = '\nWelcome to the VISA shell. Type help or ? to list commands.\n'
-    prompt = '(visa) '
+    intro = '\nWelcome to the USBTMC shell. Type help or ? to list commands.\n'
+    prompt = '(usbtmc) '
 
     use_rawinput = True
 
     def __init__(self, library_path=None):
         super().__init__()
-        self.resource_manager = visa.ResourceManager(library_path)
         self.resources = []
         self.current = None
 
@@ -36,16 +36,9 @@ class App(cmd.Cmd):
     def do_list(self, args):
         """List all connected resources."""
 
-        resources = self.resource_manager.list_resources_info('?*')
-
-        self.resources = []
-        for ndx, (resource, value) in enumerate(resources.items()):
-            if not args:
-                print('({:2d}) {}'.format(ndx, resource))
-                if value.alias:
-                    print('     alias: {}'.format(value.alias))
-
-            self.resources.append((resource, value.alias or None))
+        self.resources = [DeviceInfo.from_device(dev) for dev in usbtmc.find_tmc_devices()]
+        for ndx, resource in enumerate(self.resources):
+            print('({:2d}) {}'.format(ndx, resource))
 
     def do_open(self, args):
         """Open resource by number, resource name or alias: open 3"""
@@ -60,13 +53,13 @@ class App(cmd.Cmd):
 
         if args.isdigit():
             try:
-                args = self.resources[int(args)][1]
+                args = self.resources[int(args)]
             except IndexError:
                 print('Not a valid resource number. Use the command "list".')
                 return
 
         try:
-            self.current = visa.VisaDriver(args)
+            self.current = usbtmc.USBTMCDriver(serial_number=args.serial_number)
             self.current.initialize()
             print('{} has been opened.\n'
                   'You can talk to the device using "send", "recv" or "query.\n'

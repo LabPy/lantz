@@ -58,5 +58,10 @@ setup(name='Lantz',
       scripts=['scripts/lantz-monitor',
                'scripts/lantz-scan',
                'scripts/lantz-visa-shell',
-               'scripts/lantz-sim']
+               'scripts/lantz-sim'],
+      entry_points={
+          'console_scripts': [
+              'lantz-shell = lantz.ui.shell:main',
+          ]
+      }
 )
