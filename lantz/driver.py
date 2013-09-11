@@ -13,7 +13,6 @@ import copy
 import logging
 import threading
 
-from abc import abstractmethod
 from functools import partial, wraps
 from concurrent import futures
 from collections import defaultdict, namedtuple
@@ -431,7 +430,7 @@ class Driver(metaclass=_DriverType):
 
 class TextualMixin(object):
     """Mixin class for classes that communicate with instruments
-    exchanging messages.
+    exchanging text messages.
 
     Ideally, transport classes should provide receive methods
     that support:
@@ -464,7 +463,6 @@ class TextualMixin(object):
     #: RECV_CHUNK > 1
     _received = ''
 
-    @abstractmethod
     def raw_recv(self, size):
         """Receive raw bytes to the instrument. No encoding or termination
         character should be applied.
@@ -477,7 +475,6 @@ class TextualMixin(object):
         """
         raise NotImplemented
 
-    @abstractmethod
     def raw_send(self, data):
         """Send raw bytes to the instrument. No encoding or termination
         character should be applied.
