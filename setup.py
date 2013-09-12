@@ -41,7 +41,7 @@ setup(name='Lantz',
                 'lantz.simulators',
                 'lantz.drivers'] +
                ['lantz.drivers.' + company for company in companies],
-      test_suite='pint.testsuite.testsuite',
+      test_suite='lantz.testsuite.testsuite',
       install_requires=['pint',
                         'stringparser',
                        ],

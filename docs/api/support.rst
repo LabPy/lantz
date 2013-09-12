@@ -8,6 +8,5 @@ Support
    stats
    processors
    visalib
-   pint
    stringparser
 
