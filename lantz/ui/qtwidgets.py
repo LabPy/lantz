@@ -11,6 +11,7 @@
 """
 
 import sys
+import time
 import json
 import inspect
 import logging
@@ -24,17 +25,17 @@ except ImportError:
         def publish_parts(rst, *args, **kwargs):
             return rst
 
-from Qt.QtCore import QVariant, Qt, QSize, Slot, Signal, Property
+from Qt.QtCore import QVariant, Qt, QSize, Slot, Signal, Property, QThread, QObject, QTimer
 from Qt.QtGui import (QApplication, QDialog, QWidget, QFont, QSizePolicy,
                       QColor, QPalette, QToolTip, QMessageBox,
                       QLabel, QPushButton, QDialogButtonBox,
                       QLayout, QHBoxLayout, QVBoxLayout, QFormLayout, QFrame,
-                      QTabWidget,
+                      QTabWidget, QTableWidget, QTableWidgetItem,
                       QLineEdit, QSpinBox, QDoubleSpinBox, QLCDNumber,
                       QDial, QProgressBar, QSlider, QScrollBar,
-                      QComboBox, QCheckBox)
+                      QComboBox, QCheckBox, QTextEdit)
 
-from .. import Q_, Driver
+from .. import Q_, Driver, initialize_many, finalize_many
 from ..feat import MISSING, DictFeat
 from ..log import get_logger
 
@@ -1172,3 +1173,149 @@ class UnitInputDialog(QDialog):
         if dialog.exec_():
             return dialog.destination_units.text()
         return None
+
+
+class InitializerHelper(QObject):
+
+    initializing = Signal(object)
+    initialized = Signal(object)
+    exception = Signal(object, object)
+    finished = Signal(float)
+
+    def __init__(self, drivers, register_finalizer, parallel, dependencies):
+        super().__init__()
+        self.drivers = drivers
+        self.register_finalizer = register_finalizer
+        self.parallel = parallel
+        self.dependencies = dependencies
+
+    def process(self):
+        start = time.time()
+        initialize_many(drivers=self.drivers, register_finalizer=self.register_finalizer,
+                        on_initializing=self.on_initializing,
+                        on_initialized=self.on_initialized,
+                        on_exception=self.on_exception,
+                        concurrent=self.parallel,
+                        dependencies=self.dependencies)
+        self.finished.emit(time.time() - start)
+
+    def on_initializing(self, driver):
+        self.initializing.emit(driver)
+
+    def on_initialized(self, driver):
+        self.initialized.emit(driver)
+
+    def on_exception(self, driver, ex):
+        self.exception.emit(driver, ex)
+
+
+def initialize_and_report(widget, drivers, register_finalizer=True,
+                          initializing_msg='Initializing ...', initialized_msg='Initialized',
+                          concurrent=True, dependencies=None):
+    """Initialize drivers while reporting the status in a QtWidget.
+
+    :param widget: Qt Widget where the status information is going to be shown.
+    :param drivers: iterable of drivers to initialize.
+    :param register_finalizer: register driver.finalize method to be called at python exit.
+    :param initializing_msg: message to be displayed while initializing.
+    :param initialized_msg: message to be displayed after successful initialization.
+    :param concurrent: indicates that drivers with satisfied dependencies
+                       should be initialized concurrently.
+    :param dependencies: indicates which drivers depend on others to be initialized.
+                         each key is a driver name, and the corresponding
+                         value is an iterable with its dependencies.
+    :return: the QThread doing the initialization.
+    """
+    timing = {}
+
+    thread = QThread()
+    helper = InitializerHelper(drivers, register_finalizer, concurrent, dependencies)
+    helper.moveToThread(thread)
+    thread.helper = helper
+
+    if isinstance(widget, QTableWidget):
+        def _initializing(driver):
+            timing[driver] = time.time()
+            row = drivers.index(driver)
+            widget.setItem(row, 2, QTableWidgetItem(initializing_msg))
+
+        def _initialized(driver):
+            delta = time.time() - timing[driver]
+            row = drivers.index(driver)
+            widget.setItem(row, 2, QTableWidgetItem(initialized_msg + ' ({:.1f} sec)'.format(delta)))
+
+        def _exception(driver, e):
+            delta = time.time() - timing[driver]
+            row = drivers.index(driver)
+            widget.setItem(row, 2, QTableWidgetItem('{} ({:.1f} sec)'.format(e, delta)))
+
+        def _done(duration):
+            widget.setItem(len(drivers), 2, QTableWidgetItem('{:.1f} sec'.format(duration)))
+            thread.quit()
+
+        widget.clearContents()
+        widget.setRowCount(len(drivers) + 1)
+        for row, driver in enumerate(drivers):
+            widget.setItem(row, 0, QTableWidgetItem(driver.name))
+            widget.setItem(row, 1, QTableWidgetItem(driver.__class__.__name__))
+            widget.setItem(row, 2, QTableWidgetItem(''))
+
+        widget.resizeColumnToContents(0)
+        widget.horizontalHeader().setStretchLastSection(True)
+
+    elif isinstance(widget, QLineEdit):
+        def _initializing(driver):
+            timing[driver] = time.time()
+            widget.setText('{} ({}) > {}'.format(driver.name, driver.__class__.__name__,
+                                                 initializing_msg))
+
+        def _initialized(driver):
+            delta = time.time() - timing[driver]
+            widget.setText('{} ({}) > {} ({:.1f} sec)'.format(driver.name, driver.__class__.__name__,
+                                                              initialized_msg, delta))
+
+        def _exception(driver, e):
+            delta = time.time() - timing[driver]
+            widget.setText('{} ({}) > {} ({:.1f} sec)'.format(driver.name, driver.__class__.__name__,
+                                                              e, delta))
+
+        def _done(duration):
+            widget.setText('Initialized in {:.1f} sec'.format(duration))
+            thread.quit()
+
+        widget.setReadOnly(True)
+
+    elif isinstance(widget, QTextEdit):
+
+        def _initializing(driver):
+            timing[driver] = time.time()
+            widget.append('{} ({}) > {}'.format(driver.name, driver.__class__.__name__,
+                                                initializing_msg))
+
+        def _initialized(driver):
+            delta = time.time() - timing[driver]
+            widget.append('{} ({}) > {} ({:.1f} sec)'.format(driver.name, driver.__class__.__name__,
+                                                             initialized_msg, delta))
+
+        def _exception(driver, e):
+            delta = time.time() - timing[driver]
+            widget.append('{} ({}) > {} ({:.1f} sec)'.format(driver.name, driver.__class__.__name__,
+                                                             e, delta))
+
+        def _done(duration):
+            widget.append('Initialized in {:.1f} sec'.format(duration))
+            thread.quit()
+
+        widget.setReadOnly(True)
+
+    else:
+        raise TypeError('Unknown widget type {}.'.format(type(widget)))
+
+    thread.started.connect(helper.process)
+    helper.initializing.connect(_initializing)
+    helper.initialized.connect(_initialized)
+    helper.exception.connect(_exception)
+    helper.finished.connect(_done)
+
+    thread.start()
+    return thread
