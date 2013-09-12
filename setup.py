@@ -76,6 +76,5 @@ setup(name='Lantz',
       ],
       scripts=['scripts/lantz-monitor',
                'scripts/lantz-scan',
-               'scripts/lantz-visa-shell',
                'scripts/lantz-sim'],
 )
