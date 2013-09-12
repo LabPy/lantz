@@ -10,6 +10,7 @@
 """
 import time
 import copy
+import atexit
 import logging
 import threading
 
@@ -317,9 +318,11 @@ class Driver(metaclass=_DriverType):
     def __exit__(self, *args):
         self.finalize()
 
+    @Action()
     def initialize(self):
         pass
 
+    @Action()
     def finalize(self):
         pass
 
@@ -571,3 +574,176 @@ class TextualMixin(object):
             parser = self.PARSERS.setdefault(format, ParseProcessor(format))
             ans = parser(ans)
         return ans
+
+
+def _solve_dependencies(dependencies, all_members=None):
+    """Solve a dependency graph.
+
+    :param dependencies: dependency dictionary. For each key, the value is
+                         an iterable indicating its dependencies.
+    :param all_members: If provided
+    :return: list of sets, each containing independent task only dependent of the
+             previous set in the list.
+
+    """
+    d = dict((key, set(value)) for key, value in dependencies.items())
+    if all_members:
+        d.update({key: set() for key in all_members if key not in d})
+    r = []
+    while d:
+        # values not in keys (items without dep)
+        t = set(i for v in d.values() for i in v) - set(d.keys())
+        # and keys without value (items without dep)
+        t.update(k for k, v in d.items() if not v)
+        # can be done right away
+        r.append(t)
+        # and cleaned up
+        d = dict(((k, v - t) for k, v in d.items() if v))
+
+    return r
+
+
+def initialize_many(drivers, register_finalizer=True,
+                    on_initializing=None, on_initialized=None, on_exception=None,
+                    concurrent=False, dependencies=None):
+    """Initialize a group of drivers.
+
+    :param drivers: an iterable of drivers.
+    :param register_finalizer: register driver.finalize method to be called at python exit.
+    :param on_initializing: a callable to be executed BEFORE initialization.
+                            It takes the driver as the first argument.
+    :param on_initialized: a callable to be executed AFTER initialization.
+                           It takes the driver as the first argument.
+    :param on_exception: a callable to be executed in case an exception occurs.
+                         It takes the offending driver as the first argument and the
+                         exception as the second one.
+    :param concurrent: indicates that drivers with satisfied dependencies
+                       should be initialized concurrently.
+    :param dependencies: indicates which drivers depend on others to be initialized.
+                         each key is a driver name, and the corresponding
+                         value is an iterable with its dependencies.
+    """
+
+    if dependencies:
+        names = {driver.name: driver for driver in drivers}
+
+        groups = _solve_dependencies(dependencies, set(names.keys()))
+        drivers = tuple(tuple(names[name] for name in group) for group in groups)
+        for subset in drivers:
+            initialize_many(subset, register_finalizer,
+                            on_initializing, on_initialized, on_exception,
+                            concurrent)
+        return
+
+    if concurrent:
+        def _finalize(d):
+            def _inner_finalize(f):
+                atexit.register(d.finalize)
+            return _inner_finalize
+
+        def _done(d):
+            def _inner(f):
+                ex = f.exception()
+                if ex:
+                    if not on_exception:
+                        raise ex
+                    on_exception(d, ex)
+                else:
+                    if on_initialized:
+                        on_initialized(d)
+            return _inner
+
+        futs = []
+        for driver in drivers:
+            if on_initializing:
+                on_initializing(driver)
+            fut = driver.initialize_async()
+            if register_finalizer:
+                fut.add_done_callback(_finalize(driver))
+            fut.add_done_callback(_done(driver))
+            futs.append(fut)
+
+        futures.wait(futs)
+    else:
+        for driver in drivers:
+            if on_initializing:
+                on_initializing(driver)
+            try:
+                driver.initialize()
+            except Exception as ex:
+                if not on_exception:
+                    raise ex
+                on_exception(driver, ex)
+            else:
+                if on_initialized:
+                    on_initialized(driver)
+
+            if register_finalizer:
+                atexit.register(driver.finalize)
+
+
+def finalize_many(drivers,
+                  on_finalizing=None, on_finalized=None, on_exception=None,
+                  concurrent=False, dependencies=None):
+    """Finalize a group of drivers.
+
+    :param drivers: an iterable of drivers.
+    :param on_finalizing: a callable to be executed BEFORE finalization.
+                          It takes the driver as the first argument.
+    :param on_finalized: a callable to be executed AFTER finalization.
+                         It takes the driver as the first argument.
+    :param on_exception: a callable to be executed in case an exception occurs.
+                         It takes the offending driver as the first argument and the
+                         exception as the second one.
+    :param concurrent: indicates that drivers with satisfied dependencies
+                       are finalized concurrently.
+    :param dependencies: indicates which drivers depend on others to be initialized.
+                         each key is a driver name, and the corresponding
+                         value is an iterable with its dependencies.
+                         The dependencies are used in reverse.
+    """
+
+    if dependencies:
+        names = {driver.name: driver for driver in drivers}
+
+        groups = _solve_dependencies(dependencies, set(names.keys()))
+        drivers = tuple(tuple(names[name] for name in group) for group in groups)
+        for subset in reversed(drivers):
+            finalize_many(subset, on_finalizing, on_finalized, on_exception, concurrent)
+        return
+
+    if concurrent:
+        def _done(d):
+            def _inner(f):
+                ex = f.exception()
+                if ex:
+                    if not on_exception:
+                        raise ex
+                    on_exception(d, ex)
+                else:
+                    if on_finalized:
+                        on_finalized(d)
+            return _inner
+
+        futs = []
+        for driver in drivers:
+            if on_finalizing:
+                on_finalizing(driver)
+            fut = driver.finalize_async()
+            fut.add_done_callback(_done(driver))
+            futs.append(fut)
+
+        futures.wait(futs)
+    else:
+        for driver in drivers:
+            if on_finalizing:
+                on_finalizing(driver)
+            try:
+                driver.finalize()
+            except Exception as ex:
+                if not on_exception:
+                    raise ex
+                on_exception(driver, ex)
+            else:
+                if on_finalized:
+                    on_finalized(driver)

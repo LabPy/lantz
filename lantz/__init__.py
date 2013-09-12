@@ -18,7 +18,7 @@ from pint import UnitRegistry
 Q_ = UnitRegistry().Quantity
 
 from .log import LOGGER
-from .driver import Driver, Feat, DictFeat, Action
+from .driver import Driver, Feat, DictFeat, Action, initialize_many, finalize_many
 
 __all__ = ['Driver', 'Action', 'Feat', 'DictFeat', 'Q_']
 
