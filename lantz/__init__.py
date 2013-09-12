@@ -10,9 +10,21 @@
     :license: BSD, see LICENSE for more details.
 """
 
+import os
+import subprocess
 import pkg_resources
 
-__version__ = pkg_resources.get_distribution('lantz').version
+__version__ = "unknown"
+try:  # try to grab the commit version of our package
+    __version__ = (subprocess.check_output(["git", "describe"],
+                                           stderr=subprocess.STDOUT,
+                                           cwd=os.path.dirname(os.path.abspath(__file__)))).strip()
+except:  # on any error just try to grab the version that is installed on the system
+    try:
+        __version__ = pkg_resources.get_distribution('lantz').version
+    except:
+        pass  # we seem to have a local copy without any repository control or installed without setuptools
+              # so the reported version will be __unknown__
 
 from pint import UnitRegistry
 Q_ = UnitRegistry().Quantity
