@@ -20,7 +20,7 @@ class LantzSocketTimeoutError(socket.timeout, LantzTimeoutError):
     pass
 
 
-class TCPDriver(TextualMixin, Driver):
+class TCPRawDriver(Driver):
     """Base class for drivers that communicate with instruments via TCP.
 
     :param host: Address of the network resource
@@ -70,3 +70,17 @@ class TCPDriver(TextualMixin, Driver):
 
     def is_open(self):
         return self.socket.isOpen()
+
+
+class TCPDriver(TextualMixin, TCPRawDriver):
+    """Base class for drivers that communicate with instruments via TCP.
+
+    :param host: Address of the network resource
+    :param port: Port number
+    """
+
+    RECV_TERMINATION = '\n'
+    SEND_TERMINATION = '\n'
+
+    RECV_CHUNK = 1024
+

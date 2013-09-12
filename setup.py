@@ -41,21 +41,24 @@ setup(name='Lantz',
                 'lantz.drivers'] +
                ['lantz.drivers.' + company for company in companies],
       test_suite='pint.testsuite.testsuite',
-      install_requires = [
+      install_requires=[
         'pint',
         'stringparser',
       ],
       zip_safe=False,
       platforms='any',
-      extra_require = {
-                        'colorama':  ['colorama'],
-                        'numpy': ['numpy'],
-                        'ui': ['sip', 'pyqt4']
-                        },
+      extra_require={
+                     'colorama':  ['colorama'],
+                     'numpy': ['numpy'],
+                     'ui': ['sip', 'pyqt4']
+                    },
       entry_points={
            'zest.releaser.releaser.after_checkout': [
               'pyroma = lantz:run_pyroma',
            ],
+           'console_scripts': [
+              'lantz-shell = lantz.ui.shell:main',
+           ]
         },
       classifiers=[
         'Development Status :: 4 - Beta',
@@ -74,5 +77,5 @@ setup(name='Lantz',
       scripts=['scripts/lantz-monitor',
                'scripts/lantz-scan',
                'scripts/lantz-visa-shell',
-               'scripts/lantz-sim']
+               'scripts/lantz-sim'],
 )
