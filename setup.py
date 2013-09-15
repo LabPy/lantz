@@ -42,7 +42,7 @@ setup(name='Lantz',
                 'lantz.drivers'] +
                ['lantz.drivers.' + company for company in companies],
       test_suite='lantz.testsuite.testsuite',
-      install_requires=['pint',
+      install_requires=['pint>=0.3.1',
                         'stringparser',
                        ],
       zip_safe=False,
