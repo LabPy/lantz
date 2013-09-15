@@ -1,5 +1,6 @@
 colorama
 sphinx
 pyserial
+pyusb
 numpy
 lantz
