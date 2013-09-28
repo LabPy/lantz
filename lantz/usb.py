@@ -166,10 +166,10 @@ def list_devices():
     for ndx, dev in enumerate(devs):
         print('Device #{}'.format(ndx))
         c, s, p = dev.bDeviceClass, dev.bDeviceSubClass, dev.bDeviceProtocol
-        a, b = ClassCodes[c]
+        a, b = ClassCodes.get(c, ('Unknown', 'Unknown'))
         nfo = DeviceInfo.from_device(dev)
         print('- Class: {}, {} ({})'.format(a, b, c))
-        print('- Subclass and protocol: {} ({} {})'.format(AllCodes[(c, s, p)], s, p))
+        print('- Subclass and protocol: {} ({} {})'.format(AllCodes.get((c, s, p), 'Unknown'), s, p))
         print('- Manufacturer: {} ({})'.format(nfo.manufacturer, dev.idVendor))
         print('- Product: {} ({})'.format(nfo.product, dev.idProduct))
         print('- Serial Number: {}'.format(nfo.serial_number))
