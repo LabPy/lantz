@@ -72,7 +72,7 @@ class TCPRawDriver(Driver):
         return self.socket.isOpen()
 
 
-class TCPDriver(TextualMixin, TCPRawDriver):
+class TCPDriver(TCPRawDriver, TextualMixin):
     """Base class for drivers that communicate with instruments via TCP.
 
     :param host: Address of the network resource
