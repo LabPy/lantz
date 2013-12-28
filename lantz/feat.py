@@ -41,27 +41,6 @@ class _NamedObject(object):
 MISSING = _NamedObject('MISSING')
 
 
-class Signal(object):
-    """PyQt like signal
-    """
-
-    def __init__(self):
-        self.slots = []
-
-    def connect(self, slot, type=0):
-        self.slots.append(slot)
-
-    def disconnect(self, slot=None):
-        if slot is None:
-            self.slots = []
-
-        self.slots.remove(slot)
-
-    def emit(self, *args):
-        for slot in self.slots:
-            slot(*args)
-
-
 def _dget(adict, instance=MISSING, key=MISSING):
 
     try:
