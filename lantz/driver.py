@@ -129,12 +129,43 @@ class _DriverType(MetaQObject):
     """
 
     def __new__(cls, classname, bases, class_dict):
-        feats = dict()
-        actions = dict()
-        dicts = [class_dict, ] + [base.__dict__ for base in bases
-                                  if not isinstance(base, _DriverType)]
-        for one_dict in dicts:
-            for key, value in one_dict.items():
+
+
+        # Qt Signals need to be added to the class before it is created.
+        # We loop through all members of the class and add a changed event
+        # for each Feat/DictFeat.
+
+        # We do the same thing for all base classes which are not derived from
+        # Driver (checking for the attribute _lantz_features) to enable base clases
+        # for drivers that do not derive from Driver.
+
+        signals = {}
+
+        for d in [class_dict] + [b.__dict__ for b in bases
+                                 if not hasattr(b, '_lantz_features')]:
+            for feat_name, feat in d.items():
+                if isinstance(feat, DictFeat):
+                    # The signature is new value, old value, dictionary of other stuff such as keys
+                    signals[feat_name + '_changed'] = QtCore.Signal(object, object, dict)
+                else:
+                    # The signature is new value, old value
+                    signals[feat_name + '_changed'] = QtCore.Signal(object, object)
+
+        class_dict.update(signals)
+
+        return super().__new__(cls, classname, bases, class_dict)
+
+    def __init__(cls, classname, bases, class_dict):
+        super().__init__(classname, bases, class_dict)
+
+        feats = {}
+        actions = {}
+
+        # We add Feats and Actions to the corresponding dictionaries.
+
+        for d in [class_dict] + [b.__dict__ for b in bases
+                                 if not hasattr(b, '_lantz_features')]:
+            for key, value in d.items():
                 if isinstance(value, (Feat, DictFeat)):
                     value.name = key
                     feats[key] = value
@@ -142,25 +173,27 @@ class _DriverType(MetaQObject):
                     value.rebuild()
                     actions[key] = value
 
-        for key in feats.keys():
-            class_dict[key + '_changed'] = QtCore.Signal(object, object)
+        # We create async versions of each Action if it does not exists.
 
         for key, action in actions.items():
-            async_action = repartial_submit(key)
-            async_action.__doc__ = '(Async) ' + action.__doc__ if action.__doc__ else ''
-            class_dict[key + '_async'] = async_action
+            if not hasattr(cls, key + '_async'):
+                async_action = repartial_submit(key)
+                async_action.__doc__ = '(Async) ' + action.__doc__ if action.__doc__ else ''
+                setattr(cls, key + '_async', async_action)
 
-        if '_lantz_features' in class_dict:
-            class_dict['_lantz_features'].update(feats)
-        else:
-            class_dict['_lantz_features'] = feats
+        # We update the feat an actions dictionaries with the ones
+        # from the base clases
 
-        if '_lantz_actions' in class_dict:
-            class_dict['_lantz_actions'].update(actions)
-        else:
-            class_dict['_lantz_actions'] = actions
+        for base in bases:
+            for key, value in getattr(base, '_lantz_features', {}).items():
+                if isinstance(value, (Feat, DictFeat)) and key not in feats:
+                    feats[key] = value
+            for key, value in getattr(base, '_lantz_actions', {}).items():
+                if isinstance(value, Action) and key not in actions:
+                    actions[key] = value
 
-        return super().__new__(cls, classname, bases, class_dict)
+        cls._lantz_features = feats
+        cls._lantz_actions = actions
 
 
 _REGISTERED = defaultdict(int)
@@ -184,6 +217,9 @@ class Driver(SuperQObject, metaclass=_DriverType):
                   purposes
     """
 
+    _lantz_features = {}
+    _lantz_actions = {}
+
     def __new__(cls, *args, **kwargs):
         inst = SuperQObject.__new__(cls)
         name = kwargs.pop('name', None)
@@ -205,6 +241,7 @@ class Driver(SuperQObject, metaclass=_DriverType):
                           'lantz_name': inst.name}
 
         for feat_name, feat in cls._lantz_features.items():
+
             for attr_name, attr_value in feat.modifiers[MISSING][MISSING].items():
                 if not isinstance(attr_value, Self):
                     continue
