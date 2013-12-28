@@ -5,7 +5,7 @@
 
     Implements the Driver base class.
 
-    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2013 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 import time
@@ -14,11 +14,13 @@ import atexit
 import logging
 import threading
 
-from functools import partial, wraps
+from functools import wraps
 from concurrent import futures
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 
-from .feat import Feat, DictFeat, MISSING, FeatProxy, Signal
+from .utils.qt import MetaQObject, SuperQObject, QtCore
+
+from .feat import Feat, DictFeat, MISSING, FeatProxy
 from .action import Action, ActionProxy
 from .stats import RunningStats
 from .errors import LantzTimeoutError
@@ -122,12 +124,11 @@ def repartial_submit(fname):
     return wrapped
 
 
-class _DriverType(type):
+class _DriverType(MetaQObject):
     """Base metaclass for all drivers.
     """
 
-    def __init__(cls, classname, bases, class_dict):
-        super().__init__(classname, bases, class_dict)
+    def __new__(cls, classname, bases, class_dict):
         feats = dict()
         actions = dict()
         dicts = [class_dict, ] + [base.__dict__ for base in bases
@@ -141,18 +142,26 @@ class _DriverType(type):
                     value.rebuild()
                     actions[key] = value
 
+        for key in feats.keys():
+            class_dict[key + '_changed'] = QtCore.Signal(object, object)
+
         for key, action in actions.items():
             async_action = repartial_submit(key)
             async_action.__doc__ = '(Async) ' + action.__doc__ if action.__doc__ else ''
-            setattr(cls, key + '_async', async_action)
+            class_dict[key + '_async'] = async_action
 
-        if hasattr(cls, '_lantz_features'):
-            feats.update(cls._lantz_features)
-        cls._lantz_features = feats
+        if '_lantz_features' in class_dict:
+            class_dict['_lantz_features'].update(feats)
+        else:
+            class_dict['_lantz_features'] = feats
 
-        if hasattr(cls, '_lantz_actions'):
-            actions.update(cls._lantz_actions)
-        cls._lantz_actions = actions
+        if '_lantz_actions' in class_dict:
+            class_dict['_lantz_actions'].update(actions)
+        else:
+            class_dict['_lantz_actions'] = actions
+
+        return super().__new__(cls, classname, bases, class_dict)
+
 
 _REGISTERED = defaultdict(int)
 
@@ -168,7 +177,7 @@ def _raise_must_change(dependent, feat_name, operation):
     return _inner
 
 
-class Driver(metaclass=_DriverType):
+class Driver(SuperQObject, metaclass=_DriverType):
     """Base class for all drivers.
 
     :params name: easy to remember identifier given to the instance for logging
@@ -176,12 +185,8 @@ class Driver(metaclass=_DriverType):
     """
 
     def __new__(cls, *args, **kwargs):
+        inst = SuperQObject.__new__(cls)
         name = kwargs.pop('name', None)
-        new_meth = super(Driver, cls).__new__
-        if new_meth is object.__new__:
-            inst = new_meth(cls)
-        else:
-            inst = new_meth(cls, *args, **kwargs)
 
         inst._executor = None
         inst._lock = threading.RLock()
@@ -198,9 +203,6 @@ class Driver(metaclass=_DriverType):
 
         inst.log_extra = {'lantz_driver': cls.__name__,
                           'lantz_name': inst.name}
-
-        for feat_name, feat in cls._lantz_features.items():
-            setattr(inst, feat_name + '_changed', Signal())
 
         for feat_name, feat in cls._lantz_features.items():
             for attr_name, attr_value in feat.modifiers[MISSING][MISSING].items():
