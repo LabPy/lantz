@@ -66,7 +66,7 @@ class Action(object):
 
     """
 
-    def __init__(self, func = None, *, values=None, units=None, limits=None, procs=None):
+    def __init__(self, func=None, *, values=None, units=None, limits=None, procs=None):
 
         #: instance: key: value
         self.modifiers = WeakKeyDictionary()
