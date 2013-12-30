@@ -150,7 +150,7 @@ class IEEE488Mixin(object):
         self.query('*PSC {}'.format(value))
 
     @Action()
-    def recall(self, location):
+    def recall_state(self, location):
         """Recalls (*RCL) instrument state in specified non-volatile location.
 
         :param location: non-volatile storage location.
@@ -158,7 +158,7 @@ class IEEE488Mixin(object):
         self.send('*RCL {}'.format(location))
 
     @Action()
-    def save(self, location):
+    def save_state(self, location):
         """Saves instrument state in specified non-volatile location.
 
         Previously stored state in location is overwritten (no error is generated).
