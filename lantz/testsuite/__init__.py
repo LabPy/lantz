@@ -7,7 +7,7 @@ import unittest
 
 
 def testsuite():
-    """A testsuite that has all the pyflim tests.
+    """A testsuite that has all the lantz tests.
     """
     return unittest.TestLoader().discover(os.path.dirname(__file__))
 

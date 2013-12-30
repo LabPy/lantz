@@ -240,10 +240,10 @@ class DriverTest(unittest.TestCase):
         self.assertEqual(set(z._lantz_features.keys()), {'feat1', 'val1'})
         self.assertEqual(set(n._lantz_features.keys()), {'feat1', 'val1'})
 
-        self.assertEqual(set(x._lantz_actions.keys()), {'action1', })
-        self.assertEqual(set(y._lantz_actions.keys()), {'action1', 'action2'})
-        self.assertEqual(set(z._lantz_actions.keys()), {'action1', })
-        self.assertEqual(set(n._lantz_actions.keys()), {'action1', })
+        self.assertEqual(set(x._lantz_actions.keys()), {'action1', 'initialize', 'finalize'})
+        self.assertEqual(set(y._lantz_actions.keys()), {'action1', 'action2', 'initialize', 'finalize'})
+        self.assertEqual(set(z._lantz_actions.keys()), {'action1', 'initialize', 'finalize' })
+        self.assertEqual(set(n._lantz_actions.keys()), {'action1', 'initialize', 'finalize' })
 
         self.assertEqual(x.refresh(), {'feat1': 'feat1', 'val1': 1})
         x.val1 = 2
@@ -307,9 +307,9 @@ class DriverTest(unittest.TestCase):
         self.assertEqual(set(z._lantz_features.keys()), {'feat1', })
         self.assertEqual(set(n._lantz_features.keys()), {'feat1', })
 
-        self.assertEqual(set(y._lantz_actions.keys()), {'action1', 'action2'})
-        self.assertEqual(set(z._lantz_actions.keys()), {'action1', })
-        self.assertEqual(set(n._lantz_actions.keys()), {'action1', })
+        self.assertEqual(set(y._lantz_actions.keys()), {'action1', 'action2', 'initialize', 'finalize'})
+        self.assertEqual(set(z._lantz_actions.keys()), {'action1', 'initialize', 'finalize'})
+        self.assertEqual(set(n._lantz_actions.keys()), {'action1', 'initialize', 'finalize'})
 
         self.assertEqual(y.refresh(), {'feat1': 'feat1', 'feat2': 'feat2'})
         self.assertEqual(z.refresh(), {'feat1': 'feat1 in Z'})

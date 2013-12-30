@@ -157,7 +157,7 @@ class DictFeatTest(unittest.TestCase):
         x = obj.eggs['answer']
         obj.eggs['answer'] = x
         obj.eggs['answer'] = x + 1
-        self.assertEqual(hdl.history, ['Created',
+        self.assertEqual(hdl.history, ['Created Spam5',
                                        "Getting eggs['answer']",
                                        "(raw) Got 42 for eggs['answer']",
                                        "Got 42 for eggs['answer']",
