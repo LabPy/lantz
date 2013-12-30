@@ -2,5 +2,5 @@
 UI
 ==
 
-.. automodule:: lantz.ui.qtwidgets
+.. automodule:: lantz.ui.widgets
    :members:

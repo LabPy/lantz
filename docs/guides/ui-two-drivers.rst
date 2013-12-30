@@ -32,7 +32,7 @@ Get a reference to each widget and connect them manually::
     from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
 
     # and a function named connect_feat that does the work.
-    from lantz.ui.qtwidgets import connect_feat
+    from lantz.ui.widgets import connect_feat
 
     app = QApplication(sys.argv)
 
@@ -73,7 +73,7 @@ If you have use a prefix to solve the name collision you can use it and connect 
     from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
 
     # and a function named connect_feat that does the work.
-    from lantz.ui.qtwidgets import connect_feat
+    from lantz.ui.widgets import connect_feat
 
     app = QApplication(sys.argv)
 
@@ -111,7 +111,7 @@ If you have named the widgets according to the Feat name and added a prefix corr
     from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
 
     # and a function named connect_feat that does the work.
-    from lantz.ui.qtwidgets import connect_feat
+    from lantz.ui.widgets import connect_feat
 
     app = QApplication(sys.argv)
 

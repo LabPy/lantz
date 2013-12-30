@@ -125,7 +125,7 @@ connect the configuration widgets::
     from Qt.uic import loadUi
 
     # Import from lantz a function to connect drivers to UI <--- NEW
-    from lantz.ui.qtwidgets import connect_driver
+    from lantz.ui.widgets import connect_driver
 
     # These imports are from your own project
     from mydriver import LantzSignalGeneratorTCP
@@ -211,7 +211,7 @@ how to do it::
     from lantz import Q_
 
     # Import from lantz a function to connect drivers to UI
-    from lantz.ui.qtwidgets import connect_driver
+    from lantz.ui.widgets import connect_driver
 
     # and here we just use Qt and will work with both bindings!
     from Qt.QtGui import QApplication, QWidget

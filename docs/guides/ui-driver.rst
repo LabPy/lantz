@@ -31,7 +31,7 @@ You can connect each relevant driver Feat to the corresponding widget::
     from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
 
     # and a function named connect_feat that does the work.
-    from lantz.ui.qtwidgets import connect_feat
+    from lantz.ui.widgets import connect_feat
 
     app = QApplication(sys.argv)
 
@@ -82,7 +82,7 @@ If you have named the widgets according to the Feat name as we have done, you ca
     from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
 
     # and a function named connect_driver that does the work.
-    from lantz.ui.qtwidgets import connect_driver
+    from lantz.ui.widgets import connect_driver
 
     app = QApplication(sys.argv)
 

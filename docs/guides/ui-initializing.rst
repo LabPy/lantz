@@ -9,9 +9,9 @@ A common part of an instrumentation GUI is to show a panel or a splash window
 to initialize instruments while providing some visual feedback about the status.
 Lantz provides a convenience method that can be hooked to different kind of widgets.
 
-The function is called `initialize_and_report` and is defined in the qtwidgets module::
+The function is called `initialize_and_report` and is defined in the widgets module::
 
-    from lantz.ui.qtwidgets import initialize_and_report
+    from lantz.ui.widgets import initialize_and_report
 
 The signature of the function is very similar to `initialize_many`::
 
