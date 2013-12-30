@@ -48,7 +48,7 @@ if __name__ == '__main__':
     print(args)
     with args.func(**dict(args._get_kwargs())) as inst:
         if args.interactive:
-            from lantz.ui.qtwidgets import start_test_app
+            from lantz.ui.app import start_test_app
             start_test_app(inst)
         else:
             print('The identification of this instrument is : ' + inst.idn)
