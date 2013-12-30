@@ -10,11 +10,11 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import sys
 import time
 import json
 import inspect
-import logging
+
+from lantz.utils.qt import QtCore, QtGui
 
 try:
     from docutils import core as doc_core
@@ -25,21 +25,12 @@ except ImportError:
         def publish_parts(rst, *args, **kwargs):
             return rst
 
-from Qt.QtCore import QVariant, Qt, QSize, Slot, Signal, Property, QThread, QObject, QTimer
-from Qt.QtGui import (QApplication, QDialog, QWidget, QFont, QSizePolicy,
-                      QColor, QPalette, QToolTip, QMessageBox,
-                      QLabel, QPushButton, QDialogButtonBox,
-                      QLayout, QHBoxLayout, QVBoxLayout, QFormLayout, QFrame,
-                      QTabWidget, QTableWidget, QTableWidgetItem,
-                      QLineEdit, QSpinBox, QDoubleSpinBox, QLCDNumber,
-                      QDial, QProgressBar, QSlider, QScrollBar,
-                      QComboBox, QCheckBox, QTextEdit)
 
-from .. import Q_, Driver, initialize_many, finalize_many
+from .. import Q_, Driver, initialize_many
 from ..feat import MISSING, DictFeat
 from ..log import get_logger
 
-QToolTip.setFont(QFont('SansSerif', 10))
+QtGui.QToolTip.setFont(QtGui.QFont('SansSerif', 10))
 
 logger = get_logger('lantz.ui', False)
 
@@ -115,7 +106,7 @@ class WidgetMixin(object):
 
     """
 
-    _WRAPPED = (QWidget, )
+    _WRAPPED = (QtGui.QWidget, )
 
     #: Dictionary linking Widget types with the function to patch them
     _WRAPPERS = {}
@@ -179,7 +170,7 @@ class WidgetMixin(object):
             return False
         return self._feat.fset is not None
 
-    @Slot()
+    #@Slot()
     def on_widget_value_changed(self, value, old_value=MISSING, other=MISSING):
         """When the widget is changed by the user, update the driver with
         the new value.
@@ -191,7 +182,7 @@ class WidgetMixin(object):
         """When the driver value is changed, update the widget if necessary.
         """
         if self.value() != value:
-           self.setValue(value)
+            self.setValue(value)
 
     @property
     def feat_key(self):
@@ -277,13 +268,13 @@ class WidgetMixin(object):
                 tmp = set(feat.values)
 
             if tmp == {True, False}:
-                widget = QCheckBox
+                widget = QtGui.QCheckBox
             else:
-                widget = QComboBox
+                widget = QtGui.QComboBox
         elif not feat.units is None or feat.limits:
-            widget = QDoubleSpinBox
+            widget = QtGui.QDoubleSpinBox
         else:
-            widget= QLineEdit
+            widget= QtGui.QLineEdit
 
         widget = widget(parent)
         cls.wrap(widget)
@@ -306,7 +297,7 @@ class FeatWidget(object):
         return widget
 
 
-class DictFeatWidget(QWidget):
+class DictFeatWidget(QtGui.QWidget):
     """Widget to show a DictFeat.
 
     :param parent: parent widget.
@@ -318,10 +309,10 @@ class DictFeatWidget(QWidget):
         super().__init__(parent)
         self._feat = feat
 
-        layout = QHBoxLayout(self)
+        layout = QtGui.QHBoxLayout(self)
 
         if feat.keys:
-            wid = QComboBox()
+            wid = QtGui.QComboBox()
             if isinstance(feat.keys, dict):
                 self._keys = list(feat.keys.keys())
             else:
@@ -330,7 +321,7 @@ class DictFeatWidget(QWidget):
             wid.addItems([str(key) for key in self._keys])
             wid.currentIndexChanged.connect(self._combobox_changed)
         else:
-            wid = QLineEdit()
+            wid = QtGui.QLineEdit()
             wid.textChanged.connect(self._lineedit_changed)
 
         layout.addWidget(wid)
@@ -343,11 +334,11 @@ class DictFeatWidget(QWidget):
         layout.addWidget(wid)
         self._value_widget = wid
 
-    @Slot()
+    @QtCore.Slot()
     def _combobox_changed(self, value, old_value=MISSING, other=MISSING):
         self._value_widget.feat_key = self._keys[self._key_widget.currentIndex()]
 
-    @Slot()
+    @QtCore.Slot()
     def _lineedit_changed(self, value, old_value=MISSING, other=MISSING):
         self._value_widget.feat_key = self._key_widget.text()
 
@@ -394,7 +385,7 @@ class DictFeatWidget(QWidget):
         return self._value_widget.value_from_feat()
 
 
-class LabeledFeatWidget(QWidget):
+class LabeledFeatWidget(QtGui.QWidget):
     """Widget containing a label, a control, and a get a set button.
 
     :param parent: parent widget.
@@ -404,9 +395,9 @@ class LabeledFeatWidget(QWidget):
 
     def __init__(self, parent, target, feat):
         super().__init__(parent)
-        layout = QHBoxLayout(self)
+        layout = QtGui.QHBoxLayout(self)
 
-        self._label = QLabel()
+        self._label = QtGui.QLabel()
         self._label.setText(feat.name)
         self._label.setFixedWidth(120)
         self._label.setToolTip(_rst_to_html(feat.__doc__))
@@ -421,13 +412,13 @@ class LabeledFeatWidget(QWidget):
 
         layout.addWidget(self._widget)
 
-        self._get = QPushButton()
+        self._get = QtGui.QPushButton()
         self._get.setText('get')
         self._get.setEnabled(self._widget.readable)
         self._get.setFixedWidth(60)
         layout.addWidget(self._get)
 
-        self._set = QPushButton()
+        self._set = QtGui.QPushButton()
         self._set.setText('set')
         self._set.setEnabled(self._widget.writable)
         self._set.setFixedWidth(60)
@@ -459,13 +450,13 @@ class LabeledFeatWidget(QWidget):
     def lantz_target(self, driver):
         self._widget._lantz_target = driver
 
-    @Slot()
+    @QtCore.Slot()
     def on_get_clicked(self):
         self._widget.value_from_feat()
 
-    @Slot()
+    @QtCore.Slot()
     def on_set_clicked(self):
-        font = QFont()
+        font = QtGui.QFont()
         font.setItalic(False)
         self._widget.setFont(font)
         self._widget.value_to_feat()
@@ -483,7 +474,7 @@ class LabeledFeatWidget(QWidget):
         return self._widget.writable
 
 
-class DriverTestWidget(QWidget):
+class DriverTestWidget(QtGui.QWidget):
     """Widget that is automatically filled to control all Feats of a given driver.
 
     :param parent: parent widget.
@@ -494,26 +485,26 @@ class DriverTestWidget(QWidget):
         super().__init__(parent)
         self._lantz_target = target
 
-        layout = QVBoxLayout(self)
+        layout = QtGui.QVBoxLayout(self)
 
-        label = QLabel()
+        label = QtGui.QLabel()
         label.setText(str(target))
         layout.addWidget(label)
 
-        recall = QPushButton()
+        recall = QtGui.QPushButton()
         recall.setText('Refresh')
         recall.clicked.connect(lambda x: target.refresh())
 
-        update = QPushButton()
+        update = QtGui.QPushButton()
         update.setText('Update')
         update.clicked.connect(lambda x: target.update(self.widgets_values_as_dict()))
 
-        auto = QCheckBox()
+        auto = QtGui.QCheckBox()
         auto.setText('Update on change')
         auto.setChecked(True)
         auto.stateChanged.connect(self.update_on_change)
 
-        hlayout = QHBoxLayout()
+        hlayout = QtGui.QHBoxLayout()
         hlayout.addWidget(recall)
         hlayout.addWidget(update)
         hlayout.addWidget(auto)
@@ -539,33 +530,33 @@ class DriverTestWidget(QWidget):
                 #traceback.print_exc()
 
         # Actions
-        line = QFrame(self)
+        line = QtGui.QFrame(self)
         #self.line.setGeometry(QtCore.QRect(110, 80, 351, 31))
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
+        line.setFrameShape(QtGui.QFrame.HLine)
+        line.setFrameShadow(QtGui.QFrame.Sunken)
         layout.addWidget(line)
 
 
-        actions_label = QLabel(self)
+        actions_label = QtGui.QLabel(self)
         actions_label.setText('Actions:')
         actions_label.setFixedWidth(120)
 
-        self.actions_combo = QComboBox(self)
+        self.actions_combo = QtGui.QComboBox(self)
         self.actions_combo.addItems(list(target.actions.keys()))
 
-        actions_button = QPushButton(self)
+        actions_button = QtGui.QPushButton(self)
         actions_button.setFixedWidth(60)
         actions_button.setText('Run')
         actions_button.clicked.connect(self.on_run_clicked)
 
-        alayout = QHBoxLayout()
+        alayout = QtGui.QHBoxLayout()
         alayout.addWidget(actions_label)
         alayout.addWidget(self.actions_combo)
         alayout.addWidget(actions_button)
 
         layout.addLayout(alayout)
 
-    @Slot()
+    @QtCore.Slot()
     def on_run_clicked(self):
         ArgumentsInputDialog.run(getattr(self._lantz_target, self.actions_combo.currentText()), self)
 
@@ -597,7 +588,7 @@ class DriverTestWidget(QWidget):
             widget.lantz_target = driver
 
 
-class SetupTestWidget(QWidget):
+class SetupTestWidget(QtGui.QWidget):
     """Widget to control multiple drivers.
 
     :param parent: parent widget.
@@ -607,9 +598,9 @@ class SetupTestWidget(QWidget):
     def __init__(self, parent, targets):
         super().__init__(parent)
 
-        layout = QHBoxLayout(self)
+        layout = QtGui.QHBoxLayout(self)
 
-        tab_widget = QTabWidget(self)
+        tab_widget = QtGui.QTabWidget(self)
         tab_widget.setTabsClosable(False)
         for target in targets:
             widget = DriverTestWidget(parent, target)
@@ -647,7 +638,7 @@ def connect_feat(widget, target, feat_name=None, feat_key=MISSING):
         widget.lantz_target = target
         return
 
-    feat =  target.feats[feat_name]
+    feat = target.feats[feat_name]
 
     WidgetMixin.wrap(widget)
     widget.bind_feat(feat)
@@ -703,25 +694,7 @@ def connect_setup(parent, targets, *, prefix=None, sep='__'):
         connect_driver(parent, target, prefix=name, sep=sep)
 
 
-def start_test_app(target, width=500, *args):
-    """Start a single window test application with a form automatically
-    generated for the driver.
 
-    :param target: a driver object or a collection of drivers.
-    :param width: to be used as minimum width of the window.
-    :param args: arguments to be passed to QApplication.
-    """
-    app = QApplication(list(args))
-    if isinstance(target, Driver):
-        main = DriverTestWidget(None, target)
-    else:
-        main = SetupTestWidget(None, target)
-    main.setMinimumWidth(width)
-    main.setWindowTitle('Lantz Driver Test Panel')
-    main.show()
-    if sys.platform.startswith('darwin'):
-        main.raise_()
-    app.exec_()
 
 
 class ChildrenWidgets(object):
@@ -734,7 +707,7 @@ class ChildrenWidgets(object):
         self.parent = parent
 
     def __getattr__(self, item):
-        return self.parent.findChild((QWidget, ), item)
+        return self.parent.findChild((QtGui.QWidget, ), item)
 
     def __iter__(self):
         pending = [self.parent, ]
@@ -742,7 +715,7 @@ class ChildrenWidgets(object):
         while pending:
             object = pending.pop()
             for child in object.children():
-                if not isinstance(child, QWidget):
+                if not isinstance(child, QtGui.QWidget):
                     continue
                 qualname[child] = qualname[object] + '.' + child.objectName()
                 pending.append(child)
@@ -775,7 +748,7 @@ def request_new_units(current_units):
 @register_wrapper
 class MagnitudeMixin(WidgetMixin):
 
-    _WRAPPED = (QDoubleSpinBox, )
+    _WRAPPED = (QtGui.QDoubleSpinBox, )
 
     def keyPressEvent(self, event):
         super().keyPressEvent(event)
@@ -847,7 +820,7 @@ class MagnitudeMixin(WidgetMixin):
         """Set widget value scaled by units.
         """
         if value is MISSING:
-            font = QFont()
+            font = QtGui.QFont()
             font.setItalic(True)
             self.setFont(font)
         elif isinstance(value, Q_):
@@ -859,7 +832,7 @@ class MagnitudeMixin(WidgetMixin):
 @register_wrapper
 class SliderMixin(MagnitudeMixin):
 
-    _WRAPPED = (QSlider, QDial, QProgressBar, QScrollBar)
+    _WRAPPED = (QtGui.QSlider, QtGui.QDial, QtGui.QProgressBar, QtGui.QScrollBar)
 
     def setReadOnly(self, value):
         super().setEnabled(not value)
@@ -868,7 +841,7 @@ class SliderMixin(MagnitudeMixin):
 @register_wrapper
 class LCDNumberMixin(MagnitudeMixin):
 
-    _WRAPPED = (QLCDNumber, )
+    _WRAPPED = (QtGui.QLCDNumber, )
 
     @classmethod
     def _wrap(cls, widget):
@@ -881,7 +854,7 @@ class LCDNumberMixin(MagnitudeMixin):
 
     def setValue(self, value):
         if value is MISSING:
-            font = QFont()
+            font = QtGui.QFont()
             font.setItalic(True)
             self.setFont(font)
             return
@@ -897,7 +870,7 @@ class LCDNumberMixin(MagnitudeMixin):
 @register_wrapper
 class QComboBoxMixin(WidgetMixin):
 
-    _WRAPPED = (QComboBox, )
+    _WRAPPED = (QtGui.QComboBox, )
 
     @classmethod
     def _wrap(cls, widget):
@@ -909,7 +882,7 @@ class QComboBoxMixin(WidgetMixin):
 
     def setValue(self, value):
         if value is MISSING:
-            font = QFont()
+            font = QtGui.QFont()
             font.setItalic(True)
             self.setFont(font)
             return
@@ -931,7 +904,7 @@ class QComboBoxMixin(WidgetMixin):
 @register_wrapper
 class QCheckBoxMixin(WidgetMixin):
 
-    _WRAPPED = (QCheckBox, )
+    _WRAPPED = (QtGui.QCheckBox, )
 
     @classmethod
     def _wrap(cls, widget):
@@ -953,7 +926,7 @@ class QCheckBoxMixin(WidgetMixin):
 @register_wrapper
 class QLineEditMixin(WidgetMixin):
 
-    _WRAPPED = (QLineEdit, )
+    _WRAPPED = (QtGui.QLineEdit, )
 
     @classmethod
     def _wrap(cls, widget):
@@ -969,14 +942,14 @@ class QLineEditMixin(WidgetMixin):
         return self.setText(value)
 
 
-class ArgumentsInputDialog(QDialog):
+class ArgumentsInputDialog(QtGui.QDialog):
 
     def __init__(self, argspec, parent=None, window_title='Function arguments', doc=None):
         super().__init__(parent)
 
-        vlayout = QVBoxLayout(self)
+        vlayout = QtGui.QVBoxLayout(self)
 
-        layout = QFormLayout()
+        layout = QtGui.QFormLayout()
 
         widgets = []
 
@@ -985,7 +958,7 @@ class ArgumentsInputDialog(QDialog):
 
         self.arguments = {}
         for arg, default in zip(argspec.args[1:], defaults):
-            wid = QLineEdit(self)
+            wid = QtGui.QLineEdit(self)
             wid.setObjectName(arg)
             wid.setText(json.dumps(default))
             self.arguments[arg] = default
@@ -999,15 +972,15 @@ class ArgumentsInputDialog(QDialog):
 
         self.widgets = widgets
 
-        buttonBox = QDialogButtonBox()
-        buttonBox.setOrientation(Qt.Horizontal)
-        buttonBox.setStandardButtons(QDialogButtonBox.Ok)
+        buttonBox = QtGui.QDialogButtonBox()
+        buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
         buttonBox.setEnabled(True)
         buttonBox.accepted.connect(self.accept)
 
         vlayout.addLayout(layout)
 
-        label = QLabel()
+        label = QtGui.QLabel()
         label.setText('Values are decoded from text using as JSON.')
         vlayout.addWidget(label)
 
@@ -1027,14 +1000,14 @@ class ArgumentsInputDialog(QDialog):
                     value = json.loads(value)
                 else:
                     value = None
-                palette = QPalette()
-                palette.setColor(widget.backgroundRole(), QColor('white'))
+                palette = QtGui.QPalette()
+                palette.setColor(widget.backgroundRole(), QtGui.QColor('white'))
                 widget.setPalette(palette)
                 self.arguments[name] = value
                 self.valid[name] = True
             except:
-                palette = QPalette()
-                palette.setColor(widget.backgroundRole(), QColor(255, 102, 102))
+                palette = QtGui.QPalette()
+                palette.setColor(widget.backgroundRole(), QtGui.QColor(255, 102, 102))
                 widget.setPalette(palette)
                 self.valid[name] = False
 
@@ -1071,13 +1044,13 @@ class ArgumentsInputDialog(QDialog):
             func(**arguments)
         except Exception as e:
             logger.exception(e)
-            QMessageBox.critical(parent, 'Lantz',
-                                 'Instrument error while calling {}'.format(name),
-                                 QMessageBox.Ok,
-                                 QMessageBox.NoButton)
+            QtGui.QMessageBox.critical(parent, 'Lantz',
+                                       'Instrument error while calling {}'.format(name),
+                                       QtGui.QMessageBox.Ok,
+                                       QtGui.QMessageBox.NoButton)
 
 
-class UnitInputDialog(QDialog):
+class UnitInputDialog(QtGui.QDialog):
     """Dialog to select new units. Checks compatibility while typing
     and does not allow to continue if incompatible.
 
@@ -1098,44 +1071,44 @@ class UnitInputDialog(QDialog):
     def setupUi(self, parent):
         self.resize(275, 172)
         self.setWindowTitle('Convert units')
-        self.layout = QVBoxLayout(parent)
-        self.layout.setSizeConstraint(QLayout.SetFixedSize)
-        align = (Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
+        self.layout = QtGui.QVBoxLayout(parent)
+        self.layout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+        align = (QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
 
-        self.layout1 = QHBoxLayout()
-        self.label1 = QLabel()
-        self.label1.setMinimumSize(QSize(100, 0))
+        self.layout1 = QtGui.QHBoxLayout()
+        self.label1 = QtGui.QLabel()
+        self.label1.setMinimumSize(QtCore.QSize(100, 0))
         self.label1.setText('Convert from:')
         self.label1.setAlignment(align)
 
         self.layout1.addWidget(self.label1)
-        self.source_units = QLineEdit()
+        self.source_units = QtGui.QLineEdit()
         self.source_units.setReadOnly(True)
         self.layout1.addWidget(self.source_units)
 
         self.layout.addLayout(self.layout1)
 
-        self.layout2 = QHBoxLayout()
-        self.label2 = QLabel()
-        self.label2.setMinimumSize(QSize(100, 0))
+        self.layout2 = QtGui.QHBoxLayout()
+        self.label2 = QtGui.QLabel()
+        self.label2.setMinimumSize(QtCore.QSize(100, 0))
         self.label2.setText('to:')
         self.label2.setAlignment(align)
         self.layout2.addWidget(self.label2)
 
-        self.destination_units = QLineEdit()
+        self.destination_units = QtGui.QLineEdit()
         self.layout2.addWidget(self.destination_units)
 
         self.layout.addLayout(self.layout2)
 
-        self.message = QLabel()
+        self.message = QtGui.QLabel()
         self.message.setText('')
-        self.message.setAlignment(Qt.AlignCenter)
+        self.message.setAlignment(QtCore.Qt.AlignCenter)
 
         self.layout.addWidget(self.message)
 
-        self.buttonBox = QDialogButtonBox()
-        self.buttonBox.setOrientation(Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QDialogButtonBox.Ok)
+        self.buttonBox = QtGui.QDialogButtonBox()
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
         self.layout.addWidget(self.buttonBox)
         self.buttonBox.setEnabled(False)
 
@@ -1175,12 +1148,12 @@ class UnitInputDialog(QDialog):
         return None
 
 
-class InitializerHelper(QObject):
+class InitializerHelper(QtCore.QObject):
 
-    initializing = Signal(object)
-    initialized = Signal(object)
-    exception = Signal(object, object)
-    finished = Signal(float)
+    initializing = QtCore.Signal(object)
+    initialized = QtCore.Signal(object)
+    exception = QtCore.Signal(object, object)
+    finished = QtCore.Signal(float)
 
     def __init__(self, drivers, register_finalizer, parallel, dependencies):
         super().__init__()
@@ -1228,42 +1201,42 @@ def initialize_and_report(widget, drivers, register_finalizer=True,
     """
     timing = {}
 
-    thread = QThread()
+    thread = QtCore.QThread()
     helper = InitializerHelper(drivers, register_finalizer, concurrent, dependencies)
     helper.moveToThread(thread)
     thread.helper = helper
 
-    if isinstance(widget, QTableWidget):
+    if isinstance(widget, QtGui.QTableWidget):
         def _initializing(driver):
             timing[driver] = time.time()
             row = drivers.index(driver)
-            widget.setItem(row, 2, QTableWidgetItem(initializing_msg))
+            widget.setItem(row, 2, QtGui.QTableWidgetItem(initializing_msg))
 
         def _initialized(driver):
             delta = time.time() - timing[driver]
             row = drivers.index(driver)
-            widget.setItem(row, 2, QTableWidgetItem(initialized_msg + ' ({:.1f} sec)'.format(delta)))
+            widget.setItem(row, 2, QtGui.QTableWidgetItem(initialized_msg + ' ({:.1f} sec)'.format(delta)))
 
         def _exception(driver, e):
             delta = time.time() - timing[driver]
             row = drivers.index(driver)
-            widget.setItem(row, 2, QTableWidgetItem('{} ({:.1f} sec)'.format(e, delta)))
+            widget.setItem(row, 2, QtGui.QTableWidgetItem('{} ({:.1f} sec)'.format(e, delta)))
 
         def _done(duration):
-            widget.setItem(len(drivers), 2, QTableWidgetItem('{:.1f} sec'.format(duration)))
+            widget.setItem(len(drivers), 2, QtGui.QTableWidgetItem('{:.1f} sec'.format(duration)))
             thread.quit()
 
         widget.clearContents()
         widget.setRowCount(len(drivers) + 1)
         for row, driver in enumerate(drivers):
-            widget.setItem(row, 0, QTableWidgetItem(driver.name))
-            widget.setItem(row, 1, QTableWidgetItem(driver.__class__.__name__))
-            widget.setItem(row, 2, QTableWidgetItem(''))
+            widget.setItem(row, 0, QtGui.QTableWidgetItem(driver.name))
+            widget.setItem(row, 1, QtGui.QTableWidgetItem(driver.__class__.__name__))
+            widget.setItem(row, 2, QtGui.QTableWidgetItem(''))
 
         widget.resizeColumnToContents(0)
         widget.horizontalHeader().setStretchLastSection(True)
 
-    elif isinstance(widget, QLineEdit):
+    elif isinstance(widget, QtGui.QLineEdit):
         def _initializing(driver):
             timing[driver] = time.time()
             widget.setText('{} ({}) > {}'.format(driver.name, driver.__class__.__name__,
@@ -1285,7 +1258,7 @@ def initialize_and_report(widget, drivers, register_finalizer=True,
 
         widget.setReadOnly(True)
 
-    elif isinstance(widget, QTextEdit):
+    elif isinstance(widget, QtGui.QTextEdit):
 
         def _initializing(driver):
             timing[driver] = time.time()

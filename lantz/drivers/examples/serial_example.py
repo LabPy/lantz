@@ -68,7 +68,7 @@ if __name__ == '__main__':
     lantz.log.log_to_socket(lantz.log.DEBUG)
     with SerialTemplate(args.port) as inst:
         if args.interactive:
-            from lantz.ui.qtwidgets import start_test_app
+            from lantz.ui.app import start_test_app
             start_test_app(inst)
         else:
             # Add your test code here

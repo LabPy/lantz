@@ -210,7 +210,7 @@ if __name__ == '__main__':
     lantz.log.log_to_screen(lantz.log.DEBUG)
     with MiniLasEvo(args.port) as inst:
         if args.interactive:
-            from lantz.ui.qtwidgets import start_test_app
+            from lantz.ui.app import start_test_app
             start_test_app(inst)
         else:
             # Add your test code here
