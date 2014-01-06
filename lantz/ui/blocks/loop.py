@@ -12,12 +12,12 @@ class StopMode(IntEnum):
     Continuous = 0
     Duration = 1
     Iterations = 2
-    IterationsTimeOut = 2
+    IterationsTimeOut = 3
 
 
 class Loop(Backend):
 
-    #: Signal emmitted before starting a new iteration
+    #: Signal emitted before starting a new iteration
     #: Parameters: loop counter, iterations, overrun
     iteration = QtCore.Signal(int, int, bool)
 
@@ -25,18 +25,18 @@ class Loop(Backend):
     #: The parameter is used to inform if the loop was canceled.
     loop_done = QtCore.Signal(bool)
 
-    def __init__(self, func, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.func = func
+        self.body = None
         self._active = False
         self._internal_func = None
 
     def stop(self):
         self._active = False
 
-    def start(self, func, interval=0, iterations=0, timeout=0):
+    def start(self, body, interval=0, iterations=0, timeout=0):
         self._active = True
-        func = func or self.func
+        body = body or self.body
 
         def internal(counter, overrun=False, schedule=QtCore.QTimer.singleShot):
             if not self._active:
@@ -45,7 +45,7 @@ class Loop(Backend):
 
             st = time.time()
             self.iteration.emit(counter, iterations, overrun)
-            func(counter, iterations, overrun)
+            body(counter, iterations, overrun)
 
             if iterations and counter + 1 == iterations:
                 self.loop_done.emit(False)
@@ -64,7 +64,7 @@ class Loop(Backend):
         QtCore.QTimer.singleShot(0, lambda: self._internal_func(0))
 
 
-class LoopFullUi(Frontend):
+class LoopUi(Frontend):
 
     gui = 'loop.ui'
 
@@ -158,8 +158,8 @@ class LoopFullUi(Frontend):
         elif new_index == StopMode.IterationsTimeOut:
             self.widget.duration.setEnabled(True)
             self.widget.iterations.setEnabled(True)
-            self.widget.duration.setReadOnly(True)
-            self.widget.iterations.setReadOnly(True)
+            self.widget.duration.setReadOnly(False)
+            self.widget.iterations.setReadOnly(False)
         self.recalculate()
 
     def on_loop_done(self, cancelled):
@@ -175,5 +175,6 @@ class LoopFullUi(Frontend):
 if __name__ == '__main__':
     def func(current, total, overrun):
         print('func', current, total, overrun)
-    app = Loop(func)
-    start_gui_app(app, LoopFullUi)
+    app = Loop()
+    app.body = func
+    start_gui_app(app, LoopUi)
