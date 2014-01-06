@@ -14,7 +14,7 @@ import numpy as np
 from lantz import Driver, Feat, ureg, Action
 
 
-class SomeFGDriver(Driver):
+class DummyFunGen(Driver):
     """A Function Generator Driver.
     """
 
@@ -41,7 +41,7 @@ class SomeFGDriver(Driver):
         self._amplitude = value
 
 
-class SomeOsciDriver(Driver):
+class DummyOsci(Driver):
     """An Oscilloscope Driver.
     """
 
@@ -55,7 +55,7 @@ class SomeOsciDriver(Driver):
         return np.random.random((100, ))
 
 
-class SomeShutterDriver(Driver):
+class DummyShutter(Driver):
     """A Shutter Driver.
     """
 

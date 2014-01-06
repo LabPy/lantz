@@ -22,7 +22,7 @@ from lantz.ui.widgets import connect_driver
 from lantz.utils.qt import QtGui, QtCore
 
 # These imports are from your own project
-from dummydrivers import SomeFGDriver
+from lantz.drivers.examples.dummydrivers import DummyFunGen
 
 # And we reuse the code from the command line application.
 from scanfrequency import scan_frequency
@@ -35,7 +35,7 @@ main = QtGui.loadUi('scanfrequency.ui')
 Hz = Q_(1, 'Hz')
 sec = Q_(1, 'sec')
 
-with SomeFGDriver() as inst:
+with DummyFunGen() as inst:
 
     # Connect the main panel widgets to the instruments Feats,
     # matching by name

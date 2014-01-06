@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     from lantz import Q_
 
-    from dummydrivers import SomeFGDriver
+    from lantz.drivers.examples.dummydrivers import DummyFunGen
 
     parser = argparse.ArgumentParser()
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     def print_change(new, old):
         print('Changed from {} to {}'.format(old, new))
 
-    with SomeFGDriver() as inst:
+    with DummyFunGen() as inst:
         print(inst.idn)
 
         inst.frequency_changed.connect(print_change)

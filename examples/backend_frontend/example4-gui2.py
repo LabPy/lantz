@@ -16,7 +16,7 @@ from lantz.ui.app import start_gui_app
 # From your project you import:
 
 # the drivers you need (In this case just simulated dummy drivers).
-from dummydrivers import SomeOsciDriver, SomeFGDriver, SomeShutterDriver
+from lantz.drivers.examples.dummydrivers import DummyOsci, DummyFunGen, DummyShutter
 
 # and the application backend.
 # This particular backend has a function to scan the amplitude
@@ -24,9 +24,9 @@ from dummydrivers import SomeOsciDriver, SomeFGDriver, SomeShutterDriver
 from myapps import AmplitudeScannerShutter, AmplitudeScannerShutterUi
 
 # Drivers are instantiated in the usual way.
-fungen = SomeFGDriver('COM1')
-osci = SomeOsciDriver('COM2')
-shutter = SomeShutterDriver('COM3')
+fungen = DummyFunGen('COM1')
+osci = DummyOsci('COM2')
+shutter = DummyShutter('COM3')
 
 # The application is called with keyword arguments to assign
 # instantiated drivers to each InstrumentSlot
