@@ -86,7 +86,7 @@ class InitializeWindow(QtGui.QWidget):
 
 
 
-app = QtGui.QApplication(sys.argv)
+qapp = QtGui.QApplication(sys.argv)
 
 dependencies = {'slave': ('master', )}
 
@@ -100,6 +100,6 @@ window.show()
 if sys.platform.startswith('darwin'):
     window.raise_()
 
-sys.exit(app.exec_())
+sys.exit(qapp.exec_())
 
 
