@@ -1,0 +1,20 @@
+instruments:
+    osci: 
+        class
+        args: []
+        kwargs: 
+            serial_number: C120201
+    fungen
+        class: lantz.drivers.hp:HP33120A
+        args: []
+        kwargs: 
+            port: COM1
+    fungen:
+        class: lantz.drivers.sutter:SomeShutter
+        args: []
+        kwargs:
+            port: COM2
+window:
+    size: 500, 200
+    position: 40, 30
+    state: normal
