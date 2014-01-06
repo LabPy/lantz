@@ -204,7 +204,7 @@ def import_pyqt4(version=2):
     QtCore.Slot = QtCore.pyqtSlot
 
     from PyQt4.uic import loadUi
-    QtGui.loadUI = loadUi
+    QtGui.loadUi = loadUi
 
     # query for the API version (in case version == None)
     version = sip.getapi('QString')
@@ -289,7 +289,7 @@ def import_pyside():
         QtCore.QMetaObject.connectSlotsByName(widget)
         return widget
 
-    QtGui.loadUI = loadUi
+    QtGui.loadUi = loadUi
 
     return QtCore, QtGui, QtSvg, QT_API_PYSIDE
 
