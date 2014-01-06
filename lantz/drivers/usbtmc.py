@@ -12,6 +12,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
+import enum
 import time
 import struct
 from collections import namedtuple
@@ -23,7 +24,7 @@ from lantz.errors import InstrumentError
 from lantz.usb import find_devices, find_interfaces, find_endpoint, USBDriver
 
 
-class MSGID(object):
+class MSGID(enum.IntEnum):
     """From USB-TMC table2
     """
     DEV_DEP_MSG_OUT = 1
@@ -35,7 +36,7 @@ class MSGID(object):
     TRIGGER = 128 # for USB488
 
 
-class REQUEST(object):
+class REQUEST(enum.IntEnum):
     INITIATE_ABORT_BULK_OUT = 1
     CHECK_ABORT_BULK_OUT_STATUS = 2
     INITIATE_ABORT_BULK_IN = 3
