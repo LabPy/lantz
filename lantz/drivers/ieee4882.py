@@ -9,9 +9,14 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Action, Feat
+from lantz import Action, Feat, Driver
 
-class IEEE488Mixin(object):
+
+class IEEE4882Driver(Driver):
+    """Implements mandatory functions for a IEE488.2 device.
+
+    You can use it as a mixin class.
+    """
 
     @Feat(read_once=True)
     def idn(self):
