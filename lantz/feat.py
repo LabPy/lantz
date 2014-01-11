@@ -107,10 +107,13 @@ class Feat(object):
         self.get_processors = WeakKeyDictionary()
         self.set_processors = WeakKeyDictionary()
 
-        if fget is not MISSING and fget.__doc__ and not self.__doc__:
-            self.__doc__ = fget.__doc__
-        if fset and fset.__doc__ and not self.__doc__:
-            self.__doc__ = fset.__doc__
+        # Take documentation from fget or fset
+        # if not provided explicitly.
+        if self.__doc__ is None:
+            if fget is not MISSING and fget.__doc__:
+                self.__doc__ = fget.__doc__
+            elif fset and fset.__doc__:
+                self.__doc__ = fset.__doc__
 
         self.modifiers[MISSING] = {MISSING: {'values': values,
                                              'units': units,
