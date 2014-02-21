@@ -16,6 +16,8 @@ import inspect
 
 from lantz.utils.qt import QtCore, QtGui
 
+__PRINT_TRACEBACK__ = True
+
 try:
     from docutils import core as doc_core
 except ImportError:
@@ -526,8 +528,9 @@ class DriverTestWidget(QtGui.QWidget):
                 layout.addWidget(feat_widget)
             except Exception as ex:
                 logger.debug('Could not create control for {}: {}'.format(feat_name, ex))
-                #import traceback
-                #traceback.print_exc()
+                if __PRINT_TRACEBACK__:
+                    import traceback
+                    traceback.print_exc()
 
         # Actions
         line = QtGui.QFrame(self)
