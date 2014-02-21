@@ -412,7 +412,7 @@ class LabeledFeatWidget(QtGui.QWidget):
         self._label.setToolTip(_rst_to_html(feat.__doc__))
         layout.addWidget(self._label)
 
-        if isinstance(feat, DictFeat):
+        if isinstance(feat.feat, DictFeat):
             self._widget = DictFeatWidget(parent, target, feat)
         else:
             self._widget = WidgetMixin.from_feat(feat)
