@@ -75,8 +75,8 @@ def register_wrapper(cls):
     for wrapped in cls._WRAPPED:
         if wrapped in cls._WRAPPERS:
             logger.warn('{} is already registered to {}.'.format(wrapped, cls._WRAPPERS[wrapped]))
-        cls._WRAPPERS[wrapped] = type(wrapped.__class__.__name__ + 'Wrapped',
-                                      (cls, wrapped), {})
+        cls._WRAPPERS[wrapped] = type(wrapped.__name__ + 'Wrapped',
+                                      (cls, wrapped), {'_IS_LANTZ_WRAPPER': True})
 
     return cls
 
