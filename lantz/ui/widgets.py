@@ -245,13 +245,18 @@ class WidgetMixin(object):
         widget._lantz_target = None
         widget._feat = None
         widget._update_on_change = True
-        widget.__class__ =  cls
+        if not getattr(widget, '_IS_LANTZ_WRAPPER', False):
+            widget.__class__ =  cls
         widget._lantz_wrapped = True
 
     @classmethod
     def wrap(cls, widget):
         if hasattr(widget, '_lantz_wrapped'):
             return
+
+        if getattr(widget, '_IS_LANTZ_WRAPPER', False):
+            widget._wrap(widget)
+
         cls._WRAPPERS.get(type(widget), cls)._wrap(widget)
 
 
@@ -262,6 +267,8 @@ class WidgetMixin(object):
         :param feat: a lantz feature proxy, the result of inst.feats[feat_name].
         :param parent: parent widget.
         """
+        _get = cls._WRAPPERS.get
+        #_get = lambda x: x
 
         if feat.values:
             if isinstance(feat.values, dict):
@@ -270,13 +277,13 @@ class WidgetMixin(object):
                 tmp = set(feat.values)
 
             if tmp == {True, False}:
-                widget = QtGui.QCheckBox
+                widget = _get(QtGui.QCheckBox)
             else:
-                widget = QtGui.QComboBox
+                widget = _get(QtGui.QComboBox)
         elif not feat.units is None or feat.limits:
-            widget = QtGui.QDoubleSpinBox
+            widget = _get(QtGui.QDoubleSpinBox)
         else:
-            widget= QtGui.QLineEdit
+            widget= _get(QtGui.QLineEdit)
 
         widget = widget(parent)
         cls.wrap(widget)
