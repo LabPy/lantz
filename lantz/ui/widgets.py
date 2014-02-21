@@ -237,9 +237,6 @@ class WidgetMixin(object):
         widget._lantz_target = None
         widget._feat = None
         widget._update_on_change = True
-        if not getattr(widget, '_IS_LANTZ_WRAPPER', False):
-            widget.__class__ =  cls
-        widget._lantz_wrapped = True
 
     @classmethod
     def wrap(cls, widget):
@@ -248,9 +245,12 @@ class WidgetMixin(object):
 
         if getattr(widget, '_IS_LANTZ_WRAPPER', False):
             widget._wrap(widget)
+        else:
+            wrapper_class = cls._WRAPPERS.get(type(widget), cls)
+            wrapper_class._wrap(widget)
+            widget.__class__ = wrapper_class
 
-        cls._WRAPPERS.get(type(widget), cls)._wrap(widget)
-
+        widget._lantz_wrapped = True
 
     @classmethod
     def from_feat(cls, feat, parent=None):
