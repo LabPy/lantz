@@ -196,11 +196,9 @@ class WidgetMixin(object):
     def feat_key(self, value):
         if self._lantz_target:
             getattr(self._lantz_target, self._feat.name + '_changed').disconnect(self.on_feat_value_changed)
-            self._lantz_target.del_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
         self._feat_key = value
         if self._lantz_target:
             getattr(self._lantz_target, self._feat.name + '_changed').connect(self.on_feat_value_changed)
-            #self._lantz_target.add_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
         self.value_from_feat()
 
     @property
@@ -213,16 +211,10 @@ class WidgetMixin(object):
     def lantz_target(self, target):
         if self._lantz_target:
             getattr(self._lantz_target, self._feat.name + '_changed').disconnect(self.on_feat_value_changed)
-            #self._lantz_target.del_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
             self.valueChanged.disconnect()
         if target:
             self._lantz_target = target
             getattr(self._lantz_target, self._feat.name + '_changed').connect(self.on_feat_value_changed)
-            #self._lantz_target.add_on_changed(self._feat.name, self.on_feat_value_changed, self._feat_key)
-            #if feat_key is MISSING:
-            #    self.on_feat_value_changed(self._lantz_target.recall(self._feat.name))
-            #else:
-            #    self.on_feat_value_changed(self._lantz_target.recall(self._feat.name)[self._feat_key])
             self.value_from_feat()
             self.valueChanged.connect(self.on_widget_value_changed)
 
