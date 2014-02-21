@@ -335,11 +335,11 @@ class DictFeatWidget(QtGui.QWidget):
         layout.addWidget(wid)
         self._value_widget = wid
 
-    @QtCore.Slot()
+    @QtCore.Slot(int, object, object)
     def _combobox_changed(self, value, old_value=MISSING, other=MISSING):
         self._value_widget.feat_key = self._keys[self._key_widget.currentIndex()]
 
-    @QtCore.Slot()
+    @QtCore.Slot(str, object, object)
     def _lineedit_changed(self, value, old_value=MISSING, other=MISSING):
         self._value_widget.feat_key = self._key_widget.text()
 
