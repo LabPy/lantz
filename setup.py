@@ -44,6 +44,7 @@ setup(name='Lantz',
       packages=['lantz',
                 'lantz.ui',
                 'lantz.simulators',
+                'lantz.utils',
                 'lantz.drivers'] +
                ['lantz.drivers.' + company for company in companies],
       test_suite='lantz.testsuite.testsuite',
