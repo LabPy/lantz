@@ -135,10 +135,43 @@ In the command prompt install using pip all other optional dependencies::
     $ C:\Python3.2\Scripts\pip install sphinx pyserial colorama lantz
 
 
+.. _anaconda:
+
+Anaconda
+--------
+
+In any OS you can use Anaconda Python Distribution
+
+    1. Download and install the apropriate miniconda3_ for your OS.
+       The easiest way is that you download miniconda3 to get Python 3 as default
+       Both 32 and 64 bits are ok
+
+       .. warning:: Make sure that all subsequents command are executed using the
+          miniconda binaries.
+
+    2. If you want a minimal environment::
+
+            $ conda install pip numpy sphinx
+
+       or if you want everything::
+
+            $ conda install anaconda
+
+    3. Install PyQt::
+
+            $ conda install -c asmeurer pyqt
+
+    4. Install Lantz::
+
+            $ pip install colorama pyserial pyusb lantz
+
+
+
 .. rubric::
    If the driver from your instrument is available, you can start to use it right away.
    Learn how in the next part of the tutorial: :ref:`tutorial-using`.
 
+.. _miniconda3: http://repo.continuum.io/miniconda/
 .. _pip: http://www.pip-installer.org/en/latest/index.html
 .. _virtualenv: http://www.virtualenv.org/en/latest/index.html
 .. _Colorama: http://pypi.python.org/pypi/colorama/
