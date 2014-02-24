@@ -4,7 +4,7 @@ import sys
 import time
 import random
 
-from PyQt4 import QtGui
+from lantz.utils.qt import QtGui
 
 from lantz import Driver
 from lantz.ui.widgets import initialize_and_report

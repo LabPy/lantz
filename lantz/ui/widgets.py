@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.ui.qtwidgets
-    ~~~~~~~~~~~~~~~~~~
+    lantz.ui.widgets
+    ~~~~~~~~~~~~~~~~
 
     Implements UI widgets based on Qt widgets. To achieve functionality,
     instances of QtWidgets are patched.
