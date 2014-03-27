@@ -374,7 +374,7 @@ class USBDriver(Driver):
             raise InstrumentError(str(e))
 
     def recv(self, size):
-        return self.recv(size)
+        return self.raw_recv(size)
 
     def raw_recv(self, size):
         """Receive raw bytes to the instrument.
