@@ -59,7 +59,11 @@ class SuperQObject(QtCore.QObject):
             mro.remove(qt_class)
         next_index = mro.index(SuperQObject) + 1
         if next_index < len(mro):
-            mro[next_index].__init__(self, *args, **kw)
+            init = mro[next_index].__init__
+            if init is object.__init__:
+                init(self)
+            else:
+                init(self, *args, **kw)
 
 
 MetaQObject = type(QtCore.QObject)
