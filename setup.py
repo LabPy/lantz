@@ -26,7 +26,7 @@ paths = os.listdir(folder)
 
 requirements = []
 if sys.version_info < (3, 4):
-    requirements.append('backport.enum')
+    requirements.append('enum34')
 
 companies = [path for path in paths
              if os.path.isdir(os.path.join(folder, path))
