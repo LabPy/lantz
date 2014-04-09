@@ -128,9 +128,7 @@ class USBTMCDriver(USBDriver, TextualMixin):
         time.sleep(0.01)
 
         self._get_capabilities()
-
-        self.usb_dev.set_configuration()
-
+    
         self._btag = 0
 
         if not (self.usb_recv_ep and self.usb_send_ep):
