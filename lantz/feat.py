@@ -137,12 +137,12 @@ class Feat(object):
 
         get_processors = []
         set_processors = []
+        if units:
+            get_processors.append(ToQuantityProcessor(units))
+            set_processors.append(FromQuantityProcessor(units))
         if values:
             get_processors.append(ReverseMapProcessor(values))
             set_processors.append(MapProcessor(values))
-        if units:
-            get_processors.insert(0, ToQuantityProcessor(units))
-            set_processors.append(FromQuantityProcessor(units))
         if limits:
             if isinstance(limits[0], (list, tuple)):
                 set_processors.append(RangeProcessor(limits))
@@ -151,7 +151,7 @@ class Feat(object):
         if processors:
             for getp, setp in processors:
                 if getp is not None:
-                    get_processors.insert(0, Processor(getp))
+                    get_processors.append(Processor(getp))
                 if setp is not None:
                     set_processors.append(Processor(setp))
 
@@ -191,7 +191,7 @@ class Feat(object):
         return self
 
     def post_get(self, value, instance=None, key=MISSING):
-        for processor in _dget(self.get_processors, instance, key):
+        for processor in reversed(_dget(self.get_processors, instance, key)):
             value = processor(value)
         return value
 
