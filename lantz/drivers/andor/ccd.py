@@ -175,7 +175,7 @@ class CCD(LibraryDriver):
         self.fan_mode_index = 'onfull'
         self.fan_mode = self.fan_mode_index
 
-        self.EM_gain_mode_index = 'DAC255'
+        self.EM_gain_mode_index = 'RealGain'
         self.EM_gain_mode = self.EM_gain_mode_index
 
         self.cooled_on_shutdown_value = False
@@ -435,12 +435,6 @@ class CCD(LibraryDriver):
                 5 Open for any series
             int closingtime: time shutter takes to close (milliseconds)
             int openingtime: Time shutter takes to open (milliseconds)
-            int mode:
-                0 Fully Auto
-                1 Permanently Open
-                2 Permanently Closed
-                4 Open for FVB series
-                5 Open for any series
         """
         self.lib.SetShutterEx(ct.c_int(typ), ct.c_int(mode),
                               ct.c_int(ext_closing), ct.c_int(ext_opening),
@@ -1145,7 +1139,7 @@ class CCD(LibraryDriver):
         kine = ct.c_float()
         self.lib.GetAcquisitionTimings(ct.pointer(exp), ct.pointer(accum),
                                        ct.pointer(kine))
-        return exp.value, accum.value, kine.value
+        return exp.value * seg, accum.value * seg, kine.value * seg
 
     @Action()
     def set_exposure_time(self, time):
@@ -1331,7 +1325,7 @@ class CCD(LibraryDriver):
         index = ct.c_int(index)
         gain = ct.c_float()
         self.lib.GetPreAmpGain(index, ct.pointer(gain))
-        return gain
+        return gain.value
 
     @Feat()
     def preamp(self):
