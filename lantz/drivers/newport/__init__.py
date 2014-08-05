@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.tektronix
-    ~~~~~~~~~~~~~~~~~~~~~~~
+    lantz.drivers.newport
+    ~~~~~~~~~~~~~~~~~~~~~
 
     :company: Newport.
     :description: Test and Measurement Equipment.
