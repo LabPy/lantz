@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     from lantz import Q_
 
-    from lantz.drivers.examples.dummydrivers import DummyFunGen
+    from lantz.drivers.examples import LantzSignalGeneratorTCP
 
     parser = argparse.ArgumentParser()
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     def print_change(new, old):
         print('Changed from {} to {}'.format(old, new))
 
-    with DummyFunGen() as inst:
+    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
         print(inst.idn)
 
         inst.frequency_changed.connect(print_change)

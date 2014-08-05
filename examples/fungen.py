@@ -63,3 +63,7 @@ if __name__ == '__main__':
             print(inst.dout[1])
             print(inst.din[2])
             inst.calibrate()
+             
+            print('Get Frequency: %s' % str(inst.timing.stats('get_frequency')))
+            print('Set Frequency: %s' % str(inst.timing.stats('set_frequency')))
+
