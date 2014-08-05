@@ -15,6 +15,7 @@
 
 from .andor import Andor
 from .neo import Neo
+from .ccd import CCD
 
-__all__ = ['Andor', 'Neo']
+__all__ = ['Andor', 'Neo', 'CCD']
 
