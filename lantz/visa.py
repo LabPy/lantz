@@ -213,4 +213,23 @@ class TCPVisaDriver(MessageVisaDriver):
 
 
 class USBVisaDriver(MessageVisaDriver):
-    pass
+
+
+    def raw_recv(self, size):
+        """Receive raw bytes to the instrument.
+
+        :param size: number of bytes to receive
+        :return: received bytes
+        :return type: bytes
+
+        If a timeout is set, it may return less bytes than requested.
+        If size == -1, then the number of available bytes will be read.
+
+        """
+
+        if not size:
+            size = 1
+
+        data = self.resource.read_raw(1)
+
+        return data
