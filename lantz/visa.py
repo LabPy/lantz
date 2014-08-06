@@ -13,7 +13,7 @@ from . import Driver
 from .driver import TextualMixin
 from .errors import LantzTimeoutError
 
-from .visalib import Constants, ResourceManager
+import visa
 
 
 class LantzVisaTimeoutError(LantzTimeoutError):
@@ -34,7 +34,7 @@ class VisaDriver(object):
 
     def __new__(cls, resource_name, *args, **kwargs):
         library_path = kwargs.get('library_path', None)
-        manager = ResourceManager(library_path)
+        manager = visa.ResourceManager(library_path)
         name = manager.resource_info(resource_name).resource_name
         if name.startswith('GPIB'):
             return GPIBVisaDriver(resource_name, *args, **kwargs)
@@ -65,13 +65,12 @@ class MessageVisaDriver(TextualMixin, Driver):
     def __init__(self, resource_name, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.vi = None
         self._init_attributes = {}
 
         library_path = kwargs.get('library_path', None)
-        self.resource_manager = ResourceManager(library_path)
+        self.resource_manager = visa.ResourceManager(library_path)
 
-        self.visa = self.resource_manager.visa
+        self.resource = None
 
         self.resource_name = resource_name
         self.log_debug('Created Instrument {}', self.resource_name)
@@ -84,7 +83,7 @@ class MessageVisaDriver(TextualMixin, Driver):
         """
 
         try:
-            self.visa.write(self.vi, data)
+            self.resource.write(data)
         except Exception as e:
             raise Exception(str(e))
 
@@ -93,11 +92,11 @@ class MessageVisaDriver(TextualMixin, Driver):
         """
         if not self.is_open():
             self.log_debug('Opening {}', self.resource_name)
-            self.vi = self.resource_manager.open_resource(self.resource_name)
+            self.resource = self.resource_manager.open_resource(resource_name)
             for key, value in self._init_attributes.items():
-                self.visa.set_attribute(self.vi, key, value)
+                self.resource.set_visa_attribute(key, value)
 
-            self.log_debug('The session for {} is {}', self.resource_name, self.vi)
+            self.log_debug('The session for {} is {}', self.resource_name, self.resource.session)
         else:
             self.log_debug('{} is already open', self.resource_name)
 
@@ -105,11 +104,11 @@ class MessageVisaDriver(TextualMixin, Driver):
         """Close port
         """
         self.log_debug('Closing port {}', self.resource_name)
-        self.visa.close(self.vi)
-        self.vi = None
+        self.resource.close()
+        self.session = None
 
     def is_open(self):
-        return self.vi is not None
+        return self.session is not None
 
 
 class SerialVisaDriver(MessageVisaDriver):
@@ -203,7 +202,7 @@ class GPIBVisaDriver(MessageVisaDriver):
         if not size:
             size = 1
 
-        data = self.visa.read(self.vi, 1)
+        data = self.resource.read(1)
 
         return data
 
