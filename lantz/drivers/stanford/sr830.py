@@ -508,8 +508,9 @@ class _SR830(object):
 
 class SR830GPIB(_SR830, GPIBVisaDriver):
 
-    RECV_TERMINATION = '\r'
+    RECV_TERMINATION = '\n'
     SEND_TERMINATION = '\n'
+
 
 class SR830Serial(_SR830, SerialDriver):
 
