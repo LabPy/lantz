@@ -33,7 +33,7 @@ companies = [path for path in paths
              and os.path.exists(os.path.join(folder, path, '__init__.py'))]
 
 setup(name='Lantz',
-      version='0.3.dev0',
+      version='0.3.dev1',
       license='BSD',
       description='Instrumentation framework',
       long_description=long_description,
