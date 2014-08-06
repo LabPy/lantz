@@ -108,6 +108,8 @@ class MessageVisaDriver(TextualMixin, Driver):
         self.resource.close()
 
     def is_open(self):
+        if self.resource is None:
+            return False
         return self.resource.session is not None
 
 
