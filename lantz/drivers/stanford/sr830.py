@@ -11,6 +11,7 @@ import numpy as np
 
 from lantz import Action, Feat, DictFeat, ureg
 from lantz.serial import SerialDriver
+from lantz.visa import GPIBVisaDriver
 from lantz.errors import InstrumentError
 
 from collections import OrderedDict
@@ -505,7 +506,7 @@ class _SR830(object):
     # Fast
     # STRD
 
-class SR830GPIB(_SR830, ):
+class SR830GPIB(_SR830, GPIBVisaDriver):
 
     RECV_TERMINATION = '\r'
     SEND_TERMINATION = '\n'
