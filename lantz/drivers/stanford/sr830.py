@@ -245,7 +245,7 @@ class _SR830(object):
 
     ## DISPLAY and OUTPUT COMMANDS
 
-    @DictFeat(keys={1, 2}, values=)
+    @DictFeat(keys={1, 2})
     def display(self, channel):
         """Front panel output source.
         """
@@ -469,7 +469,7 @@ class _SR830(object):
     def measure(self, channels):
         d = {'x': '1', 'y': '2', 'r': '3', 't': '4',
              '1': '5', '2': '6', '3': '7', '4': '8',
-             'f': '9', '': 10, '': 11)
+             'f': '9', '': 10, '': 11}
         channels = ','.join(d[ch] for ch in channels)
         self.query('SNAP? {}'.format(channels))
 
