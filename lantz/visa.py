@@ -19,6 +19,7 @@ import visa
 class LantzVisaTimeoutError(LantzTimeoutError):
     pass
 
+"""
 BYTESIZE = {5: 5, 6: 6,
             7: 7, 8: 8}
 
@@ -28,7 +29,7 @@ PARITY = {'none': Constants.ASRL_PAR_NONE, 'even': Constants.ASRL_PAR_EVEN,
 
 STOPBITS = {1: Constants.ASRL_STOP_ONE, 1.5: Constants.ASRL_STOP_ONE5,
             2: Constants.ASRL_STOP_TWO}
-
+"""
 
 class VisaDriver(object):
 
