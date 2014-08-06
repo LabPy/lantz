@@ -106,10 +106,9 @@ class MessageVisaDriver(TextualMixin, Driver):
         """
         self.log_debug('Closing port {}', self.resource_name)
         self.resource.close()
-        self.session = None
 
     def is_open(self):
-        return self.session is not None
+        return self.resource.session is not None
 
 
 class SerialVisaDriver(MessageVisaDriver):
