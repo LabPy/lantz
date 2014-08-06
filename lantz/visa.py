@@ -93,7 +93,7 @@ class MessageVisaDriver(TextualMixin, Driver):
         """
         if not self.is_open():
             self.log_debug('Opening {}', self.resource_name)
-            self.resource = self.resource_manager.open_resource(resource_name)
+            self.resource = self.resource_manager.open_resource(self.resource_name)
             for key, value in self._init_attributes.items():
                 self.resource.set_visa_attribute(key, value)
 
