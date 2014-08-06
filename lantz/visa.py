@@ -84,7 +84,7 @@ class MessageVisaDriver(TextualMixin, Driver):
         """
 
         try:
-            self.resource.write(data)
+            self.resource.write_raw(data)
         except Exception as e:
             raise Exception(str(e))
 
@@ -204,7 +204,7 @@ class GPIBVisaDriver(MessageVisaDriver):
         if not size:
             size = 1
 
-        data = self.resource.read(1)
+        data = self.resource.read_raw(1)
 
         return data
 
