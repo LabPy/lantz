@@ -171,15 +171,15 @@ class Feat(object):
         return self.setter(func)
 
     def getter(self, func):
-        if func.__doc__ and not self.__originaldoc__:
-            self.__doc__ = func.__doc__
+        if func.__doc__ and not self.__original_doc__:
+            self.__original_doc__ = func.__doc__
             _dochelper(self)
         self.fget = func
         return self
 
     def setter(self, func):
-        if func.__doc__ and not self.__originaldoc__:
-            self.__doc__ = func.__doc__
+        if func.__doc__ and not self.__original_doc__:
+            self.__original_doc__ = func.__doc__
             _dochelper(self)
         self.fset = func
         return self
