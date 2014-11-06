@@ -49,6 +49,7 @@ setup(name='Lantz',
                ['lantz.drivers.' + company for company in companies],
       test_suite='lantz.testsuite.testsuite',
       install_requires=['pint>=0.3.1',
+                        'pyvisa>=1.6',
                         'stringparser',
                        ] + requirements,
       zip_safe=False,
@@ -61,9 +62,6 @@ setup(name='Lantz',
            'zest.releaser.releaser.after_checkout': [
               'pyroma = lantz:run_pyroma',
            ],
-           'console_scripts': [
-              'lantz-shell = lantz.ui.shell:main',
-           ]
                    },
       classifiers=[
            'Development Status :: 4 - Beta',
