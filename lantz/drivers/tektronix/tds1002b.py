@@ -6,8 +6,13 @@ from lantz.drivers.usbtmc import USBTMCDriver
 
 class TDS1002b(USBTMCDriver):
 
-    def __init__(self, serial_number=None, **kwargs):
-        super().__init__(1689, 867, serial_number, **kwargs)
+    @classmethod
+    def usb_from_serial(cls, serial_number):
+        # find resource and get resource name
+
+        #super().__init__(1689, 867, serial_number, **kwargs)
+
+        return cls(resource_name='bla')
 
     @Feat(read_once=True)
     def idn(self):
