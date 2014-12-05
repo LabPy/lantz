@@ -202,7 +202,7 @@ If you want to send a command to an instrument only once during a particular scr
 Units
 -----
 
-Instrumentation software need to deal with physical units, and therefore you need to deal with them. Keeping track of the units of each variable in time consuming and error prone, and derives into annoying naming practices such as `freq_in_KHz`. Lantz aims to reduce the burden of this by incorporating units using the Pint_ package. The Quantity object si abbreviated withing Lantz as `Q_` and can be imported from the root::
+Instrumentation software need to deal with physical units, and therefore you need to deal with them. Keeping track of the units of each variable in time consuming and error prone, and derives into annoying naming practices such as `freq_in_KHz`. Lantz aims to reduce the burden of this by incorporating units using the Pint_ package. The Quantity object is abbreviated withing Lantz as `Q_` and can be imported from the root::
 
     from lantz import Q_
 
@@ -219,7 +219,7 @@ This makes the code a little more verbose but is worth the effort. The code is m
 
     with FunGen('COM1') as fungen:
 
-        fungen.frequency = Q_(0.05, 'V')
+        fungen.amplitude = Q_(0.05, 'V')
 
 Later you decide to change the function generator by a different one, with a different communication protocol::
 
@@ -230,7 +230,7 @@ Later you decide to change the function generator by a different one, with a dif
 
     with FunGen('COM1') as fungen:
 
-        fungen.frequency = Q_(0.05, 'V') # the value is converted from volts to mV inside the driver.
+        fungen.amplitude = Q_(0.05, 'V') # the value is converted from volts to mV inside the driver.
 
 Apart from the import, nothing has changed. In a big code base this means that you can easily replace one instrument by another.
 

@@ -11,6 +11,7 @@ from lantz import Action, Feat, DictFeat
 from lantz.serial import SerialDriver
 from lantz.errors import InstrumentError
 
+
 class MiniLasEvo(SerialDriver):
     """Driver for any RGB Lasersystems MiniLas Evo laser.
     """
@@ -30,8 +31,8 @@ class MiniLasEvo(SerialDriver):
     DSRDTR = False
     XONXOFF = False
 
-
-    def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
+    def query(self, command, *, send_args=(None, None),
+              recv_args=(None, None)):
         """Send query to the laser and return the answer, after handling
         possible errors.
 
@@ -44,7 +45,7 @@ class MiniLasEvo(SerialDriver):
         ans = super().query(command, send_args=send_args, recv_args=recv_args)
         # TODO: Echo handling
         code = ans[0]
-        if code !=0:
+        if code != 0:
             if code == '1':
                 raise InstrumentError('Command invalid')
             elif code == '2':
@@ -141,7 +142,7 @@ class MiniLasEvo(SerialDriver):
         return ans
 
     # TEMPERATURE
-    
+
     @Feat()
     def temperature(self):
         """Current temperature in ºC
@@ -161,7 +162,7 @@ class MiniLasEvo(SerialDriver):
         return self.query('LTP?')
 
     # ENABLED REQUEST
-    
+
     @Feat(values={True: '1', False: '0'})
     def enabled(self):
         """Method for turning on the laser
@@ -173,10 +174,9 @@ class MiniLasEvo(SerialDriver):
         self.query('O=' + value)
 
     # LASER POWER
-    
+
     def initialize(self):
         super().initialize()
-        self.enabled = True
         self.power = 0
         self.feats.power.limits = (0, self.maximum_power.magnitude)
 
@@ -187,12 +187,12 @@ class MiniLasEvo(SerialDriver):
         return float(self.query('LP?'))
 
     @Feat(units='mW')
-    def power(self):
+    def power_sp(self):
         """Gets and sets the emission power
         """
         return float(self.query('P?'))
 
-    @power.setter
+    @power_sp.setter
     def power(self, value):
         self.query('P={:.1f}'.format(value))
 
@@ -221,7 +221,4 @@ if __name__ == '__main__':
             inst.power = 0
             print(inst.idn)
             """
-
-
-
 
