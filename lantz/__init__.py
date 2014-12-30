@@ -27,7 +27,9 @@ from .driver import Driver, Feat, DictFeat, Action, initialize_many, finalize_ma
 __all__ = ['Driver', 'Action', 'Feat', 'DictFeat', 'Q_']
 
 
-def run_pyroma(data):
+def _run_pyroma(data):   # pragma: no cover
+    """Run pyroma (used to perform checks before releasing a new version).
+    """
     import sys
     from zest.releaser.utils import ask
     if not ask("Run pyroma on the package before uploading?"):
@@ -41,3 +43,4 @@ def run_pyroma(data):
     except ImportError:
         if not ask("pyroma not available. Continue?"):
             sys.exit(1)
+
