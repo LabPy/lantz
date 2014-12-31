@@ -14,7 +14,7 @@ import logging
 import socket
 import socketserver
 try:
-    from lantz.serial import SerialDriver
+    from lantz.drivers.legacy.serial import SerialDriver
 except ImportError:
     pass
 
