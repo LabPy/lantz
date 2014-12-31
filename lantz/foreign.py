@@ -70,7 +70,7 @@ class Library(object):
         if self.prefix:
             try:
                 return getattr(self.internal, self.prefix + name)
-            except Exception:
+            except:
                 pass
 
         try:

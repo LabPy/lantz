@@ -28,8 +28,8 @@ class Lambda103(SerialDriver):
     RECV_TERMINATION = ''
     SEND_TERMINATION = ''
 
-    def __init__(self, port=11, baudrate=9600, timeout=1, *args, **kwargs):
-        super().__init__(port, baudrate, timeout, *args, **kwargs)
+    def __init__(self, port=11, baudrate=9600, timeout=1, **kwargs):
+        super().__init__(port, timeout, baudrate=baudrate, **kwargs)
 
         self.speed = 1
 

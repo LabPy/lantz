@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+    lantz.messagebased
+    ~~~~~~~~~~~~~~~~~~
+
+    Implementes base class for message based drivers using PyVISA under the hood.
+
+    :copyright: 2013 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
+"""
 
 from collections import ChainMap
 import types
@@ -122,7 +132,7 @@ class MessageBasedDriver(Driver):
             query = 'USB%d::%s::%s::%s::INSTR' % (board, manufacturer_id or '?*', model_code or '?*', serial_number or '?*')
             try:
                 resources = get_resource_manager().list_resources(query)
-            except Exception:
+            except:
                 resources = []
 
             if len(resources) != 1:
@@ -272,7 +282,6 @@ class MessageBasedDriver(Driver):
         :param termination: termination character (overrides class default)
         :type termination: str
         :param encoding: encoding to transform bytes to string (overrides class default)
-        :param recv_chunk: number of bytes to receive (overrides class default)
         :return: string encoded from received bytes
         """
         return self.resource.read(termination, encoding)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
     lantz.log
     ~~~~~~~~~
@@ -7,8 +8,6 @@
     :copyright: 2012 by The Lantz Authors
     :license: BSD, see LICENSE for more details.
 """
-
-import types
 
 import pickle
 
@@ -72,16 +71,6 @@ def get_logger(name, add_NullHandler=True, patch_makeRecord=True):
 
 LOGGER = get_logger('lantz')
 
-try:
-    from colorama import Fore, Back, Style, init as colorama_init
-    colorama_init()
-    colorama = True
-    DEFAULT_FMT = Style.NORMAL + '{asctime} <color>{levelname:8s}</color>' + Style.RESET_ALL + ' {message}'
-except Exception as e:
-    LOGGER.info('Log will not be colorized. Could not import colorama: {}', e)
-    colorama = False
-    DEFAULT_FMT = '{asctime} {levelname:8s} {message}'
-
 
 class ColorizingFormatter(logging.Formatter):
     """Color capable logging formatter.
@@ -100,31 +89,31 @@ class ColorizingFormatter(logging.Formatter):
              }
 
     @classmethod
-    def add_color_schemes(cls):
+    def add_color_schemes(cls, style, fore, back):
         cls.format = cls.color_format
-        cls.SCHEME.update(bright={DEBUG: Style.NORMAL,
-                                  INFO: Style.NORMAL,
-                                  WARNING: Style.BRIGHT,
-                                  ERROR: Style.BRIGHT,
-                                  CRITICAL: Style.BRIGHT},
-                          simple={DEBUG: Fore.BLUE + Style.BRIGHT,
-                                  INFO: Back.WHITE + Fore.BLACK,
-                                  WARNING: Fore.YELLOW + Style.BRIGHT,
-                                  ERROR: Fore.RED + Style.BRIGHT,
-                                  CRITICAL: Back.RED + Fore.WHITE + Style.BRIGHT},
-                          whitebg={DEBUG: Fore.BLUE + Style.BRIGHT,
-                                   INFO: Back.WHITE + Fore.BLACK,
-                                   WARNING: Fore.YELLOW + Style.BRIGHT,
-                                   ERROR: Fore.RED + Style.BRIGHT,
-                                   CRITICAL: Back.RED + Fore.WHITE + Style.BRIGHT},
-                          blackbg={DEBUG: Fore.BLUE + Style.BRIGHT,
-                                   INFO: Fore.GREEN,
-                                   WARNING: Fore.YELLOW + Style.BRIGHT,
-                                   ERROR: Fore.RED + Style.BRIGHT,
-                                   CRITICAL: Back.RED + Fore.WHITE + Style.BRIGHT}
+        cls.SCHEME.update(bright={DEBUG: style.NORMAL,
+                                  INFO: style.NORMAL,
+                                  WARNING: style.BRIGHT,
+                                  ERROR: style.BRIGHT,
+                                  CRITICAL: style.BRIGHT},
+                          simple={DEBUG: fore.BLUE + style.BRIGHT,
+                                  INFO: back.WHITE + fore.BLACK,
+                                  WARNING: fore.YELLOW + style.BRIGHT,
+                                  ERROR: fore.RED + style.BRIGHT,
+                                  CRITICAL: back.RED + fore.WHITE + style.BRIGHT},
+                          whitebg={DEBUG: fore.BLUE + style.BRIGHT,
+                                   INFO: back.WHITE + fore.BLACK,
+                                   WARNING: fore.YELLOW + style.BRIGHT,
+                                   ERROR: fore.RED + style.BRIGHT,
+                                   CRITICAL: back.RED + fore.WHITE + style.BRIGHT},
+                          blackbg={DEBUG: fore.BLUE + style.BRIGHT,
+                                   INFO: fore.GREEN,
+                                   WARNING: fore.YELLOW + style.BRIGHT,
+                                   ERROR: fore.RED + style.BRIGHT,
+                                   CRITICAL: back.RED + fore.WHITE + style.BRIGHT}
                           )
 
-    def __init__(self, fmt=DEFAULT_FMT, datefmt='%H:%M:%S', style='%', scheme='bw'):
+    def __init__(self, fmt, datefmt='%H:%M:%S', style='%', scheme='bw'):
         super().__init__(fmt, datefmt, style)
         self.scheme = scheme
 
@@ -161,8 +150,20 @@ class ColorizingFormatter(logging.Formatter):
         return message
 
 
-if colorama:
-    ColorizingFormatter.add_color_schemes()
+def init_colorama():
+    try:
+        from colorama import Fore, Back, Style, init as colorama_init
+        colorama_init()
+        colorama = True
+        DEFAULT_FMT = Style.NORMAL + '{asctime} <color>{levelname:8s}</color>' + Style.RESET_ALL + ' {message}'
+        ColorizingFormatter.add_color_schemes(Style, Fore, Back)
+    except Exception as e:
+        LOGGER.info('Log will not be colorized. Could not import colorama: {}', e)
+        colorama = False
+        DEFAULT_FMT = '{asctime} {levelname:8s} {message}'
+    return colorama, DEFAULT_FMT
+
+colorama, DEFAULT_FMT = init_colorama()
 
 
 class BaseServer(object):
@@ -278,13 +279,13 @@ class SocketListener(object):
     def start(self):
         self._lock = threading.RLock()
 
-        s = LoggingTCPServer(self.tcp_addr, self.on_record, 0.5)
+        s = LoggingTCPServer(self.tcp_addr, self.on_record, 1)
         self.tcp_server = s
         self.tcp_thread = t = threading.Thread(target=s.serve_until_stopped)
         t.setDaemon(True)
         t.start()
 
-        s = LoggingUDPServer(self.udp_addr, self.on_record, 0.5)
+        s = LoggingUDPServer(self.udp_addr, self.on_record, 1)
         self.udp_server = s
         self.udp_thread = t = threading.Thread(target=s.serve_until_stopped)
         t.setDaemon(True)
@@ -329,7 +330,7 @@ def log_to_screen(level=logging.INFO, scheme='blackbg'):
     handler.setLevel(level)
     if not colorama:
         scheme = 'bw'
-    handler.setFormatter(ColorizingFormatter(scheme=scheme, style='{'))
+    handler.setFormatter(ColorizingFormatter(fmt=DEFAULT_FMT, scheme=scheme, style='{'))
     LOGGER.addHandler(handler)
     if LOGGER.getEffectiveLevel() > level:
         LOGGER.setLevel(level)

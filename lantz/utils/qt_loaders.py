@@ -31,15 +31,18 @@ QT_API_PYQT_DEFAULT = 'pyqtdefault' # don't set SIP explicitly
 QT_API_PYSIDE = 'pyside'
 
 
-def check_version(v, check):
-    """check version string v >= check
+def check_version(version, minimum_version):
+    """check version string version >= minimum_version
+
+    :param version: Version of the package.
+    :param minimum_version: Minimum version required.
 
     If dev/prerelease tags result in TypeError for string-number comparison,
     it is assumed that the dependency is satisfied.
     Users on dev branches are responsible for keeping their own packages up to date.
     """
     try:
-        return LooseVersion(v) >= LooseVersion(check)
+        return LooseVersion(version) >= LooseVersion(minimum_version)
     except TypeError:
         return True
 
@@ -176,11 +179,8 @@ def import_pyqt4(version=2):
     """
     Import PyQt4
 
-    Parameters
-    ----------
-    version : 1, 2, or None
-      Which QString/QVariant API to use. Set to None to use the system
-      default
+    :param version: 1, 2, or None. Which QString/QVariant API to use.
+                    Set to None to use the system default
 
     ImportErrors raised within this function are non-recoverable
     """
@@ -266,9 +266,8 @@ def import_pyside():
         """
         Dynamically load a user interface from the given ``uifile``.
 
-        ``uifile`` is a string containing a file name of the UI file to load.
-
-        If ``baseinstance`` is ``None``, the a new instance of the top-level widget
+        :param uifile: a string containing a file name of the UI file to load.
+        :param baseinstance: If ``None``, the a new instance of the top-level widget
         will be created.  Otherwise, the user interface is created within the given
         ``baseinstance``.  In this case ``baseinstance`` must be an instance of the
         top-level widget class in the UI file to load, or a subclass thereof.  In
@@ -301,9 +300,7 @@ def load_qt(api_options):
 
     It is safe to call this function multiple times.
 
-    Parameters
-    ----------
-    api_options: List of strings
+    :param api_options: List of strings
         The order of APIs to try. Valid items are 'pyside',
         'pyqt', and 'pyqtv1'
 

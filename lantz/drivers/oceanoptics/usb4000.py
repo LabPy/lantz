@@ -1,3 +1,15 @@
+# -*- coding: utf-8 -*-
+"""
+    lantz.drivers.oceanoptics.usb4000
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    Driver for spectrograph.
+
+    :copyright: 2013 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
+"""
+
+
 import struct
 
 from lantz import Feat, DictFeat

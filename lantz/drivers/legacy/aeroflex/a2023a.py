@@ -77,7 +77,7 @@ class A2023a(SerialDriver):
 
     @service_request_enabled.setter
     def service_request_enabled(self, value):
-        return self.query('*SRE {0:d}', value)
+        self.query('*SRE {0:d}'.format(value))
 
     @Feat()
     def event_status_reg(self):
@@ -87,7 +87,7 @@ class A2023a(SerialDriver):
 
     @event_status_reg.setter
     def event_status_reg(self, value):
-        self.query('*ESR {0:d}', value)
+        self.query('*ESR {0:d}'.format(value))
 
     @Feat()
     def event_status_enabled(self):
@@ -97,7 +97,7 @@ class A2023a(SerialDriver):
 
     @event_status_enabled.setter
     def event_status_enabled(self, value):
-        self.query('*ESR {0:d}', value)
+        self.query('*ESR {0:d}'.format(value))
 
     @Action()
     def clear_status(self):
@@ -124,15 +124,15 @@ class A2023a(SerialDriver):
 
     @amplitude.setter
     def amplitude(self, value):
-        self.query('RFLV:VALUE {0:f}V', value)
+        self.query('RFLV:VALUE {0:f}V'.format(value))
 
 
     @Feat(units='V')
     def offset(self):
         """Offset amplitude.
         """
-        return self.query('RFLV:OFFS?',
-                          format=':RFLV:OFFS:VALUE {0:f};{_}')
+        return self.parse_query('RFLV:OFFS?',
+                                format=':RFLV:OFFS:VALUE {0:f};{_}')
 
     @offset.setter
     def offset(self, value):
@@ -201,7 +201,8 @@ class A2023a(SerialDriver):
 
     @Feat(values={True: 'on', False: 'off'})
     def time(self):
-        self.send()
+        #TODO: Command??
+        self.send('')
         return self.recv()
 
     @time.setter

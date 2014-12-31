@@ -285,13 +285,14 @@ class WidgetMixin(object):
 
 class FeatWidget(object):
     """Widget to show a Feat.
-
-    :param parent: parent widget.
-    :param target: driver object to connect.
-    :param feat: Feat to connect.
     """
 
     def __new__(cls, parent, target, feat):
+        """
+        :param parent: parent widget.
+        :param target: driver object to connect.
+        :param feat: Feat to connect.
+        """
         widget = WidgetMixin.from_feat(feat, parent)
         widget.bind_feat(feat)
         widget.lanz_target = target
@@ -715,11 +716,11 @@ class ChildrenWidgets(object):
         pending = [self.parent, ]
         qualname = {self.parent: self.parent.objectName()}
         while pending:
-            object = pending.pop()
-            for child in object.children():
+            obj = pending.pop()
+            for child in obj.children():
                 if not isinstance(child, QtGui.QWidget):
                     continue
-                qualname[child] = qualname[object] + '.' + child.objectName()
+                qualname[child] = qualname[obj] + '.' + child.objectName()
                 pending.append(child)
                 yield child.objectName(), qualname[child], child
 

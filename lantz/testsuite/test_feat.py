@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import time
 import logging
@@ -88,6 +89,7 @@ class FeatTest(unittest.TestCase):
 
     def test_readwrite(self):
 
+        # noinspection PyPropertyDefinition
         class Spam(Driver):
 
             _eggs = 8
@@ -172,7 +174,7 @@ class FeatTest(unittest.TestCase):
 
             _eggs = 8
 
-            @Feat(values=set((1, 2.2, 10)), units='second')
+            @Feat(values={1, 2.2, 10}, units='second')
             def eggs(self_):
                 return self_._eggs
 
@@ -379,6 +381,7 @@ class FeatTest(unittest.TestCase):
 
     def test_of_instance(self):
 
+        # noinspection PyPropertyDefinition
         class Spam(Driver):
 
             def __init__(self_):

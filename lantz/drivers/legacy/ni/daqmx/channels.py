@@ -397,7 +397,7 @@ class LinearEncoderChannel(Channel):
         if units_val != Constants.Val_FromCustomScale:
             customScaleName = None
 
-        return CALL(
+        CALL(
             'CreateCILinEncoderChan',
             self,
             counter,

@@ -158,6 +158,8 @@ class VFL(SerialDriver):
         """Initiating SHG tuning
         """
         state = self.query('GETSHGTUNESTATE').split()
+        tuning = error = ''
+
         if state[0] == '0':
             tuning = 'No SHG tuning performed since last reset. '
         elif state[0] == '3':

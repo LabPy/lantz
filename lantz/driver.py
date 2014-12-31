@@ -150,7 +150,7 @@ class _DriverType(MetaQObject):
 
         return super().__new__(cls, classname, bases, class_dict)
 
-    def __init__(cls, classname, bases, class_dict):
+    def __init__(self, classname, bases, class_dict):
         super().__init__(classname, bases, class_dict)
 
         feats = {}
@@ -171,10 +171,10 @@ class _DriverType(MetaQObject):
         # We create async versions of each Action if it does not exists.
 
         for key, action in actions.items():
-            if not hasattr(cls, key + '_async'):
+            if not hasattr(self, key + '_async'):
                 async_action = repartial_submit(key)
                 async_action.__doc__ = '(Async) ' + action.__doc__ if action.__doc__ else ''
-                setattr(cls, key + '_async', async_action)
+                setattr(self, key + '_async', async_action)
 
         # We update the feat an actions dictionaries with the ones
         # from the base clases
@@ -187,8 +187,8 @@ class _DriverType(MetaQObject):
                 if isinstance(value, Action) and key not in actions:
                     actions[key] = value
 
-        cls._lantz_features = feats
-        cls._lantz_actions = actions
+        self._lantz_features = feats
+        self._lantz_actions = actions
 
 
 _REGISTERED = defaultdict(int)
@@ -214,6 +214,8 @@ class Driver(SuperQObject, metaclass=_DriverType):
 
     _lantz_features = {}
     _lantz_actions = {}
+
+    __name = ''
 
     def __new__(cls, *args, **kwargs):
         inst = SuperQObject.__new__(cls)

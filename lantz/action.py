@@ -77,7 +77,7 @@ class Action(object):
                                    'limits': limits,
                                    'processors': procs}
         self.func = func
-        self.args = None
+        self.args = ()
 
     def __call__(self, func):
         self.func = func
@@ -120,15 +120,13 @@ class Action(object):
             try:
                 tic = time.time()
                 out = self.func(instance, *t_values)
+                instance.timing.add(name, time.time() - tic)
+                instance.log_info('{} returned {}', name, out)
+
+                return out
             except Exception as e:
                 instance.log_error('While calling {} with {}. {}', name, t_values, e)
                 raise e
-
-            instance.timing.add(name, time.time() - tic)
-
-            instance.log_info('{} returned {}', name, out)
-
-        return out
 
     def pre_action(self, value, instance=None):
         procs = _dget(self.action_processors, instance)

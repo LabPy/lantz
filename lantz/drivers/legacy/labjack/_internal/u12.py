@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Name: u12.py
 Desc: Defines the U12 class, which makes working with a U12 much easier. The 

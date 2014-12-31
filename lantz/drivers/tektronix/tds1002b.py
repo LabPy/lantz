@@ -1,4 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+    lantz.drivers.tektronix.tds1012
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    Implements the drivers to control an oscilloscope.
+
+    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
+"""
 
 from lantz import Feat
 from lantz.messagebased import MessageBasedDriver

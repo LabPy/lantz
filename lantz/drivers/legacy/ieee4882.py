@@ -85,7 +85,7 @@ class IEEE4882Driver(Driver):
 
     @service_request_enabled.setter
     def service_request_enabled(self, value):
-        return self.query('*SRE {0:d}', value)
+        return self.query('*SRE {0:d}'.format(value))
 
     event_status_reg = Feat()
 

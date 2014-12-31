@@ -57,20 +57,20 @@ class NanoScanZ(SerialDriver):
     
     @Feat(values={9600,19200,38400})
     def baudrate(self):
-        '''Reports and sets the baud rate.
+        """Reports and sets the baud rate.
         NOTE: DO NOT change the baud rate of the Piezo controller when daisy chained to ProScan.
-        '''
+        """
         return self.query('BAUD')
 
     @baudrate.setter
-    def baudate(self, value):
+    def baudrate(self, value):
         self.query('BAUD {}'.format(value))
 
 
     @Feat(values={True: '4', False: '00000'})
     def moving(self):
-        '''Returns the movement status, 0 stationary, 4 moving
-        '''
+        """Returns the movement status, 0 stationary, 4 moving
+        """
         return self.query('$')
     
     @Feat(read_once=True)
@@ -81,9 +81,9 @@ class NanoScanZ(SerialDriver):
     
     @Feat(units = 'micrometer')
     def position(self):
-        '''Gets and sets current position.
+        """Gets and sets current position.
         If the value is set to z = 0, the display changes to REL 0 (relative display mode). To return to ABS mode use inst.move_absolute(0) and then inst.position = 0. Thus, the stage will return to 0 micrometers and the display screen will switch to ABS mode.
-        '''
+        """
         return self.query('PZ')
 
     @position.setter
@@ -92,27 +92,27 @@ class NanoScanZ(SerialDriver):
     
     @Action()
     def zero_position(self):
-        '''Move to zero including any position redefinitions done by the position Feat
-        '''
+        """Move to zero including any position redefinitions done by the position Feat
+        """
         self.query('M')
     
     
     @Action(units = 'micrometer', limits=(100,))
     def move_absolute(self, value):
-        '''Move to absolute position n, range (0,100).
+        """Move to absolute position n, range (0,100).
         This is a "real" absolute position and is independent of any relative offset added by the position Feat.
-        '''
+        """
         self.query('V {}'.format())
     
     
     @Action()
     def move_relative(self, value):
-        ''' 
+        """ 
         Move the stage position relative to the current position by an amount determined by 'value'.
         If value is given in micrometer, thats the amount the stage is going to move, in microns.
         If value is given in steps, the stage will move a distance  value.magnitude * step. The step is defined by the step Feat
-        '''
-        '''
+        """
+        """
     try:
             u = value.units
             if value.magnitude > 0:
@@ -129,7 +129,7 @@ class NanoScanZ(SerialDriver):
                         self.query('D')
             else:
                 raise ValueError('Specify the translation distance in micrometer unit')               
-        '''
+        """
         try:
             if value.units == 'micrometer':
                 if value.magnitude > 0:
@@ -149,8 +149,8 @@ class NanoScanZ(SerialDriver):
 
     @Feat(units='micrometer')
     def step(self):
-        '''Report and set the default step size, in microns
-        '''
+        """Report and set the default step size, in microns
+        """
         return self.query('C')
 
     @step.setter
@@ -161,17 +161,19 @@ class NanoScanZ(SerialDriver):
     
     @Feat(read_once=True)
     def software_version(self):
-        '''Software version
-        '''  
+        """Software version
+        """  
         return self.query('VER')
 
 class NanoScanZ_chained(NanoScanZ):
-    '''This is needed when the NanoScanZ controller is connected to a ProScanII controller through its RS-232-2 input
-    '''
-    def send(self, command, termination=None, encoding=None):
-        '<' + super.send(command, termination=termination, encoding=encoding)
-    def recv(self, termination=None, encoding=None, recv_chunk=None):
-        super.recv(termination=termination, encoding=encoding, recv_chunk=recv_chunk)[1:]
+    """This is needed when the NanoScanZ controller is connected to a ProScanII controller through its RS-232-2 input
+    """
+    def write(self, command, termination=None, encoding=None):
+        super().write('<' + command, termination=termination, encoding=encoding)
+
+    def read(self, termination=None, encoding=None, recv_chunk=None):
+        return super().read(termination=termination, encoding=encoding)[1:]
+
 
 if __name__ == '__main__':
     import argparse

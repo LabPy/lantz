@@ -67,11 +67,10 @@ class IXBX(SerialDriver):
 
 
     def __init__(self, port=1, baudrate=19200, bytesize=8, parity='Even',
-                 stopbits=1, flow=0, timeout=None, write_timeout=None,
-                 *args, **kwargs):
-        super().__init__(port, baudrate, bytesize, parity,
-                         stopbits, flow, timeout, write_timeout,
-                         *args, **kwargs)
+                 stopbits=1, flow=0, timeout=None, write_timeout=None):
+        super().__init__(port, timeout=timeout, write_timeout=write_timeout,
+                         baudrate=baudrate, bytesize=bytesize, parity=parity,
+                         stopbits=stopbits, flow=flow)
         self.send('1LOG IN\n')
         self.send('2LOG IN')
 

@@ -186,7 +186,7 @@ def start_test_app(target, width=500, qapp_or_args=None):
 
     :param target: a driver object or a collection of drivers.
     :param width: to be used as minimum width of the window.
-    :param args: arguments to be passed to QApplication.
+    :param qapp_or_args: arguments to be passed to QApplication.
     """
 
     if isinstance(qapp_or_args, QtGui.QApplication):

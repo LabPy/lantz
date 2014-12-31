@@ -1,27 +1,35 @@
+# -*- coding: utf-8 -*-
 """
-Name: u12.py
-Desc: Defines the U12 class, which makes working with a U12 much easier. The 
-      functions of the U12 class are divided into two categories: UW and 
-      low-level.
-      
-      Most of the UW functions are exposed as functions of the U12 class. With
-      the exception of the "e" functions, UW functions are Windows only. The "e"
-      functions will work with both the UW and the Exodriver. Therefore, people
-      wishing to write cross-platform code should restrict themselves to using
-      only the "e" functions. The UW functions are described in Section 4 of the
-      U12 User's Guide:
-      
-      http://labjack.com/support/u12/users-guide/4
-      
-      All low-level functions of the U12 class begin with the word
-      raw. For example, the low-level function Counter can be called with 
-      U12.rawCounter(). Currently, low-level functions are limited to the 
-      Exodriver (Linux and Mac OS X). You can find descriptions of the low-level
-      functions in Section 5 of the U12 User's Guide:
-      
-      http://labjack.com/support/u12/users-guide/5
-      
+    lantz.drivers.labjack._internal.u12
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    Python drivers for U12 provided by LabJack.
+
+    Defines the U12 class, which makes working with a U12 much easier. The
+    functions of the U12 class are divided into two categories: UW and
+    low-level.
+
+    Most of the UW functions are exposed as functions of the U12 class. With
+    the exception of the "e" functions, UW functions are Windows only. The "e"
+    functions will work with both the UW and the Exodriver. Therefore, people
+    wishing to write cross-platform code should restrict themselves to using
+    only the "e" functions. The UW functions are described in Section 4 of the
+    U12 User's Guide:
+
+    http://labjack.com/support/u12/users-guide/4
+
+    All low-level functions of the U12 class begin with the word
+    raw. For example, the low-level function Counter can be called with
+    U12.rawCounter(). Currently, low-level functions are limited to the
+    Exodriver (Linux and Mac OS X). You can find descriptions of the low-level
+    functions in Section 5 of the U12 User's Guide:
+
+    http://labjack.com/support/u12/users-guide/5
+
+    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
 """
+
 
 import platform
 import ctypes

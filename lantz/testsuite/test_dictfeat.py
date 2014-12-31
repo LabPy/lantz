@@ -1,11 +1,13 @@
+# -*- coding: utf-8 -*-
+
+
 import logging
 import unittest
 
 from lantz import Driver, DictFeat, Q_
 
-
 from lantz.log import get_logger
-from lantz.feat import  MISSING
+
 
 class MemHandler(logging.Handler):
 
@@ -57,6 +59,7 @@ class DictFeatTest(unittest.TestCase):
 
     def test_writeonly(self):
 
+        # noinspection PyPropertyDefinition
         class Spam(Driver):
 
             _eggs = {'answer': 42}
@@ -87,6 +90,7 @@ class DictFeatTest(unittest.TestCase):
 
     def test_readwrite(self):
 
+        # noinspection PyPropertyDefinition
         class Spam(Driver):
 
             _eggs = {'answer': 42}

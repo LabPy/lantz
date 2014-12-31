@@ -23,7 +23,7 @@ from lantz.foreign import LibraryDriver
 _ERRORS = {
     0: 'SUCCESS',
     1: 'AT_ERR_NOTINITIALISED',
-    1: 'AT_HANDLE_SYSTEM', # TODO: Check twice the same key!
+    #1: 'AT_HANDLE_SYSTEM', # TODO: Check twice the same key!
     2: 'AT_ERR_NOTIMPLEMENTED',
     3: 'AT_ERR_READONLY',
     4: 'AT_ERR_NOTREADABLE',

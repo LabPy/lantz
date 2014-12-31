@@ -305,7 +305,7 @@ class _SR830(object):
 
     @key_click_enabled.setter
     def key_click_enabled(self, value):
-        return self.send('KCLK {}'.format(value))
+        self.send('KCLK {}'.format(value))
 
     @Feat(values={True: 1, False: 0})
     def alarm_enabled(self):
@@ -315,7 +315,7 @@ class _SR830(object):
 
     @alarm_enabled.setter
     def alarm_enabled(self, value):
-        return self.send('ALRM {}'.format(value))
+        self.send('ALRM {}'.format(value))
 
     @Action(limits=(1, 9))
     def recall_state(self, location):
@@ -467,7 +467,7 @@ class _SR830(object):
     def measure(self, channels):
         d = {'x': '1', 'y': '2', 'r': '3', 't': '4',
              '1': '5', '2': '6', '3': '7', '4': '8',
-             'f': '9', '': 10, '': 11}
+             'f': '9'} # '': 10, '': 11} TODO: How to deal with these?
         channels = ','.join(d[ch] for ch in channels)
         self.query('SNAP? {}'.format(channels))
 

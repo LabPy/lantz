@@ -77,7 +77,7 @@ class A2023a(MessageBasedDriver):
 
     @service_request_enabled.setter
     def service_request_enabled(self, value):
-        return self.query('*SRE {0:d}', value)
+        self.query('*SRE {0:d}'.format(value))
 
     @Feat()
     def event_status_reg(self):
@@ -87,7 +87,7 @@ class A2023a(MessageBasedDriver):
 
     @event_status_reg.setter
     def event_status_reg(self, value):
-        self.query('*ESR {0:d}', value)
+        self.query('*ESR {0:d}'.format(value))
 
     @Feat()
     def event_status_enabled(self):
@@ -97,7 +97,7 @@ class A2023a(MessageBasedDriver):
 
     @event_status_enabled.setter
     def event_status_enabled(self, value):
-        self.query('*ESR {0:d}', value)
+        self.query('*ESR {0:d}'.format(value))
 
     @Action()
     def clear_status(self):
@@ -201,7 +201,8 @@ class A2023a(MessageBasedDriver):
 
     @Feat(values={True: 'on', False: 'off'})
     def time(self):
-        self.write()
+        # TODO: ??
+        self.write('')
         return self.read()
 
     @time.setter

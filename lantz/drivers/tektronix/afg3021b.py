@@ -1,4 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+    lantz.drivers.tektronix.afg3021b
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    Implements the drivers to control a signal generator.
+
+    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
+"""
 
 from lantz import Feat
 
@@ -35,7 +44,7 @@ if __name__ == '__main__':
     with AFG3021b('USB0::0x0699::0x0346::C033250::INSTR') as inst:
         print(inst.idn)
 
-    with AFG3021b.from_hostname() as inst:
+    with AFG3021b.from_hostname('192.168.0.1') as inst:
         print(inst.idn)
 
     with AFG3021b.from_usbtmc(serial_number='C033250') as inst:
