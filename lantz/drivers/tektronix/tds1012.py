@@ -11,7 +11,7 @@
     Source: Tektronix Manual
 """
 
-from numpy import array, arange
+import numpy as np
 
 from lantz.feat import Feat
 from lantz.action import Action
@@ -92,10 +92,10 @@ class TDS1012(MessageBasedDriver):
         self.send('DAT:STOP {}'.format(stop))
         data = self.query('CURV?')
         data = data.split(',')
-        data = array(list(map(float,data)))
+        data = np.array(list(map(float,data)))
         ydata = (data - parameters['YOF']) * parameters['YMU']\
                 + parameters['YZE']
-        xdata = arange(len(data))*parameters['XIN'] + parameters['XZE']
+        xdata = np.arange(len(data))*parameters['XIN'] + parameters['XZE']
         return list(xdata), list(ydata)
         
     

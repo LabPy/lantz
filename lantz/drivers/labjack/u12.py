@@ -8,11 +8,24 @@
 """
 
 
+
 from lantz import Feat, Action, DictFeat
 from lantz import Driver
 from lantz.errors import InstrumentError
 
-from ._internal import u12 as _u12
+try:
+    from ._internal import u12 as _u12
+except Exception as ex:
+    import os
+    if os.environ.get('LANTZ_BUILDING_DOCS', 'False') == 'True':
+
+        class _u12:
+
+            @staticmethod
+            def U12(board_id):
+                raise ex
+
+    raise ex
 
 
 class U12(Driver):

@@ -11,10 +11,12 @@
 
 
 import struct
+import numpy as np
+
+from pyvisa.errors import VisaIOError
 
 from lantz import Feat, DictFeat
 from lantz.drivers.legacy.usb import USBDriver, usb_find_desc
-import numpy as np
 
 __all__ = ['USB4000']
 
@@ -155,7 +157,7 @@ class USB4000(USBDriver):
         self.log_debug('Requesting spectra')
         self.usb_send_ep.write(cmd)
         
-        data = numpy.zeros(shape=(3840,), dtype='<u2')
+        data = np.zeros(shape=(3840,), dtype='<u2')
         
         try:
             data_lo = self._spec_lo.read(512*4, timeout=100)
@@ -169,7 +171,7 @@ class USB4000(USBDriver):
                                        np.frombuffer(data_hi, dtype='<u2')
         except AssertionError:
             self.log_error('Not synchronized')
-        except usb.core.USBError:
+        except VisaIOError:
             self.log_error('Timeout on usb')
         finally:
             self.log_debug('Obtained spectra')

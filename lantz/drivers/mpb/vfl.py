@@ -10,10 +10,10 @@
 from pyvisa import constants
 
 from lantz import Action, Feat
-from lantz.drivers.legacy.serial import SerialDriver
+from lantz.messagebased import MessageBasedDriver
 
 
-class VFL(SerialDriver):
+class VFL(MessageBasedDriver):
     """Driver for any VFL MPB Communications laser.
     """
 

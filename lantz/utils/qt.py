@@ -19,12 +19,12 @@
 
 import os
 
-from lantz.utils.qt_loaders import (load_qt, QT_API_PYSIDE, QT_API_PYQT)
+from lantz.utils.qt_loaders import (load_qt, QT_API_PYSIDE, QT_API_PYQT, QT_MOCK)
 
 QT_API = os.environ.get('QT_API', None)
-if QT_API not in [QT_API_PYSIDE, QT_API_PYQT, None]:
-    raise RuntimeError("Invalid Qt API %r, valid values are: %r, %r" %
-                       (QT_API, QT_API_PYSIDE, QT_API_PYQT))
+if QT_API not in [QT_API_PYSIDE, QT_API_PYQT, QT_MOCK, None]:
+    raise RuntimeError("Invalid Qt API %r, valid values are: %r, %r, %r" %
+                       (QT_API, QT_API_PYSIDE, QT_API_PYQT, QT_MOCK))
 if QT_API is None:
     api_opts = [QT_API_PYSIDE, QT_API_PYQT]
 else:

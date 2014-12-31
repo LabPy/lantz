@@ -86,8 +86,8 @@ SAMPLE_RATES = OrderedDict([
     ('trigger', 14)
 ])
 
-class SR830(MessageBasedDriver):
 
+class SR830(MessageBasedDriver):
 
     DEFAULTS_KWARGS = {'common': {'write_termination': '\n',
                                   'read_termination': '\n',

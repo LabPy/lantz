@@ -29,6 +29,7 @@ QT_API_PYQT = 'pyqt'
 QT_API_PYQTv1 = 'pyqtv1'
 QT_API_PYQT_DEFAULT = 'pyqtdefault' # don't set SIP explicitly
 QT_API_PYSIDE = 'pyside'
+QT_MOCK = 'mock'
 
 
 def check_version(version, minimum_version):
@@ -122,20 +123,23 @@ def has_binding(api):
     # we can't import an incomplete pyside and pyqt4
     # this will cause a crash in sip (#1431)
     # check for complete presence before importing
+
+    if api == QT_MOCK:
+        return True
+
     module_name = {QT_API_PYSIDE: 'PySide',
                    QT_API_PYQT: 'PyQt4',
                    QT_API_PYQTv1: 'PyQt4',
                    QT_API_PYQT_DEFAULT: 'PyQt4'}
     module_name = module_name[api]
 
-    import imp
+    import importlib
     try:
         #importing top level PyQt4/PySide module is ok...
-        mod = __import__(module_name)
         #...importing submodules is not
-        imp.find_module('QtCore', mod.__path__)
-        imp.find_module('QtGui', mod.__path__)
-        imp.find_module('QtSvg', mod.__path__)
+        mod = importlib.import_module(module_name + '.QtCore')
+        mod = importlib.import_module(module_name + '.QtGui')
+        mod = importlib.import_module(module_name + '.QtSvg')
 
         #we can also safely check PySide version
         if api == QT_API_PYSIDE:
@@ -293,6 +297,28 @@ def import_pyside():
     return QtCore, QtGui, QtSvg, QT_API_PYSIDE
 
 
+def import_qtmock():
+    """
+    Return Mock Modules
+    """
+    # The new-style string API (version=2) automatically
+    # converts QStrings to Unicode Python strings. Also, automatically unpacks
+    # QVariants to their underlying objects.
+
+    from unittest.mock import MagicMock
+
+    class Mock(MagicMock):
+        @classmethod
+        def __getattr__(cls, name):
+                return Mock()
+
+        QObject = object
+
+    QtGui, QtCore, QtSvg = Mock(), Mock(), Mock()
+
+    return QtCore, QtGui, QtSvg, 'mock'
+
+
 def load_qt(api_options):
     """
     Attempt to import Qt, given a preference list
@@ -320,16 +346,17 @@ def load_qt(api_options):
     loaders = {QT_API_PYSIDE: import_pyside,
                QT_API_PYQT: import_pyqt4,
                QT_API_PYQTv1: partial(import_pyqt4, version=1),
-               QT_API_PYQT_DEFAULT: partial(import_pyqt4, version=None)
+               QT_API_PYQT_DEFAULT: partial(import_pyqt4, version=None),
+               QT_MOCK: import_qtmock
                }
 
     for api in api_options:
 
         if api not in loaders:
             raise RuntimeError(
-                "Invalid Qt API %r, valid values are: %r, %r, %r, %r" %
+                "Invalid Qt API %r, valid values are: %r, %r, %r, %r, %r" %
                 (api, QT_API_PYSIDE, QT_API_PYQT,
-                 QT_API_PYQTv1, QT_API_PYQT_DEFAULT))
+                 QT_API_PYQTv1, QT_API_PYQT_DEFAULT, QT_MOCK))
 
         if not can_import(api):
             continue

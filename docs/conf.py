@@ -15,6 +15,19 @@ import sys, os
 import pkg_resources
 import datetime
 
+os.environ['QT_API'] = 'mock'
+os.environ['LANTZ_BUILDING_DOCS'] = 'True'
+
+from unittest.mock import MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return Mock()
+
+MOCK_MODULES = ['numpy', ]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -57,7 +70,11 @@ author = 'Hernan E. Grecco'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 
-version = pkg_resources.get_distribution(project).version
+try:
+    version = pkg_resources.get_distribution(project).version
+except:
+    version = 'unknown'
+
 release = version
 this_year = datetime.date.today().year
 copyright = '%s, %s' % (this_year, author)

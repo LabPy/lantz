@@ -9,7 +9,9 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from numpy import array, arange
+import struct
+
+import numpy as np
 
 from lantz.feat import Feat
 from lantz.action import Action
@@ -102,14 +104,14 @@ class TDS2024(MessageBasedDriver):
         length = bytecount / 2
         data = struct.unpack("{}H".format(length), data[0:2*length])
         params = self.acqparams()
-        data = array(list(map(float, data)))
+        data = np.array(list(map(float, data)))
         yoff = params['YOFF?']
         ymu = params['YMU?']
         yze = params['YZE?']
         xin = params['XIN?']
         xze = params['XZE?']
         ydata = ( data - yoff) * ymu + yze
-        xdata = arange(len(data)) * xin + xze
+        xdata = np.arange(len(data)) * xin + xze
         return list(xdata), list(data)
 
     def _measure(self, type, source):
