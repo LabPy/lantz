@@ -187,7 +187,7 @@ In any OS you can use Anaconda Python Distribution
 .. _NumPy: http://numpy.scipy.org/
 .. _NumPy binaries: http://sourceforge.net/projects/numpy/files/
 .. _Lantz at Github: https://github.com/hgrecco/lantz
-.. _get-lantz: https://raw.github.com/hgrecco/lantz/master/scripts/get-lantz.py
+.. _get-lantz: https://gist.github.com/hgrecco/bd1dc8560c01359a28ed
 .. _Python: http://www.python.org/getit/
 .. _VISA: http://www.ni.com/visa/
 .. _git: http://git-scm.com/
