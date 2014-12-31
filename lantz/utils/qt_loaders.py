@@ -308,9 +308,12 @@ def import_qtmock():
     from unittest.mock import MagicMock
 
     class Mock(MagicMock):
+
         @classmethod
         def __getattr__(cls, name):
-                return Mock()
+            m = Mock()
+            m.__name__ = name
+            return m
 
         QObject = object
 
