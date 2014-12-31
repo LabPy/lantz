@@ -44,3 +44,11 @@ def _run_pyroma(data):   # pragma: no cover
         if not ask("pyroma not available. Continue?"):
             sys.exit(1)
 
+
+def test():
+    """Run all tests.
+
+    :return: a :class:`unittest.TestResult` object
+    """
+    from .testsuite import run
+    return run()
