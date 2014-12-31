@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.visalib
-    ~~~~~~~~~~~~~
+    lantz.drivers.legacy.visalib
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Wraps Visa Library in a Python friendly way.
 

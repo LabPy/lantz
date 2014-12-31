@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.visa
-    ~~~~~~~~~~
+    lantz.drivers.legacy.visa
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Implements base classes for drivers that communicate with instruments using visalib.
 
@@ -9,9 +9,9 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from . import Driver
-from .driver import TextualMixin
-from .errors import LantzTimeoutError
+from lantz import Driver
+from lantz.drivers.legacy.textual import TextualMixin
+from lantz.errors import LantzTimeoutError
 
 import visa
 

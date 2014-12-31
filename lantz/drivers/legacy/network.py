@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.network
-    ~~~~~~~~~~~~~
+    lantz.drivers.legacy.network
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Implements a base class for drivers that communicate with instruments via TCP.
 
@@ -11,9 +11,9 @@
 
 import socket
 
-from . import Driver
-from .driver import TextualMixin
-from .errors import LantzTimeoutError
+from lantz import Driver
+from lantz.drivers.legacy.textual import TextualMixin
+from lantz.errors import LantzTimeoutError
 
 
 class LantzSocketTimeoutError(socket.timeout, LantzTimeoutError):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.usbtmc
-    ~~~~~~~~~~~~~~~~~~~~
+    lantz.drivers.legacy.usbtmc
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Implements a USBDriver based class to control USBTMC instruments
 
@@ -18,10 +18,9 @@ import struct
 from collections import namedtuple
 
 import usb
-
-from lantz.driver import TextualMixin
+from lantz.drivers.legacy.textual import TextualMixin
 from lantz.errors import InstrumentError
-from lantz.usb import find_devices, find_interfaces, find_endpoint, USBDriver
+from lantz.drivers.legacy.usb import find_devices, find_interfaces, find_endpoint, USBDriver
 
 
 class MSGID(enum.IntEnum):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.usb
-    ~~~~~~~~~
+    lantz.drivers.legacy.usb
+    ~~~~~~~~~~~~~~~~~~~~~~~~
 
     Implements base classes for drivers that communicate with instruments
     via usb using PyUSB
@@ -21,8 +21,8 @@ import usb
 from usb.util import (get_string as usb_get_string,
                       find_descriptor as usb_find_desc)
 
-from . import Driver
-from .errors import LantzTimeoutError, InstrumentError
+from lantz import Driver
+from lantz.errors import LantzTimeoutError, InstrumentError
 
 
 ClassCodes = {

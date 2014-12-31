@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.usbtmc
-    ~~~~~~~~~~~~~~~~~~~~
+    lantz.drivers.legacy.vx11
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Implements a VXI11Driver based class to control VXI11 instruments
 

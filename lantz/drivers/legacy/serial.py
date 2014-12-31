@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.serial
-    ~~~~~~~~~~~~
+    lantz.drivers.legacy.serial
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Implements base classes for drivers that communicate with instruments
     via serial or parallel port.
@@ -12,9 +12,9 @@
 
 import serial
 
-from . import Driver
-from .driver import TextualMixin
-from .errors import LantzTimeoutError
+from lantz import Driver
+from lantz.drivers.legacy.textual import TextualMixin
+from lantz.errors import LantzTimeoutError
 
 from serial import SerialTimeoutException
 
