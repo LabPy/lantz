@@ -15,8 +15,9 @@ import enum
 import socket
 
 from lantz.errors import InstrumentError
-from lantz.utils import rpc
+from lantz.drivers.legacy import rpc
 from lantz import Driver
+
 
 # VXI-11 RPC constants
 
