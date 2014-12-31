@@ -12,7 +12,8 @@ from lantz import Feat, Action, DictFeat
 from lantz import Driver
 from lantz.errors import InstrumentError
 
-from _internal import u12 as _u12
+from ._internal import u12 as _u12
+
 
 class U12(Driver):
     """
@@ -21,6 +22,7 @@ class U12(Driver):
         For details about the commands, refer to the users guide.
     """
     def __init__(self, board_id):
+        super().__init__()
         self._internal = _u12.U12(board_id) 
 
     def initialize(self):

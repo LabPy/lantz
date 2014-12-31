@@ -7,14 +7,12 @@
     :license: BSD, see LICENSE for more details.
 """
 
-import numpy as np
-
-from lantz import Action, Feat, DictFeat, ureg
-from lantz.serial import SerialDriver
-from lantz.visa import GPIBVisaDriver
-from lantz.errors import InstrumentError
-
 from collections import OrderedDict
+
+import numpy as np
+from lantz import Action, Feat, DictFeat, ureg
+from lantz.messagebased import MessageBasedDriver
+
 
 SENS = OrderedDict([
         ('2 nV/fA', 0),
@@ -88,7 +86,13 @@ SAMPLE_RATES = OrderedDict([
     ('trigger', 14)
 ])
 
-class _SR830(object):
+class SR830(MessageBasedDriver):
+
+
+    DEFAULTS_KWARGS = {'common': {'write_termination': '\n',
+                                  'read_termination': '\n',
+                                  }}
+
 
     @Feat(units='degrees', limits=(-360, 729.99, 0.01))
     def reference_phase_shift(self):
@@ -506,13 +510,3 @@ class _SR830(object):
     # Fast
     # STRD
 
-class SR830GPIB(_SR830, GPIBVisaDriver):
-
-    RECV_TERMINATION = '\n'
-    SEND_TERMINATION = '\n'
-
-
-class SR830Serial(_SR830, SerialDriver):
-
-    RECV_TERMINATION = '\n'
-    SEND_TERMINATION = '\n'

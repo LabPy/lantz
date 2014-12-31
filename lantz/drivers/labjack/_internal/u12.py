@@ -2529,7 +2529,7 @@ class U12(object):
         
         >>> dev = U12()
         >>> dev.getWinVersion()
-        >>> {'majorVersion': 5L, 'minorVersion': 1L, 'platformID': 2L, 'buildNumber': 2600L, 'servicePackMajor': 2L, 'servicePackMinor': 0L}
+        >>> {'majorVersion': 5, 'minorVersion': 1, 'platformID': 2, 'buildNumber': 2600, 'servicePackMajor': 2, 'servicePackMinor': 0}
         """
         
         # Create ctypes

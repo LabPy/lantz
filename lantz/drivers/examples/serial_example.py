@@ -10,16 +10,16 @@
 """
 
 from lantz import Action, Feat, DictFeat
-from lantz.serial import SerialDriver
+from lantz.messagebased import MessageBasedDriver
 
-class SerialTemplate(SerialDriver):
+
+class SerialTemplate(MessageBasedDriver):
     """Template for drivers connecting via serial port.
     """
 
-    ENCODING = 'ascii'
 
-    RECV_TERMINATION = '\n'
-    SEND_TERMINATION = '\n'
+    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\n',
+                                'read_termination': '\n'}}
 
     @Feat()
     def a_read_only_property(self):
@@ -34,7 +34,7 @@ class SerialTemplate(SerialDriver):
         return float(self.query('?AMP'))
 
     @a_read_write_property.setter
-    def amplitude(self, value):
+    def a_read_write_property(self, value):
         self.query('!AMP {:.1f}'.format(value))
 
     @DictFeat(values={True: '1', False: '0'}, keys=list(range(1,9)))

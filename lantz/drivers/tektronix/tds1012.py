@@ -15,23 +15,13 @@ from numpy import array, arange
 
 from lantz.feat import Feat
 from lantz.action import Action
-from lantz.serial import SerialDriver
+from lantz.messagebased import MessageBasedDriver
 from lantz.errors import InvalidCommand
 
-class TDS1012(SerialDriver):
+
+class TDS1012(MessageBasedDriver):
     """Tektronix TDS1012 100MHz 2 Channel Digital Storage Oscilloscope
     """
-    ENCODING = 'ascii'
-
-    RECV_TERMINATION = '\n'
-    SEND_TERMINATION = '\n'
-    TIMEOUT = -1    # Avoids timeout while acquiring a curve. May not be the 
-                    # best option.
-    
-    def __init__(self, port):
-       # super().TIMEOUT = 20
-        super().__init__(port)
-        super().initialize() # Automatically open the port
         
     @Action()
     def initiate(self):

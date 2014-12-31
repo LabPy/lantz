@@ -22,9 +22,11 @@
 
 """
 
+from pyvisa import constants
+
 from lantz import Feat, Action, Q_
 from lantz.errors import InstrumentError
-from lantz.serial import SerialDriver
+from lantz.messagebased import MessageBasedDriver
 
 # Physical units used by the IX/BX microscopes
 DECIVOLT = Q_(0.1, 'V')
@@ -58,23 +60,24 @@ def ofeat(command, doc, **kwargs):
     return Feat(_get, _set, doc=doc, **kwargs)
 
 
-class IXBX(SerialDriver):
+class IXBX(MessageBasedDriver):
     """ IX or BX Olympus microscope body.
     """
 
-    RECV_TERMINATION = '\r\n'
-    SEND_TERMINATION = '\r\n'
+    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\r\n',
+                                'read_termination': '\r\n',
+                                'baud_rate': 19200,
+                                'bytesize': 8,
+                                'parity': constants.Parity.even,
+                                'stop_bits': constants.StopBits.one,
+                                'encoding': 'ascii',
+                                }}
 
 
-    def __init__(self, port=1, baudrate=19200, bytesize=8, parity='Even',
-                 stopbits=1, flow=0, timeout=None, write_timeout=None,
-                 *args, **kwargs):
-        super().__init__(port, baudrate, bytesize, parity,
-                         stopbits, flow, timeout, write_timeout,
-                         *args, **kwargs)
+    def initialize(self):
+        super().initialize()
         self.send('1LOG IN\n')
         self.send('2LOG IN')
-
 
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
         """Query the instrument and parse the response.
@@ -93,12 +96,11 @@ class IXBX(SerialDriver):
             raise InstrumentError("Unknown response: '{}'".format(response))
         return response
 
-
     @Feat(read_once=True)
     def idn(self):
         """Microscope identification
         """
-        return parse_response(self.query('1UNIT?'))
+        return self.query('1UNIT?')
 
     fluo_shutter = ofeat('1LED',
                         'External shutter for the fluorescent light source',

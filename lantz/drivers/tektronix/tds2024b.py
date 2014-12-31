@@ -13,15 +13,12 @@ from numpy import array, arange
 
 from lantz.feat import Feat
 from lantz.action import Action
-from lantz.visa import VisaDriver
+from lantz.messagebased import MessageBasedDriver
 
-class TDS2024(VisaDriver):
+
+class TDS2024(MessageBasedDriver):
     """Tektronix TDS2024 200 MHz 4 Channel Digital Real-Time Oscilloscope
     """
-
-    def __init__(self, port):
-        super().__init__(port)
-        timeout=10
 
     @Action()
     def autoconf(self):

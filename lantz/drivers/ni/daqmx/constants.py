@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz.visalib import RichEnum
+from lantz.drivers.legacy.visalib import RichEnum
 
 class Constants(metaclass=RichEnum):
 

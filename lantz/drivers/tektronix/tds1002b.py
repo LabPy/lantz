@@ -1,10 +1,10 @@
 
 
 from lantz import Feat
-from lantz.drivers.usbtmc import USBTMCDriver
+from lantz.messagebased import MessageBasedDriver
 
 
-class TDS1002b(USBTMCDriver):
+class TDS1002b(MessageBasedDriver):
 
     @classmethod
     def usb_from_serial(cls, serial_number):

@@ -9,21 +9,18 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Feat, DictFeat, Q_, Action
-from lantz.serial import SerialDriver
-from lantz.network import TCPDriver
+from lantz import Feat, DictFeat, Action
 from lantz.errors import InstrumentError
-from lantz.visa import SerialVisaDriver
+from lantz.messagebased import MessageBasedDriver
 
 
-class LantzSignalGenerator(object):
+class LantzSignalGenerator(MessageBasedDriver):
     """Lantz Signal Generator
     """
 
-    ENCODING = 'ascii'
+    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\n',
+                                'read_termination': '\n'}}
 
-    RECV_TERMINATION = '\n'
-    SEND_TERMINATION = '\n'
 
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
         answer = super().query(command, send_args=send_args, recv_args=recv_args)
@@ -79,7 +76,7 @@ class LantzSignalGenerator(object):
     def waveform(self):
         return self.query('?WVF')
 
-    @waveform
+    @waveform.setter
     def waveform(self, value):
         self.query('!WVF {}'.format(value))
 
@@ -110,17 +107,3 @@ class LantzSignalGenerator(object):
         """Reset to .
         """
         self.query('!TES {} {}'.format(level, repetitions))
-
-
-class LantzSignalGeneratorTCP(LantzSignalGenerator, TCPDriver):
-    pass
-
-
-class LantzSignalGeneratorSerial(LantzSignalGenerator, SerialDriver):
-    pass
-
-
-class LantzSignalGeneratorSerialVisa(LantzSignalGenerator, SerialVisaDriver):
-    pass
-
-

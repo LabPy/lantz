@@ -9,18 +9,17 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Feat, DictFeat, Q_, Action
-from lantz.network import TCPDriver
+from lantz import Feat, DictFeat, Action
 from lantz.errors import InstrumentError
+from lantz.messagebased import MessageBasedDriver
 
-class LantzVoltmeterTCP(TCPDriver):
+
+class LantzVoltmeter(MessageBasedDriver):
     """Lantz Signal Generator
     """
 
-    ENCODING = 'ascii'
-
-    RECV_TERMINATION = '\n'
-    SEND_TERMINATION = '\n'
+    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\n',
+                                'read_termination': '\n'}}
 
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
         answer = super().query(command, send_args=send_args, recv_args=recv_args)

@@ -11,27 +11,28 @@
     Source: Instruction Manual (Newport)
 """
 
+from pyvisa import constants
+
 from lantz.feat import Feat
 from lantz.action import Action
-from lantz.serial import SerialDriver
-from lantz.errors import InvalidCommand
+from lantz.messagebased import MessageBasedDriver
 
-class powermeter1830c(SerialDriver):
+
+class PowerMeter1830c(MessageBasedDriver):
     """ Newport 1830c Power Meter
     """
-    
-    ENCODING = 'ascii'
-    RECV_TERMINATION = '\n'
-    SEND_TERMINATION = '\n'
-    TIMEOUT = 2000   
 
-    
-    def __init__(self, port=1,baudrate=9600):
-        super().__init__(port, baudrate, bytesize=8, parity='None', stopbits=1) 
-    
-    def initialize(self):
-        super().initialize() 
-        
+    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\n',
+                                'read_termination': '\n',
+                                'baud_rate': 9600,
+                                'bytesize': 8,
+                                'parity': constants.Parity.none,
+                                'stop_bits': constants.StopBits.one,
+                                'encoding': 'ascii',
+                                'timeout': 2000
+                                }}
+
+
     @Feat(values={True: 1, False: 0})
     def attenuator(self):
         """ Attenuator. 
@@ -179,7 +180,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     lantz.log.log_to_socket(lantz.log.DEBUG)
     
-    with powermeter1830c(args.port) as inst:
+    with PowerMeter1830c.from_serial_port(args.port) as inst:
         
         inst.initialize() # Initialize the communication with the power meter
         

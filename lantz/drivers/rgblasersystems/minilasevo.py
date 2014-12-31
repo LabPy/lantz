@@ -7,28 +7,29 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Action, Feat, DictFeat
-from lantz.serial import SerialDriver
+from pyvisa import constants
+
+from lantz import Feat
+from lantz.messagebased import MessageBasedDriver
 from lantz.errors import InstrumentError
 
-class MiniLasEvo(SerialDriver):
+class MiniLasEvo(MessageBasedDriver):
     """Driver for any RGB Lasersystems MiniLas Evo laser.
     """
 
-    ENCODING = 'ascii'
-
-    RECV_TERMINATION = '\r\n'
-    SEND_TERMINATION = '\r\n'
-
-    BAUDRATE = 57600
-    BYTESIZE = 8
-    PARITY = 'none'
-    STOPBITS = 1
+    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\r\n',
+                                'read_termination': '\r\n',
+                                'baud_rate': 57600,
+                                'bytesize': 8,
+                                'parity': constants.Parity.none,
+                                'stop_bits': constants.StopBits.one,
+                                'encoding': 'ascii'
+                                }}
 
     #: flow control flags
-    RTSCTS = False
-    DSRDTR = False
-    XONXOFF = False
+    #RTSCTS = False
+    #DSRDTR = False
+    #XONXOFF = False
 
 
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
