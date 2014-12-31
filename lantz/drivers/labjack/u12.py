@@ -16,16 +16,15 @@ from lantz.errors import InstrumentError
 try:
     from ._internal import u12 as _u12
 except Exception as ex:
-    import os
-    if os.environ.get('LANTZ_BUILDING_DOCS', 'False') == 'True':
+    from lantz.utils import is_building_docs
+    if not is_building_docs:
+        raise ex
 
-        class _u12:
+    class _u12:
 
-            @staticmethod
-            def U12(board_id):
-                raise ex
-
-    raise ex
+        @staticmethod
+        def U12(board_id):
+            raise ex
 
 
 class U12(Driver):
