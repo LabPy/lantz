@@ -15,7 +15,7 @@ import inspect
 
 from ..log import get_logger
 from ..driver import Driver, initialize_many, finalize_many
-from ..ui.widgets import connect_setup, DriverTestWidget, SetupTestWidget
+from ..ui.widgets import connect_setup, DriverTestWidget, SetupTestWidget, connect_driver
 from ..utils.qt import QtCore, QtGui, SuperQObject, MetaQObject
 
 logger = get_logger('lantz.ui.app', False)
@@ -200,6 +200,33 @@ def start_test_app(target, width=500, qapp_or_args=None):
         main = SetupTestWidget(None, target)
     main.setMinimumWidth(width)
     main.setWindowTitle('Lantz Driver Test Panel')
+    main.show()
+    if sys.platform.startswith('darwin'):
+        main.raise_()
+    qapp.exec_()
+
+
+def start_gui(ui_filename, drivers, qapp_or_args=None):
+    """Start a single window application with a form generated from
+    a designer file.
+
+    :param ui_filename: the full path of a file generated with QtDesigner.
+    :param drivers: a driver object or a collection of drivers.
+    :param qapp_or_args: arguments to be passed to QApplication.
+    """
+
+    if isinstance(qapp_or_args, QtGui.QApplication):
+        qapp = qapp_or_args
+    else:
+        qapp = QtGui.QApplication(qapp_or_args or [''])
+
+    main = QtGui.loadUi(ui_filename)
+
+    if isinstance(drivers, Driver):
+        connect_driver(main, drivers)
+    else:
+        connect_setup(main, drivers)
+
     main.show()
     if sys.platform.startswith('darwin'):
         main.raise_()
