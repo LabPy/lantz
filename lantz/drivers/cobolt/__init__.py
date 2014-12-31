@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     lantz.drivers.cobolt
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~
 
     :company: Cobolt.
     :description: DPSS lasers, diode laser modules, fiber pigtailed lasers.

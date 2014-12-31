@@ -20,7 +20,7 @@ For example::
 
 
 will call the initializer in the first line and the finalizer when the program
-exits the block even in the case of an unhandled exception as explained in :ref:`using`.
+exits the block even in the case of an unhandled exception as explained in :ref:`Safely-releasing-resources`.
 
 This approach is very useful but inconvenient if the number of instruments
 is large. For three instruments is still fine::

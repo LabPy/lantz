@@ -288,4 +288,4 @@ That is why we moved the QObject to the new thread.
 
 
 
-.. _`Thread in Qt`: http://doc.qt.digia.com/4.7/threads.html
+.. _`Threads in Qt`: http://doc.qt.digia.com/4.7/threads.html

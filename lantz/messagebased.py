@@ -56,12 +56,14 @@ class MessageBasedDriver(Driver):
     #: It should be specified in two layers, the first indicating the
     #: interface type and the second the corresponding arguments.
     #: The key COMMON is used to indicate keywords for all interfaces.
-    #: For example:
-    #: {'ASRL':     {'read_termination': '\n',
-    #:               'baud_rate': 9600},
-    #:  'USB':      {'read_termination': \r'},
-    #:  'COMMON':   {'write_termination': '\n'}
-    #: }
+    #: For example::
+    #:
+    #:       {'ASRL':     {'read_termination': '\n',
+    #:                     'baud_rate': 9600},
+    #:        'USB':      {'read_termination': \r'},
+    #:        'COMMON':   {'write_termination': '\n'}
+    #:       }
+    #:
     #: :type: dict[str, dict[str, str]]
     DEFAULTS_KWARGS = None
 
@@ -123,7 +125,7 @@ class MessageBasedDriver(Driver):
         :param model_code: The unique identification number of the product.
         :param name: Unique name given within Lantz to the instrument for logging purposes.
                      Defaults to one generated based on the class name if not provided.
-        :param **kwargs: keyword arguments passed to the Resource constructor on initialize.
+        :param kwargs: keyword arguments passed to the Resource constructor on initialize.
 
         :rtype: MessageBasedDriver
         """
@@ -155,7 +157,7 @@ class MessageBasedDriver(Driver):
         :param port: The serial port to which the instrument is connected.
         :param name: Unique name given within Lantz to the instrument for logging purposes.
                      Defaults to one generated based on the class name if not provided.
-        :param **kwargs: keyword arguments passed to the Resource constructor on initialize.
+        :param kwargs: keyword arguments passed to the Resource constructor on initialize.
 
         :rtype: MessageBasedDriver
         """
@@ -169,7 +171,7 @@ class MessageBasedDriver(Driver):
         :param port: The ip address or hostname of the instrument.
         :param name: Unique name given within Lantz to the instrument for logging purposes.
                      Defaults to one generated based on the class name if not provided.
-        :param **kwargs: keyword arguments passed to the Resource constructor on initialize.
+        :param kwargs: keyword arguments passed to the Resource constructor on initialize.
 
         :rtype: MessageBasedDriver
         """
@@ -183,7 +185,7 @@ class MessageBasedDriver(Driver):
         :param address: The gpib address of the instrument.
         :param name: Unique name given within Lantz to the instrument for logging purposes.
                      Defaults to one generated based on the class name if not provided.
-        :param **kwargs: keyword arguments passed to the Resource constructor on initialize.
+        :param kwargs: keyword arguments passed to the Resource constructor on initialize.
 
         :rtype: MessageBasedDriver
         """
@@ -196,7 +198,7 @@ class MessageBasedDriver(Driver):
         :type resource_name: str
         :params name: easy to remember identifier given to the instance for logging
                       purposes.
-        :param **kwargs: keyword arguments passed to the resource during initialization.
+        :param kwargs: keyword arguments passed to the resource during initialization.
         """
 
         # Add the DEFAULT INTERFACE TYPE prefix if the resource name

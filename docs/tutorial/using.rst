@@ -65,6 +65,8 @@ In the window where `sim-fungen.py` is running you will see the message exchange
 
 To find out which other properties and methods are available checkout the documentation. A nice feature of Lantz (thanks to sphinx) is that useful documentation is generated from the driver itself. `idn` is a `Feat` of the driver. Think of a `Feat` as a pimped property. It works just like python properties but it wraps its call with some utilities (more on this later). `idn` is a read-only and as the documentation states it gets the identification information from the device.
 
+.. _Safely-releasing-resources:
+
 Safely releasing resources
 --------------------------
 

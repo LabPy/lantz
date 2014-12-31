@@ -16,7 +16,7 @@ There are always at least two branches:
     * master: appropriate for users. It must always be in a working state.
     * develop: appropriate for developers. Might not be in a working state.
 
-The master branch only accepts atomic, small commits. Larger changes that might break the master branch should happen in the develop branch. The develop branch will be merged into the master after deep testing. If you want to refactor major parts of the code or try new ideas, create a dedicated branch. This branch will merged into develop once tested.
+The master branch only accepts atomic, small commits. Larger changes that might break the master branch should happen in the develop branch . The develop branch will be merged into the master after deep testing. If you want to refactor major parts of the code or try new ideas, create a dedicated branch. This will merged into develop once tested.
 
 The easiest way to start hacking Lantz codebase is using a virtual environment
 and cloning an editable package.
@@ -133,7 +133,7 @@ module, a small description and the copyright message. For example:
 Submitting your changes
 -----------------------
 
-Changes must be submitted for merging as patches or pull requests.
+Changes must be submitted for merging as pull requests.
 
 Before doing so, please check that:
     * The new code is functional.
@@ -143,14 +143,7 @@ Before doing so, please check that:
     * Any new file contains an appropriate header.
     * You commit to the head of the appropriate branch (usually develop).
 
-Commits must include a one-line description of the intended change followed, if necessary, by an empty line and detailed description. You can send your patch by e-mail to `lantz.contributor@gmail.com`::
-
-    $ git format-patch origin/develop..develop
-    0001-Changed-Driver-class-to-enable-inheritance-of-Action.patch
-    0002-Added-RECV_CHUNK-to-TextualMixin.patch
-
-
-or send a pull request.
+Commits must include a one-line description of the intended change followed, if necessary, by an empty line and detailed description..
 
 
 Copyright
@@ -183,3 +176,4 @@ Finally, we have a small Zen
 .. _git: http://git-scm.com/
 .. _reStructuredText: http://docutils.sf.net/rst.html
 .. _Sphinx: http://sphinx.pocoo.org/
+.. _`Lantz at Github`: https://github.com/hgrecco/lantz/

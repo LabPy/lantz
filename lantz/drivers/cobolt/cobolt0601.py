@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     lantz.drivers.cobolt.cobolt0601
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     :copyright: 2014 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.

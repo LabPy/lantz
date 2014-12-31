@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.example.foreign
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    lantz.drivers.example.foreign_example
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Foreign library example.
 

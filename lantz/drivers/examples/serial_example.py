@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.example.serial_template
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    lantz.drivers.example.serial_example
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Serial example.
 

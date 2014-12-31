@@ -14,6 +14,7 @@ import time
 import json
 import inspect
 
+from lantz.utils import is_building_docs
 from lantz.utils.qt import QtCore, QtGui
 
 __PRINT_TRACEBACK__ = True
@@ -75,8 +76,13 @@ def register_wrapper(cls):
     for wrapped in cls._WRAPPED:
         if wrapped in cls._WRAPPERS:
             logger.warn('{} is already registered to {}.'.format(wrapped, cls._WRAPPERS[wrapped]))
-        cls._WRAPPERS[wrapped] = type(wrapped.__name__ + 'Wrapped',
-                                      (cls, wrapped), {'_IS_LANTZ_WRAPPER': True})
+
+        if is_building_docs:
+            cls._WRAPPERS[wrapped] = type(wrapped.__name__ + 'Wrapped',
+                                          (cls, ), {'_IS_LANTZ_WRAPPER': True})
+        else:
+            cls._WRAPPERS[wrapped] = type(wrapped.__name__ + 'Wrapped',
+                                          (cls, wrapped), {'_IS_LANTZ_WRAPPER': True})
 
     return cls
 
