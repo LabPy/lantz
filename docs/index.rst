@@ -10,8 +10,30 @@ and consistent interface. It provides a core of commonly used functionalities
 for building applications that communicate with scientific instruments allowing
 rapid application prototyping, development and testing. Lantz benefits from
 Python's extensive library flexibility as a glue language to wrap existing
-drivers and DLLs. Lantz aims to provide a library of curated and well documented
-instruments drivers.
+drivers and DLLs.
+
+When you use Lantz you get:
+
+    - A comprehensive and growing library of curated and well documented
+      instruments drivers.
+
+    - A really easy way write your own drivers. In less than an hour
+      you can write a full driver with bounds checks, useful logging,
+      async capabilities and much more.
+
+    - On-the-fly GUI for testing purposes.
+      Without a line of code you get for **any** driver something like:
+
+      .. thumbnail:: _static/ui-fungen.png
+            :width: 20%
+
+    - Tools to quickly build beautiful, responsive and correct applications.
+
+    - An awesome and supporting community.
+
+
+More information
+----------------
 
     | :ref:`about`
     | Lantz Philosophy and design principles.

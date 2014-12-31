@@ -11,7 +11,7 @@ the program finishes it can lead to deadlocks.
 Lantz provides context managers to ensure that that these methods are called.
 For example::
 
-    with A2023aSerial('COM1') as fungen:
+    with A2023a.from_serial_port(1) as fungen:
 
         print(fungen.idn)
         fungen.frequency = Q_(20, 'MHz')
@@ -25,9 +25,9 @@ exits the block even in the case of an unhandled exception as explained in :ref:
 This approach is very useful but inconvenient if the number of instruments
 is large. For three instruments is still fine::
 
-    with FrequenceMeter('COM1') as fmeter, \
-         A2023aSerial('COM2') as fungen, \
-         SR844('COM3') as lockin:
+    with FrequenceMeter.from_serial_port(1) as fmeter, \
+         A2023a.from_serial_port(2) as fungen, \
+         SR844.from_serial_port(3) as lockin:
 
         freq = fmeter.frequency
 
@@ -42,7 +42,7 @@ Lantz provides `initialize_many` and `finalize_many` to solve this problem.
 
 The previous example will look like this::
 
-    drivers = (FrequenceMeter('COM1'), A2023aSerial('COM2'), SR844('COM3'))
+    drivers = (FrequenceMeter.from_serial_port(1), A2023a.from_serial_port(2), SR844.from_serial_port(3))
 
     initialize_many(drivers)
 
@@ -77,8 +77,8 @@ will print (if we assume for each instrument certain initialization times)::
 
     Initializing FrequenceMeter1
     Initialized FrequenceMeter1 in 3.2 secs
-    Initializing A2023aSerial1
-    Initialized A2023aSerial1 in 4.1 secs
+    Initializing A2023a1
+    Initialized A2023a1 in 4.1 secs
     Initializing SR8441
     Initialized SR8441 in 3.5 secs
     Done in 10.8 seconds.
@@ -102,10 +102,10 @@ The output will no be::
 
     Initializing FrequenceMeter1
     Initializing SR8441
-    Initializing A2023aSerial1
+    Initializing A2023a1
     Initialized FrequenceMeter1 in 3.2 secs
     Initialized SR8441 in 3.5 secs
-    Initialized A2023aSerial1 in 4.1 secs
+    Initialized A2023a1 in 4.1 secs
     Done in 4.1 seconds.
 
 Initialization is now done concurrently yielding 2x speed up. For a larger number
@@ -121,11 +121,11 @@ If a particular order in the initialization is required, you can order the list
 (or tuple) and do a serial (concurrent=False) initialization. But is slow again.
 
 You can specify a hierarchy of initialization using the `dependencies` argument.
-If the A2023aSerial1 requires that SR8441 and FrequenceMeter1 are initialized
+If the A2023a1 requires that SR8441 and FrequenceMeter1 are initialized
 before, the call will be::
 
     initialize_many(drivers, on_initializing=initializing, on_initialized=initialized,
-                    concurrent=True, dependencies={'A2023aSerial1': ('SR8441', 'FrequenceMeter1')})
+                    concurrent=True, dependencies={'A2023a1': ('SR8441', 'FrequenceMeter1')})
 
 and the result will be::
 
@@ -133,8 +133,8 @@ and the result will be::
     Initializing SR8441
     Initialized FrequenceMeter1 in 3.2 secs
     Initialized SR8441 in 3.5 secs
-    Initializing A2023aSerial1
-    Initialized A2023aSerial1 in 4.1 secs
+    Initializing A2023a1
+    Initialized A2023a1 in 4.1 secs
     Done in 7.6 seconds.
 
 The `dependencies` argument takes a dictionary where each key is a driver name

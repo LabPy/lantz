@@ -8,9 +8,9 @@ A minimal script to control a function generator using Lantz might look like thi
 
     from lantz import Q_
 
-    from lantz.drivers.aeroflex import A2023aSerial
+    from lantz.drivers.aeroflex import A2023a
 
-    fungen = A2023aSerial('COM1')
+    fungen = A2023a('COM1')
     fungen.initialize()
 
     print(fungen.idn)
@@ -40,11 +40,11 @@ You will see the instance initializing and how and when each property is accesse
 
 which for this case becomes::
 
-    lantz.A2023aSerial.A2023aSerial0
+    lantz.A2023a.A2023a0
 
 because no name was given. If you want to specify a name, do it at object creation::
 
-    fungen = A2023aSerial('COM1', name='white')
+    fungen = A2023a('COM1', name='white')
 
 Separation into multiple loggers makes finding problems easier and enables fine grained control over log output.
 
@@ -190,7 +190,7 @@ Context manager
 
 If you want to send a command to an instrument only once during a particular script, you might want to make use of the context manager syntax. In the following example, the driver will be created and initialized in the first line and finalized when the `with` clause finishes even when an unhandled exception is raised::
 
-    with A2023aSerial('COM1') as fungen:
+    with A2023a('COM1') as fungen:
 
         print(fungen.idn)
         fungen.frequency = Q_(20, 'MHz')
@@ -239,11 +239,11 @@ You might want to use the value obtained in one instrument to set another. Or yo
     from lantz import Q_
 
     from lantz.drivers.example import FrequenceMeter
-    from lantz.drivers.aeroflex import A2023aSerial
+    from lantz.drivers.aeroflex import A2023a
     from lantz.drivers.standford import SR844
 
     with FrequenceMeter('COM1') as fmeter, \
-         A2023aSerial('COM2') as fungen, \
+         A2023a('COM2') as fungen, \
          SR844('COM3') as lockin:
 
         freq = fmeter.frequency

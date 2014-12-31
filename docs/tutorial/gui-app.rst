@@ -33,17 +33,13 @@ Create a python file named `scanfrequency-gui.py` with the following content::
 
     import sys
 
-    # Import lantz.ui register an import hook that will replace calls to Qt by PyQt4 or PySide ...
-    import lantz.ui
+    # Import Qt related from lantz so it worsk with PyQt4 or PySide ...
+    from lantz.utils.qt import QtGui
 
-    # and here we just use Qt and will work with both bindings!
-    from Qt.QtGui import QApplication, QWidget
-    from Qt.uic import loadUi
-
-    app = QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv)
 
     # Load the UI from the QtDesigner file. You can also use pyuic4 to generate a class.
-    main = loadUi('scanfrequency.ui')
+    main = QtGui.loadUi('scanfrequency.ui')
 
     # Start the app
     main.show()
@@ -61,22 +57,19 @@ function from the last tutorial::
 
     import sys
 
-    # Import lantz.ui register an import hook that will replace calls to Qt by PyQt4 or PySide ...
-    import lantz.ui
     from lantz import Q_
 
-    # and here we just use Qt and will work with both bindings!
-    from Qt.QtGui import QApplication, QWidget
-    from Qt.uic import loadUi
+    # Import Qt related from lantz so it worsk with PyQt4 or PySide ...
+    from lantz.utils.qt import QtGui
 
     # These imports are from your own project
     from mydriver import LantzSignalGeneratorTCP
     from scanfrequency import scan_frequency
 
-    app = QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv)
 
     # Load the UI from the QtDesigner file. You can also use pyuic4 to generate a class.
-    main = loadUi('scanfrequency.ui')
+    main = QtGui.loadUi('scanfrequency.ui')
 
     Hz = Q_(1, 'Hz')
     sec = Q_(1, 'second')
@@ -84,11 +77,11 @@ function from the last tutorial::
     with LantzSignalGeneratorTCP('localhost', 5678) as inst:
 
         # Obtain a reference to the widgets controlling the scan parameters
-        start = main.findChild((QWidget, ), 'start')
-        stop = main.findChild((QWidget, ), 'stop')
-        step = main.findChild((QWidget, ), 'step')
-        wait = main.findChild((QWidget, ), 'wait')
-        scan = main.findChild((QWidget, ), 'scan')
+        start = main.findChild((QtGui.QWidget, ), 'start')
+        stop = main.findChild((QtGui.QWidget, ), 'stop')
+        step = main.findChild((QtGui.QWidget, ), 'step')
+        wait = main.findChild((QtGui.QWidget, ), 'wait')
+        scan = main.findChild((QtGui.QWidget, ), 'scan')
 
         # Define a function to read the values from the widget and call scan_frequency
         def scan_clicked():
@@ -116,13 +109,10 @@ connect the configuration widgets::
 
     import sys
 
-    # Import lantz.ui register an import hook that will replace calls to Qt by PyQt4 or PySide ...
-    import lantz.ui
     from lantz import Q_
 
-    # and here we just use Qt and will work with both bindings!
-    from Qt.QtGui import QApplication, QWidget
-    from Qt.uic import loadUi
+    # Import Qt related from lantz so it worsk with PyQt4 or PySide ...
+    from lantz.utils.qt import QtGui
 
     # Import from lantz a function to connect drivers to UI <--- NEW
     from lantz.ui.widgets import connect_driver
@@ -131,10 +121,10 @@ connect the configuration widgets::
     from mydriver import LantzSignalGeneratorTCP
     from scanfrequency import scan_frequency
 
-    app = QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv)
 
     # Load the UI from the QtDesigner file. You can also use pyuic4 to generate a class.
-    main = loadUi('scanfrequency.ui')
+    main = QtGui.loadUi('scanfrequency.ui')
 
     Hz = Q_(1, 'Hz')
     sec = Q_(1, 'second')
@@ -142,16 +132,16 @@ connect the configuration widgets::
     with LantzSignalGeneratorTCP('localhost', 5678) as inst:
 
         # Obtain a reference to the widgets controlling the scan parameters
-        start = main.findChild((QWidget, ), 'start')
-        stop = main.findChild((QWidget, ), 'stop')
-        step = main.findChild((QWidget, ), 'step')
-        wait = main.findChild((QWidget, ), 'wait')
-        scan = main.findChild((QWidget, ), 'scan')
+        start = main.findChild((QtGui.QWidget, ), 'start')
+        stop = main.findChild((QtGui.QWidget, ), 'stop')
+        step = main.findChild((QtGui.QWidget, ), 'step')
+        wait = main.findChild((QtGui.QWidget, ), 'wait')
+        scan = main.findChild((QtGui.QWidget, ), 'scan')
 
         # <--------- This is new --------->
         connect_driver(main, inst)
 
-        progress = main.findChild((QWidget, ), 'progress')
+        progress = main.findChild((QtGui.QWidget, ), 'progress')
 
         def update_progress_bar(new, old):
             fraction = (new.magnitude - start.value()) / (stop.value() - start.value())
@@ -206,28 +196,22 @@ how to do it::
 
     import sys
 
-    # Import lantz.ui register an import hook that will replace calls to Qt by PyQt4 or PySide ...
-    import lantz.ui
+    # Import Qt related from lantz so it worsk with PyQt4 or PySide ...
+    from lantz.utils.qt import QtGui, QtCore
+
     from lantz import Q_
 
     # Import from lantz a function to connect drivers to UI
     from lantz.ui.widgets import connect_driver
 
-    # and here we just use Qt and will work with both bindings!
-    from Qt.QtGui import QApplication, QWidget
-    from Qt.uic import loadUi
-
-    # We import
-    from Qt.QtCore import QThread, QObject
-
     # These imports are from your own project
     from mydriver import LantzSignalGeneratorTCP
     from scanfrequency import scan_frequency
 
-    app = QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv)
 
     # Load the UI from the QtDesigner file. You can also use pyuic4 to generate a class.
-    main = loadUi('scanfrequency.ui')
+    main = QtGui.loadUi('scanfrequency.ui')
 
     Hz = Q_(1, 'Hz')
     sec = Q_(1, 'second')
@@ -239,12 +223,12 @@ how to do it::
         connect_driver(main, inst)
 
         # Obtain a reference to the widgets controlling the scan parameters
-        start = main.findChild((QWidget, ), 'start')
-        stop = main.findChild((QWidget, ), 'stop')
-        step = main.findChild((QWidget, ), 'step')
-        wait = main.findChild((QWidget, ), 'wait')
-        scan = main.findChild((QWidget, ), 'scan')
-        progress = main.findChild((QWidget, ), 'progress')
+        start = main.findChild((QtGui.QWidget, ), 'start')
+        stop = main.findChild((QtGui.QWidget, ), 'stop')
+        step = main.findChild((QtGui.QWidget, ), 'step')
+        wait = main.findChild((QtGui.QWidget, ), 'wait')
+        scan = main.findChild((QtGui.QWidget, ), 'scan')
+        progress = main.findChild((QtGui.QWidget, ), 'progress')
 
         def update_progress_bar(new, old):
             fraction = (new.magnitude - start.value()) / (stop.value() - start.value())
@@ -254,7 +238,7 @@ how to do it::
 
         # <--------- New code--------->
         # Define a function to read the values from the widget and call scan_frequency
-        class Scanner(QObject):
+        class Scanner(QtCore.QObject):
 
             def scan(self):
                 # Call the scan frequency
@@ -263,7 +247,7 @@ how to do it::
                 # When it finishes, set the progress to 100%
                 progress.setValue(100)
 
-        thread = QThread()
+        thread = QtCore.QThread()
         scanner = Scanner()
         scanner.moveToThread(thread)
         thread.start()

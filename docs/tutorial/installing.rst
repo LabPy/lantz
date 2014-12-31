@@ -10,7 +10,14 @@ optional requirements as site-packages.
 Requirements
 ------------
 
-Lantz core requires only `Python`_ 3.2+.
+Lantz core requires `Python`_ 3.4+ and::
+
+    - `PyVISA`_ Python package that enables you to control all kinds of measurement
+      devices independently of the interface (e.g. GPIB, RS232, USB, Ethernet) using
+      different backends.
+
+    - `Qt4`_ is used to generate the graphical user interfaces. Due to a license issue there
+      are two python bindings for Qt: `PyQt`_ and `PySide`_.
 
 
 Optional requirements
@@ -33,9 +40,6 @@ packages, a link to the binary distribution is given. Specifi
 
     - `pySerial`_ it is to communicate via serial port.
       It is optional and only needed if you are using a driver that uses lantz.serial.
-
-    - `Qt4`_ is used to generate the graphical user interfaces. Due to a license issue there
-      are two python bindings for Qt: `PyQt`_ and `PySide`_.
 
     - `NumPy`_ is used by many drivers to perform numerical calculations.
 
@@ -178,6 +182,7 @@ In any OS you can use Anaconda Python Distribution
 .. _Sphinx: http://sphinx.pocoo.org/
 .. _Docutils: http://docutils.sourceforge.net/
 .. _pySerial: http://pyserial.sourceforge.net/
+.. _PyVISA: http://pyvisa.readthedocs.org/
 .. _pySerial binaries: http://pyserial.sourceforge.net/pyserial.html#packages
 .. _Qt4: http://qt.nokia.com/products/
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt

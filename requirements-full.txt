@@ -3,4 +3,6 @@ sphinx
 pyserial
 pyusb
 numpy
+pyvisa
+sphinxcontrib-images
 lantz

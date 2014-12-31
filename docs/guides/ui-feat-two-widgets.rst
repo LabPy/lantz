@@ -19,12 +19,8 @@ You can connect each relevant driver Feat to the corresponding widget::
 
     import sys
 
-    # Import lantz.ui register an import hook that will replace calls to Qt by PyQt4 or PySide ...
-    import lantz.ui
-
-    # and here we just use Qt and will work with both bindings!
-    from Qt.QtGui import QApplication, QWidget
-    from Qt.uic import loadUi
+    # Import Qt related from lantz so it worsk with PyQt4 or PySide ...
+    from lantz.utils.qt import QtGui
 
     # From lantz we import the driver ...
     from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
@@ -32,14 +28,14 @@ You can connect each relevant driver Feat to the corresponding widget::
     # and a function named connect_feat that does the work.
     from lantz.ui.widgets import connect_feat
 
-    app = QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv)
 
     # We load the UI from the QtDesigner file. You can also use pyuic4 to generate a class.
-    main = loadUi('connect_test.ui')
+    main = QtGui.loadUi('connect_test.ui')
 
     # We get a reference to each of the widgets.
-    slider = main.findChild((QWidget, ), 'frequency__slider')
-    spin = main.findChild((QWidget, ), 'frequency')
+    slider = main.findChild((QtGui.QWidget, ), 'frequency__slider')
+    spin = main.findChild((QtGui.QWidget, ), 'frequency')
 
     with LantzSignalGeneratorTCP('localhost', 5678) as inst:
 
@@ -62,12 +58,8 @@ If you have named the widgets according to the Feat and you have use a suffix in
 
     import sys
 
-    # Import lantz.ui register an import hook that will replace calls to Qt by PyQt4 or PySide ...
-    import lantz.ui
-
-    # and here we just use Qt and will work with both bindings!
-    from Qt.QtGui import QApplication, QWidget
-    from Qt.uic import loadUi
+    # Import Qt related from lantz so it worsk with PyQt4 or PySide ...
+    from lantz.utils.qt import QtGui
 
     # From lantz we import the driver ...
     from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
@@ -75,10 +67,10 @@ If you have named the widgets according to the Feat and you have use a suffix in
     # and a function named connect_feat that does the work.
     from lantz.ui.widgets import connect_feat
 
-    app = QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv)
 
     # We load the UI from the QtDesigner file. You can also use pyuic4 to generate a class.
-    main = loadUi('connect_test.ui')
+    main = QtGui.loadUi('connect_test.ui')
 
     with LantzSignalGeneratorTCP('localhost', 5678) as inst:
 
@@ -95,6 +87,21 @@ In this example, we have use the double underscore `__` to separate the suffix. 
         connect_driver(main, inst, sep='_o_')
 
 There is no limit in the number of widgets that you can connect to the same feat.
+
+
+The shortest way
+----------------
+
+As this is a commont pattern, we have a useful function for that::
+
+    import sys
+
+    # Import Qt related from lantz so it worsk with PyQt4 or PySide ...
+    from lantz.ui.app import start_gui
+
+    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+        start_gui('connect_test.ui', inst, sys.argv)
+
 
 
 .. seealso::

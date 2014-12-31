@@ -21,12 +21,8 @@ Get a reference to each widget and connect them manually::
 
     import sys
 
-    # Import lantz.ui register an import hook that will replace calls to Qt by PyQt4 or PySide ...
-    import lantz.ui
-
-    # and here we just use Qt and will work with both bindings!
-    from Qt.QtGui import QApplication, QWidget
-    from Qt.uic import loadUi
+    # Import Qt related from lantz so it worsk with PyQt4 or PySide ...
+    from lantz.utils.qt import QtGui
 
     # From lantz we import the driver ...
     from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
@@ -34,14 +30,14 @@ Get a reference to each widget and connect them manually::
     # and a function named connect_feat that does the work.
     from lantz.ui.widgets import connect_feat
 
-    app = QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv)
 
     # We load the UI from the QtDesigner file. You can also use pyuic4 to generate a class.
-    main = loadUi('ui-two-drivers.ui')
+    main = QtGui.loadUi('ui-two-drivers.ui')
 
     # We get a reference to each of the widgets.
-    freq1 = main.findChild((QWidget, ), 'fungen1__frequency')
-    freq2 = main.findChild((QWidget, ), 'fungen2__frequency')
+    freq1 = main.findChild((QtGui.QWidget, ), 'fungen1__frequency')
+    freq2 = main.findChild((QtGui.QWidget, ), 'fungen2__frequency')
 
     with LantzSignalGeneratorTCP('localhost', 5678) as inst1, \
          LantzSignalGeneratorTCP('localhost', 5679) as inst2:
@@ -62,12 +58,8 @@ If you have use a prefix to solve the name collision you can use it and connect 
 
     import sys
 
-    # Import lantz.ui register an import hook that will replace calls to Qt by PyQt4 or PySide ...
-    import lantz.ui
-
-    # and here we just use Qt and will work with both bindings!
-    from Qt.QtGui import QApplication, QWidget
-    from Qt.uic import loadUi
+    # Import Qt related from lantz so it worsk with PyQt4 or PySide ...
+    from lantz.utils.qt import QtGui
 
     # From lantz we import the driver ...
     from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
@@ -75,10 +67,10 @@ If you have use a prefix to solve the name collision you can use it and connect 
     # and a function named connect_feat that does the work.
     from lantz.ui.widgets import connect_feat
 
-    app = QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv)
 
     # We load the UI from the QtDesigner file. You can also use pyuic4 to generate a class.
-    main = loadUi('ui-two-drivers.ui')
+    main = QtGui.loadUi('ui-two-drivers.ui')
 
     with LantzSignalGeneratorTCP('localhost', 5678) as inst1, \
          LantzSignalGeneratorTCP('localhost', 5679) as inst2:
@@ -100,12 +92,8 @@ If you have named the widgets according to the Feat name and added a prefix corr
 
     import sys
 
-    # Import lantz.ui register an import hook that will replace calls to Qt by PyQt4 or PySide ...
-    import lantz.ui
-
-    # and here we just use Qt and will work with both bindings!
-    from Qt.QtGui import QApplication, QWidget
-    from Qt.uic import loadUi
+    # Import Qt related from lantz so it worsk with PyQt4 or PySide ...
+    from lantz.utils.qt import QtGui
 
     # From lantz we import the driver ...
     from lantz.drivers.examples.fungen import LantzSignalGeneratorTCP
@@ -113,10 +101,10 @@ If you have named the widgets according to the Feat name and added a prefix corr
     # and a function named connect_feat that does the work.
     from lantz.ui.widgets import connect_feat
 
-    app = QApplication(sys.argv)
+    app = QtGui.QApplication(sys.argv)
 
     # We load the UI from the QtDesigner file. You can also use pyuic4 to generate a class.
-    main = loadUi('ui-two-drivers.ui')
+    main = QtGui.loadUi('ui-two-drivers.ui')
 
     # Notice that now we specify the instrument name!
     with LantzSignalGeneratorTCP('localhost', 5678, name='fungen1') as inst1, \
@@ -129,6 +117,24 @@ If you have named the widgets according to the Feat name and added a prefix corr
 
 
 Under the hood, `connect_setup` iterates over all drivers in the second argument and executes `connect_driver` using the driver name.
+
+
+The shortest way
+----------------
+
+As this is a commont pattern, we have a useful function for that::
+
+    import sys
+
+    # Import Qt related from lantz so it worsk with PyQt4 or PySide ...
+    from lantz.ui.app import start_gui
+
+    # Notice that now we specify the instrument name!
+    with LantzSignalGeneratorTCP('localhost', 5678, name='fungen1') as inst1, \
+         LantzSignalGeneratorTCP('localhost', 5679, name='fungen2') as inst2:
+
+        start_gui('connect_test.ui', [inst1, inst2], sys.argv)
+
 
 
 .. seealso::
