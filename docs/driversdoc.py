@@ -359,10 +359,11 @@ def main():
             module = packages[key]
             fp.write(list_drivers(key, module))
 
-        fp.write(format_heading(1, 'Failed to generate the docs for the following subpackages'))
-        fp.write('\n')
-        for key in sorted(failed_packages):
-            fp.write('- {}\n'.format(key))
+        if failed_packages:
+            fp.write(format_heading(1, 'Failed to generate the docs for the following subpackages'))
+            fp.write('\n')
+            for key in sorted(failed_packages):
+                fp.write('- {}\n'.format(key))
 
 if __name__ == '__main__':
     main()
