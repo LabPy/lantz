@@ -223,52 +223,56 @@ class MessageBasedDriver(Driver):
         self.resource.close()
         super().finalize()
 
-    def parse_query(self, message, *, format=None):
+    def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
+        """Send query to the instrument and return the answer
+
+        :param command: command to be sent to the instrument
+        :type command: string
+
+        :param send_args: (termination, encoding) to override class defaults
+        :param recv_args: (termination, encoding) to override class defaults
+        """
+
+        self.write(command, *send_args)
+        return self.read(*recv_args)
+
+    def parse_query(self, command, *,
+                    send_args=(None, None), recv_args=(None, None),
+                    format=None):
         """Send query to the instrument, parse the output using format
         and return the answer.
 
         .. seealso:: TextualMixin.query and stringparser
         """
-        ans = self.query(message)
+        ans = self.query(command, send_args=send_args, recv_args=recv_args)
         if format:
             parser = _PARSERS_CACHE.setdefault(format, ParseProcessor(format))
             ans = parser(ans)
         return ans
 
-    def query(self, message):
-        """Send query to the instrument and return the answer.
+    def write(self, command, termination=None, encoding=None):
+        """Send command to the instrument.
 
-        :param message: command to be sent to the instrument
-        :type message: str
+        :param command: command to be sent to the instrument.
+        :type command: string.
+
+        :param termination: termination character to override class defined
+                            default.
+        :param encoding: encoding to transform string to bytes to override class
+                         defined default.
+
+        :return: number of bytes sent.
+
         """
-
-        self.write(message)
-        return self.read()
-
-    def write(self, message):
-        """Write a string message to the device.
-
-        The write_termination is always appended to it.
-
-        :param message: the message to be sent.
-        :type message: unicode (Py2) or str (Py3)
-        :return: number of bytes written.
-        :rtype: int
-        """
-        return self.resource.write(message)
+        return self.resource.write(command)
 
     def read(self, termination=None, encoding=None):
-        """Read a string from the device.
+        """Receive string from instrument.
 
-        Reading stops when the device stops sending (e.g. by setting
-        appropriate bus lines), or the termination characters sequence was
-        detected.  Attention: Only the last character of the termination
-        characters is really used to stop reading, however, the whole sequence
-        is compared to the ending of the read string message.  If they don't
-        match, a warning is issued.
-
-        All line-ending characters are stripped from the end of the string.
-
-        :rtype: str
+        :param termination: termination character (overrides class default)
+        :type termination: str
+        :param encoding: encoding to transform bytes to string (overrides class default)
+        :param recv_chunk: number of bytes to receive (overrides class default)
+        :return: string encoded from received bytes
         """
-        return self.resource.read()
+        return self.resource.read(termination, encoding)
