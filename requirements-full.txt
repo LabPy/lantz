@@ -1,8 +1,5 @@
 colorama
-sphinx
 pyserial
 pyusb
 numpy
-pyvisa
-sphinxcontrib-images
-lantz
+-r requirements-doc.txt
