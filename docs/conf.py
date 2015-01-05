@@ -115,24 +115,30 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 modindex_common_prefix = ['lantz.']
 
+# -- Options for HTML output ---------------------------------------------------
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+html_theme = 'sphinx_rtd_theme'
+
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+if not on_rtd:  # only import and set the theme if we're building docs locally
+    try:
+        import sphinx_rtd_theme
+    except ImportError:
+        print('\n\nTheme not found. Please install Sphinx Read The Docs Themes using:\n\n'
+              '   pip install sphinx_rtd_theme\n')
+        sys.exit(1)
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+    print(html_theme_path)
 
 import driversdoc
 driversdoc.main()
 
-# -- Options for HTML output ---------------------------------------------------
-sys.path.append(os.path.abspath('_themes'))
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-html_theme = 'lantz'
-
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
-html_theme_options = {'collapsiblesidebar': True}
-
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = ['_themes']
+html_theme_options = {}
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

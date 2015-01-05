@@ -22,12 +22,13 @@ When you use Lantz you get:
       async capabilities and much more.
 
     - On-the-fly GUI for testing purposes.
-      Without a line of code you get for **any** driver something like:
+      Without a line of code you get for **any** driver something like this
+      (click to enlarge):
 
       .. thumbnail:: _static/ui-fungen.png
             :width: 20%
 
-    - Tools to quickly build beautiful, responsive and correct applications.
+    - Tools to quickly build beautiful, responsive and composable applications.
 
     - An awesome and supporting community.
 
