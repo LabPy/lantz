@@ -226,7 +226,7 @@ class Driver(SuperQObject, metaclass=_DriverType):
         inst.__unfinished_tasks = 0
         inst.timing = RunningStats()
 
-        if hasattr(inst, 'name'):
+        if hasattr(inst, 'name') and inst.name:
             pass
         elif name:
             inst.name = name

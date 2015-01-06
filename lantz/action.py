@@ -102,7 +102,10 @@ class Action(object):
         # This part calls to the underlying function wrapping
         # and timing, logging and error handling
         with instance._lock:
-            instance.log_info('Calling {} with ({}, {}))', name, args, kwargs)
+            if args or kwargs:
+                instance.log_info('Calling {} with ({}, {}))', name, args, kwargs)
+            else:
+                instance.log_info('Calling {}', name)
 
             try:
                 values = inspect.getcallargs(self.func, *(instance, ) + args, **kwargs)
@@ -115,7 +118,9 @@ class Action(object):
             except Exception as e:
                 instance.log_error('While pre-processing ({}, {}) for {}: {}', args, kwargs, name, e)
                 raise e
-            instance.log_debug('(raw) Setting {} = {}', name, t_values)
+
+            if args or kwargs:
+                instance.log_debug('(raw) Calling {} with {}', name, t_values)
 
             try:
                 tic = time.time()
