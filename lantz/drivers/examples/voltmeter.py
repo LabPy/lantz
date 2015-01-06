@@ -18,8 +18,8 @@ class LantzVoltmeter(MessageBasedDriver):
     """Lantz Signal Generator
     """
 
-    DEFAULTS_KWARGS = {'COMMON': {'write_termination': '\n',
-                                  'read_termination': '\n'}}
+    DEFAULTS = {'COMMON': {'write_termination': '\n',
+                           'read_termination': '\n'}}
 
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
         answer = super().query(command, send_args=send_args, recv_args=recv_args)

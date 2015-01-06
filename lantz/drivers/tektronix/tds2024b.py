@@ -22,6 +22,8 @@ class TDS2024(MessageBasedDriver):
     """Tektronix TDS2024 200 MHz 4 Channel Digital Real-Time Oscilloscope
     """
 
+    MANUFACTURER_ID = '0x699'
+
     @Action()
     def autoconf(self):
         """Autoconfig oscilloscope.

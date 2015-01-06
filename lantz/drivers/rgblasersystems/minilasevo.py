@@ -17,14 +17,14 @@ class MiniLasEvo(MessageBasedDriver):
     """Driver for any RGB Lasersystems MiniLas Evo laser.
     """
 
-    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\r\n',
-                                'read_termination': '\r\n',
-                                'baud_rate': 57600,
-                                'bytesize': 8,
-                                'parity': constants.Parity.none,
-                                'stop_bits': constants.StopBits.one,
-                                'encoding': 'ascii'
-                                }}
+    DEFAULTS = {'ASRL': {'write_termination': '\r\n',
+                         'read_termination': '\r\n',
+                         'baud_rate': 57600,
+                         'bytesize': 8,
+                         'parity': constants.Parity.none,
+                         'stop_bits': constants.StopBits.one,
+                         'encoding': 'ascii'
+                        }}
 
     #: flow control flags
     #RTSCTS = False

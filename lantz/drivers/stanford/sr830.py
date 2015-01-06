@@ -89,9 +89,9 @@ SAMPLE_RATES = OrderedDict([
 
 class SR830(MessageBasedDriver):
 
-    DEFAULTS_KWARGS = {'common': {'write_termination': '\n',
-                                  'read_termination': '\n',
-                                  }}
+    DEFAULTS = {'COMMON': {'write_termination': '\n',
+                           'read_termination': '\n',
+                          }}
 
 
     @Feat(units='degrees', limits=(-360, 729.99, 0.01))

@@ -17,14 +17,14 @@ class Cobolt0601(MessageBasedDriver):
     """Driver for any Cobolt 06-01 Series laser.
     """
 
-    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\r',
-                                'read_termination': '\r',
-                                'baud_rate': 115200,
-                                'bytesize': 8,
-                                'parity': constants.Parity.none,
-                                'stop_bits': constants.StopBits.one,
-                                'encoding': 'ascii',
-                                }}
+    DEFAULTS = {'ASRL': {'write_termination': '\r',
+                         'read_termination': '\r',
+                         'baud_rate': 115200,
+                         'bytesize': 8,
+                         'parity': constants.Parity.none,
+                         'stop_bits': constants.StopBits.one,
+                         'encoding': 'ascii',
+                         }}
 
     #TODO: add this in PyVISA
     # flow control flags

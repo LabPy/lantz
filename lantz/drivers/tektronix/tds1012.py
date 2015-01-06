@@ -22,7 +22,9 @@ from lantz.errors import InvalidCommand
 class TDS1012(MessageBasedDriver):
     """Tektronix TDS1012 100MHz 2 Channel Digital Storage Oscilloscope
     """
-        
+
+    MANUFACTURER_ID = '0x699'
+
     @Action()
     def initiate(self):
         """ Initiates the acquisition in the osciloscope.

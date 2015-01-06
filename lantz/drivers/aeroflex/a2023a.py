@@ -22,8 +22,8 @@ class A2023a(MessageBasedDriver):
     """Aeroflex Test Solutions 2023A 9 kHz to 1.2 GHz Signal Generator.
     """
 
-    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\n',
-                                'read_termination': chr(256)}}
+    DEFAULTS = {'ASRL': {'write_termination': '\n',
+                         'read_termination': chr(256)}}
 
     @Feat(read_once=True)
     def idn(self):

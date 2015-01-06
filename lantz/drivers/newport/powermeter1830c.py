@@ -22,15 +22,15 @@ class PowerMeter1830c(MessageBasedDriver):
     """ Newport 1830c Power Meter
     """
 
-    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\n',
-                                'read_termination': '\n',
-                                'baud_rate': 9600,
-                                'bytesize': 8,
-                                'parity': constants.Parity.none,
-                                'stop_bits': constants.StopBits.one,
-                                'encoding': 'ascii',
-                                'timeout': 2000
-                                }}
+    DEFAULTS = {'ASRL': {'write_termination': '\n',
+                         'read_termination': '\n',
+                         'baud_rate': 9600,
+                         'bytesize': 8,
+                         'parity': constants.Parity.none,
+                         'stop_bits': constants.StopBits.one,
+                         'encoding': 'ascii',
+                         'timeout': 2000
+                        }}
 
 
     @Feat(values={True: 1, False: 0})

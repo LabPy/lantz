@@ -19,15 +19,15 @@ class NanoScanZ(MessageBasedDriver):
     """
 
 
-    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\n',
-                                'read_termination': '\n',
-                                'baud_rate': 9600,
-                                'bytesize': 8,
-                                'parity': constants.Parity.none,
-                                'stop_bits': constants.StopBits.one,
-                                'encoding': 'ascii',
-                                'timeout': 2000
-                                }}
+    DEFAULTS = {'ASRL': {'write_termination': '\n',
+                         'read_termination': '\n',
+                         'baud_rate': 9600,
+                         'bytesize': 8,
+                         'parity': constants.Parity.none,
+                         'stop_bits': constants.StopBits.one,
+                         'encoding': 'ascii',
+                         'timeout': 2000
+                        }}
 
     #: flow control flags
     #RTSCTS = False

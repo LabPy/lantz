@@ -64,14 +64,14 @@ class IXBX(MessageBasedDriver):
     """ IX or BX Olympus microscope body.
     """
 
-    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\r\n',
-                                'read_termination': '\r\n',
-                                'baud_rate': 19200,
-                                'bytesize': 8,
-                                'parity': constants.Parity.even,
-                                'stop_bits': constants.StopBits.one,
-                                'encoding': 'ascii',
-                                }}
+    DEFAULTS = {'ASRL': {'write_termination': '\r\n',
+                         'read_termination': '\r\n',
+                         'baud_rate': 19200,
+                         'bytesize': 8,
+                         'parity': constants.Parity.even,
+                         'stop_bits': constants.StopBits.one,
+                         'encoding': 'ascii',
+                        }}
 
 
     def initialize(self):

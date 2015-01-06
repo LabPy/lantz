@@ -26,9 +26,9 @@ class Lambda103(MessageBasedDriver):
     for imaging applications requiring up to 3 filter wheels.
     """
 
-    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '',
-                                'read_termination': '',
-                                  }}
+    DEFAULTS = {'ASRL': {'write_termination': '',
+                         'read_termination': '',
+                        }}
 
 
     def initialize(self):

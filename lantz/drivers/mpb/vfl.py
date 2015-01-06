@@ -17,14 +17,14 @@ class VFL(MessageBasedDriver):
     """Driver for any VFL MPB Communications laser.
     """
 
-    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\rD >',
-                                'read_termination': '\r\n',
-                                'baud_rate': 1200,
-                                'bytesize': 8,
-                                'parity': constants.Parity.none,
-                                'stop_bits': constants.StopBits.one,
-                                'encoding': 'ascii',
-                                }}
+    DEFAULTS = {'ASRL': {'write_termination': '\rD >',
+                         'read_termination': '\r\n',
+                         'baud_rate': 1200,
+                         'bytesize': 8,
+                         'parity': constants.Parity.none,
+                         'stop_bits': constants.StopBits.one,
+                         'encoding': 'ascii',
+                        }}
 
     #: flow control flags
     #RTSCTS = False

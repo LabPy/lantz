@@ -18,7 +18,7 @@ class SerialTemplate(MessageBasedDriver):
     """
 
 
-    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\n',
+    DEFAULTS = {'ASRL': {'write_termination': '\n',
                                 'read_termination': '\n'}}
 
     @Feat()

@@ -17,11 +17,8 @@ from lantz.messagebased import MessageBasedDriver
 
 class AFG3021b(MessageBasedDriver):
 
-
-    @classmethod
-    def from_usbtmc(self, serial_number=None, name=None, **kwargs):
-
-        return super().from_usbtmc(serial_number, '0x0699', '0x0346', name=name, **kwargs)
+    MANUFACTURER_ID = '0x0699'
+    MODEL_CODE = '0x0346'
 
     @Feat()
     def idn(self):

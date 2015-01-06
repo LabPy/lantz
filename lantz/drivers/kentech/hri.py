@@ -41,9 +41,8 @@ class HRI(MessageBasedDriver):
     """Kentech High Repetition Rate Image Intensifier.
     """
 
-    SEND_TERMINATION = '\r'
-    RECV_TERMINATION = '\n'
-    ENCODING = 'ascii'
+    DEFAULTS = {'COMMON': {'write_termination': '\r',
+                           'read_termination': '\n'}}
 
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
         """Send query to the instrument and return the answer.

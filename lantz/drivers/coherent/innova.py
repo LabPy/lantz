@@ -51,14 +51,14 @@ class Innova300C(MessageBasedDriver):
     """
 
 
-    DEFAULTS_KWARGS = {'ASRL': {'write_termination': '\r\n',
-                                'read_termination': '\r\n',
-                                'baud_rate': 1200,
-                                'bytesize': 8,
-                                'parity': constants.Parity.none,
-                                'stop_bits': constants.StopBits.one,
-                                'encoding': 'ascii',
-                                }}
+    DEFAULTS = {'ASRL': {'write_termination': '\r\n',
+                         'read_termination': '\r\n',
+                         'baud_rate': 1200,
+                         'bytesize': 8,
+                         'parity': constants.Parity.none,
+                         'stop_bits': constants.StopBits.one,
+                         'encoding': 'ascii',
+                        }}
 
 
     def initialize(self):

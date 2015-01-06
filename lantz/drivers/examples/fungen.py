@@ -18,8 +18,8 @@ class LantzSignalGenerator(MessageBasedDriver):
     """Lantz Signal Generator
     """
 
-    DEFAULTS_KWARGS = {'COMMON': {'write_termination': '\n',
-                                  'read_termination': '\n'}}
+    DEFAULTS = {'COMMON': {'write_termination': '\n',
+                           'read_termination': '\n'}}
 
 
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
