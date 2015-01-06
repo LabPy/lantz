@@ -21,3 +21,5 @@ class LantzTimeoutError(Exception):
 class InstrumentError(Exception):
     pass
 
+class NotSupportedError(Exception):
+    pass
