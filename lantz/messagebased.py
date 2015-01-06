@@ -62,7 +62,16 @@ class MessageBasedDriver(Driver):
     #:       }
     #:
     #: :type: dict[str, dict[str, str]]
-    DEFAULTS_KWARGS = None
+    DEFAULTS = None
+
+    #: The identification number of the manufacturer as hex code.
+    #: :type: str | None
+    MANUFACTURER_ID = None
+
+    #: The code number of the model as hex code.
+    #: Can provide a tuple/list to indicate multiple models.
+    #: :type: str | list | tuple | None
+    MODEL_CODE = None
 
     #: Stores a reference to a PyVISA ResourceManager.
     #: :type: visa.ResourceManager
@@ -87,14 +96,14 @@ class MessageBasedDriver(Driver):
         :rtype: dict
         """
 
-        if cls.DEFAULTS_KWARGS:
+        if cls.DEFAULTS:
 
             maps = [user_kwargs] if user_kwargs else []
 
             for key in ((instrument_type, resource_type), instrument_type, resource_type, 'COMMON'):
-                if key not in cls.DEFAULTS_KWARGS:
+                if key not in cls.DEFAULTS:
                     continue
-                value = cls.DEFAULTS_KWARGS[key]
+                value = cls.DEFAULTS[key]
                 if value is None:
                     raise NotSupportedError('An %s instrument is not supported by the driver %s',
                                             key, cls.__name__)
@@ -106,22 +115,20 @@ class MessageBasedDriver(Driver):
             return user_kwargs
 
     @classmethod
-    def _from_usb(cls, resource_type='INSTR', serial_number=None, manufacturer_id=None, model_code=None, name=None, board=0, **kwargs):
+    def _via_usb(cls, resource_type='INSTR', serial_number=None, manufacturer_id=None,
+                 model_code=None, name=None, board=0, **kwargs):
         """Return a Driver with an underlying USB resource.
 
         A connected USBTMC instrument with the specified serial_number, manufacturer_id,
         and model_code is returned. If any of these is missing, the first USBTMC driver
         matching any of the provided values is returned.
 
-        Override this method to specify the manufacturer id and/or the model code::
+        To specify the manufacturer id and/or the model code override the following class attributes::
 
             class RigolDS1052E(MessageBasedDriver):
 
-                @classmethod
-                def from_usbtmc(self, serial_number=None, name=None, **kwargs):
-
-                    return super().from_usbtmc(serial_number, '0x1AB1', '0x0588', name, **kwargs)
-
+                MANUFACTURER_ID = '0x1AB1'
+                MODEL_CODE = '0x0588'
 
         :param serial_number: The serial number of the instrument.
         :param manufacturer_id: The unique identification number of the manufacturer.
@@ -134,42 +141,57 @@ class MessageBasedDriver(Driver):
         :rtype: MessageBasedDriver
         """
 
-        if serial_number is None or manufacturer_id is None or model_code is None:
-            query = 'USB%d::%s::%s::%s::%s' % (board, manufacturer_id or '?*', model_code or '?*', serial_number or '?*', resource_type)
-            try:
-                resources = get_resource_manager().list_resources(query)
-            except:
-                resources = []
+        manufacturer_id = manufacturer_id or cls.MANUFACTURER_ID
+        model_code = model_code or cls.MODEL_CODE
 
-            if len(resources) != 1:
-                msg = ' USBTMC devices found for %s' % query
-                if not len(resources):
-                    raise ValueError('No' + msg)
-                elif len(resources) > 1:
-                    LOGGER.debug(str(len(resources)) + msg + '. Picking the first.')
-
-            resource_name = resources[0]
+        if isinstance(model_code, (list, tuple)):
+            _models = model_code
+            model_code = '?*'
         else:
-            resource_name = 'USB%d::%s::%s::%s::%s' % (board, manufacturer_id, model_code, serial_number, resource_type)
+            _models = None
 
-        return cls(resource_name, name)
+        query = 'USB%d::%s::%s::%s::%s' % (board, manufacturer_id or '?*',
+                                           model_code or '?*',
+                                           serial_number or '?*',
+                                           resource_type)
+
+        rm = get_resource_manager()
+        try:
+            resource_names = rm.list_resources(query)
+        except:
+            raise ValueError('No USBTMC devices found for %s' % query)
+
+        if _models:
+            # There are more than 1 model compatible with
+            resource_names = [r for r in resource_names
+                              if r.split('::')[2] in _models]
+
+            if not resource_names:
+                raise ValueError('No USBTMC devices found for %s '
+                                 'with model in %s' % (query, _models))
+
+        if len(resource_names) > 1:
+            raise ValueError('%d USBTMC devices found for %s. '
+                             'Please specify the serial number' % (len(resource_names), query))
+
+        return cls(resource_names[0], name, **kwargs)
+
 
     @classmethod
-    def from_usbtmc(cls, serial_number=None, manufacturer_id=None, model_code=None, name=None, board=0, **kwargs):
+    def via_usb(cls, serial_number=None, manufacturer_id=None,
+                model_code=None, name=None, board=0, **kwargs):
         """Return a Driver with an underlying USB Instrument resource.
 
         A connected USBTMC instrument with the specified serial_number, manufacturer_id,
         and model_code is returned. If any of these is missing, the first USBTMC driver
         matching any of the provided values is returned.
 
-        Override this method to specify the manufacturer id and/or the model code::
+        To specify the manufacturer id and/or the model code override the following class attributes::
 
             class RigolDS1052E(MessageBasedDriver):
 
-                @classmethod
-                def from_usbtmc(self, serial_number=None, name=None, **kwargs):
-
-                    return super().from_usbtmc(serial_number, '0x1AB1', '0x0588', name, **kwargs)
+                MANUFACTURER_ID = '0x1AB1'
+                MODEL_CODE = '0x0588'
 
 
         :param serial_number: The serial number of the instrument.
@@ -183,11 +205,11 @@ class MessageBasedDriver(Driver):
         :rtype: MessageBasedDriver
         """
 
-        return cls._from_usb('INSTR', serial_number, manufacturer_id, model_code, name, board, **kwargs)
+        return cls._via_usb('INSTR', serial_number, manufacturer_id, model_code, name, board, **kwargs)
 
 
     @classmethod
-    def from_usbtmc_raw(cls, serial_number=None, manufacturer_id=None, model_code=None, name=None, board=0, **kwargs):
+    def via_usb_raw(cls, serial_number=None, manufacturer_id=None, model_code=None, name=None, board=0, **kwargs):
         """Return a Driver with an underlying USB RAW resource.
 
         :param serial_number: The serial number of the instrument.
@@ -201,10 +223,10 @@ class MessageBasedDriver(Driver):
         :rtype: MessageBasedDriver
         """
 
-        return cls._from_usb('RAW', serial_number, manufacturer_id, model_code, name, board, **kwargs)
+        return cls._via_usb('RAW', serial_number, manufacturer_id, model_code, name, board, **kwargs)
 
     @classmethod
-    def from_serial_port(cls, port, name=None, **kwargs):
+    def via_serial(cls, port, name=None, **kwargs):
         """Return a Driver with an underlying ASRL (Serial) Instrument resource.
 
         :param port: The serial port to which the instrument is connected.
@@ -218,8 +240,9 @@ class MessageBasedDriver(Driver):
         return cls(resource_name, name, **kwargs)
 
     @classmethod
-    def from_hostname(cls, hostname, name=None, **kwargs):
+    def via_tcpip(cls, hostname, port, name=None, **kwargs):
         """Return a Driver with an underlying TCP Instrument resource.
+
 
         :param port: The ip address or hostname of the instrument.
         :param name: Unique name given within Lantz to the instrument for logging purposes.
@@ -228,11 +251,11 @@ class MessageBasedDriver(Driver):
 
         :rtype: MessageBasedDriver
         """
-        resource_name = 'TCPIP::%s::INSTR' % hostname
+        resource_name = 'TCPIP::%s::%s::INSTR' % (hostname, port)
         return cls(resource_name, name, **kwargs)
 
     @classmethod
-    def from_hostname_socket(cls, hostname, name=None, **kwargs):
+    def via_tcpip_socket(cls, hostname, port, name=None, **kwargs):
         """Return a Driver with an underlying TCP Socket resource.
 
         :param port: The ip address or hostname of the instrument.
@@ -242,11 +265,11 @@ class MessageBasedDriver(Driver):
 
         :rtype: MessageBasedDriver
         """
-        resource_name = 'TCPIP::%s::INSTR' % hostname
+        resource_name = 'TCPIP::%s::%s::SOCKET' % (hostname, port)
         return cls(resource_name, name, **kwargs)
 
     @classmethod
-    def from_gpib_address(cls, address, name=None, **kwargs):
+    def via_gpib(cls, address, name=None, **kwargs):
         """Return a Driver with an underlying GPIB Instrument resource.
 
         :param address: The gpib address of the instrument.
@@ -268,15 +291,16 @@ class MessageBasedDriver(Driver):
         :param kwargs: keyword arguments passed to the resource during initialization.
         """
 
+        self.__resource_manager = get_resource_manager()
         try:
-            resource_info = get_resource_manager().resource_info(resource_name)
+            resource_info = self.__resource_manager.resource_info(resource_name)
         except visa.VisaIOError:
             raise ValueError('The resource name is invalid')
 
         super().__init__(name=name)
 
         # This is to avoid accidental modifications of the class value by an instance.
-        self.DEFAULTS_KWARGS = types.MappingProxyType(self.DEFAULTS_KWARGS or {})
+        self.DEFAULTS = types.MappingProxyType(self.DEFAULTS or {})
 
         #: The resource name
         #: :type: str
