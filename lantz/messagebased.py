@@ -14,6 +14,7 @@ import types
 
 import visa
 
+from .errors import NotSupportedError
 from .driver import Driver
 from .log import LOGGER
 from .processors import ParseProcessor
@@ -37,10 +38,6 @@ def get_resource_manager():
     if _resource_manager is None:
         _resource_manager = visa.ResourceManager()
     return _resource_manager
-
-
-class NotSupported:
-    pass
 
 
 class MessageBasedDriver(Driver):
@@ -72,35 +69,90 @@ class MessageBasedDriver(Driver):
     __resource_manager = None
 
     @classmethod
-    def _get_defaults_kwargs(cls, instrument_type, **user_kwargs):
+    def _get_defaults_kwargs(cls, instrument_type, resource_type, **user_kwargs):
         """Compute the default keyword arguments combining:
-            - common keyword arguments.
-            - instrument_type keyword arguments.
             - user provided keyword arguments.
+            - (instrument_type, resource_type) keyword arguments.
+            - instrument_type keyword arguments.
+            - resource_type keyword arguments.
+            - common keyword arguments.
 
-        (the lower ones have precedence)
+        (the first ones have precedence)
+
+        :param instrument_type: ASRL, USB, TCPIP, GPIB
+        :type instrument_type: str
+        :param resource_type: INSTR, SOCKET, RAW
+        :type resource_type: str
 
         :rtype: dict
         """
 
         if cls.DEFAULTS_KWARGS:
-            maps = [user_kwargs]
 
-            specific = cls.DEFAULTS_KWARGS.get(instrument_type, None)
-            if specific is NotSupported:
-                raise ValueError
-            elif specific:
-                maps.append(specific)
+            maps = [user_kwargs] if user_kwargs else []
 
-            if 'common' in cls.DEFAULTS_KWARGS:
-                maps.append(cls['common'])
+            for key in ((instrument_type, resource_type), instrument_type, resource_type, 'COMMON'):
+                if key not in cls.DEFAULTS_KWARGS:
+                    continue
+                value = cls.DEFAULTS_KWARGS[key]
+                if value is None:
+                    raise NotSupportedError('An %s instrument is not supported by the driver %s',
+                                            key, cls.__name__)
+                if value:
+                    maps.append(value)
 
-            if len(maps) == 1:
-                return user_kwargs
-            else:
-                return ChainMap(*maps)
+            return dict(ChainMap(*maps))
         else:
             return user_kwargs
+
+    @classmethod
+    def _from_usb(cls, resource_type='INSTR', serial_number=None, manufacturer_id=None, model_code=None, name=None, board=0, **kwargs):
+        """Return a Driver with an underlying USB resource.
+
+        A connected USBTMC instrument with the specified serial_number, manufacturer_id,
+        and model_code is returned. If any of these is missing, the first USBTMC driver
+        matching any of the provided values is returned.
+
+        Override this method to specify the manufacturer id and/or the model code::
+
+            class RigolDS1052E(MessageBasedDriver):
+
+                @classmethod
+                def from_usbtmc(self, serial_number=None, name=None, **kwargs):
+
+                    return super().from_usbtmc(serial_number, '0x1AB1', '0x0588', name, **kwargs)
+
+
+        :param serial_number: The serial number of the instrument.
+        :param manufacturer_id: The unique identification number of the manufacturer.
+        :param model_code: The unique identification number of the product.
+        :param name: Unique name given within Lantz to the instrument for logging purposes.
+                     Defaults to one generated based on the class name if not provided.
+        :param board: USB Board to use
+        :param kwargs: keyword arguments passed to the Resource constructor on initialize.
+
+        :rtype: MessageBasedDriver
+        """
+
+        if serial_number is None or manufacturer_id is None or model_code is None:
+            query = 'USB%d::%s::%s::%s::%s' % (board, manufacturer_id or '?*', model_code or '?*', serial_number or '?*', resource_type)
+            try:
+                resources = get_resource_manager().list_resources(query)
+            except:
+                resources = []
+
+            if len(resources) != 1:
+                msg = ' USBTMC devices found for %s' % query
+                if not len(resources):
+                    raise ValueError('No' + msg)
+                elif len(resources) > 1:
+                    LOGGER.debug(str(len(resources)) + msg + '. Picking the first.')
+
+            resource_name = resources[0]
+        else:
+            resource_name = 'USB%d::%s::%s::%s::%s' % (board, manufacturer_id, model_code, serial_number, resource_type)
+
+        return cls(resource_name, name)
 
     @classmethod
     def from_usbtmc(cls, serial_number=None, manufacturer_id=None, model_code=None, name=None, board=0, **kwargs):
@@ -125,30 +177,31 @@ class MessageBasedDriver(Driver):
         :param model_code: The unique identification number of the product.
         :param name: Unique name given within Lantz to the instrument for logging purposes.
                      Defaults to one generated based on the class name if not provided.
+        :param board: USB Board to use
         :param kwargs: keyword arguments passed to the Resource constructor on initialize.
 
         :rtype: MessageBasedDriver
         """
 
-        if serial_number is None or manufacturer_id is None or model_code is None:
-            query = 'USB%d::%s::%s::%s::INSTR' % (board, manufacturer_id or '?*', model_code or '?*', serial_number or '?*')
-            try:
-                resources = get_resource_manager().list_resources(query)
-            except:
-                resources = []
+        return cls._from_usb('INSTR', serial_number, manufacturer_id, model_code, name, board, **kwargs)
 
-            if len(resources) != 1:
-                msg = ' USBTMC devices found for %s' % query
-                if not len(resources):
-                    raise ValueError('No' + msg)
-                elif len(resources) > 1:
-                    LOGGER.debug(str(len(resources)) + msg + '. Picking the first.')
 
-            resource_name = resources[0]
-        else:
-            resource_name = 'USB%d::%s::%s::%s::INSTR' % (board, manufacturer_id, model_code, serial_number)
+    @classmethod
+    def from_usbtmc_raw(cls, serial_number=None, manufacturer_id=None, model_code=None, name=None, board=0, **kwargs):
+        """Return a Driver with an underlying USB RAW resource.
 
-        return cls(resource_name, name)
+        :param serial_number: The serial number of the instrument.
+        :param manufacturer_id: The unique identification number of the manufacturer.
+        :param model_code: The unique identification number of the product.
+        :param name: Unique name given within Lantz to the instrument for logging purposes.
+                     Defaults to one generated based on the class name if not provided.
+        :param board: USB Board to use
+        :param kwargs: keyword arguments passed to the Resource constructor on initialize.
+
+        :rtype: MessageBasedDriver
+        """
+
+        return cls._from_usb('RAW', serial_number, manufacturer_id, model_code, name, board, **kwargs)
 
     @classmethod
     def from_serial_port(cls, port, name=None, **kwargs):
@@ -167,6 +220,20 @@ class MessageBasedDriver(Driver):
     @classmethod
     def from_hostname(cls, hostname, name=None, **kwargs):
         """Return a Driver with an underlying TCP Instrument resource.
+
+        :param port: The ip address or hostname of the instrument.
+        :param name: Unique name given within Lantz to the instrument for logging purposes.
+                     Defaults to one generated based on the class name if not provided.
+        :param kwargs: keyword arguments passed to the Resource constructor on initialize.
+
+        :rtype: MessageBasedDriver
+        """
+        resource_name = 'TCPIP::%s::INSTR' % hostname
+        return cls(resource_name, name, **kwargs)
+
+    @classmethod
+    def from_hostname_socket(cls, hostname, name=None, **kwargs):
+        """Return a Driver with an underlying TCP Socket resource.
 
         :param port: The ip address or hostname of the instrument.
         :param name: Unique name given within Lantz to the instrument for logging purposes.
@@ -201,13 +268,9 @@ class MessageBasedDriver(Driver):
         :param kwargs: keyword arguments passed to the resource during initialization.
         """
 
-        # Add the DEFAULT INTERFACE TYPE prefix if the resource name
-        # does not (naively) look like a valid one.
-        if resource_name.startswith('ASRL'):
-            interface_type = 'ASRL'
-        elif '::' not in resource_name:
-            interface_type = resource_name.split('::')[0]
-        else:
+        try:
+            resource_info = get_resource_manager().resource_info(resource_name)
+        except visa.VisaIOError:
             raise ValueError('The resource name is invalid')
 
         super().__init__(name=name)
@@ -221,17 +284,24 @@ class MessageBasedDriver(Driver):
 
         #: keyword arguments passed to the resource during initialization.
         #: :type: dict
-        self.resource_kwargs = self._get_defaults_kwargs(interface_type, **kwargs)
+        self.resource_kwargs = self._get_defaults_kwargs(resource_info.interface_type.name.upper(),
+                                                         resource_info.resource_class,
+                                                         **kwargs)
 
         # The resource will be created when the driver is initialized.
         #: :type: pyvisa.resources.MessageBasedResource
         self.resource = None
 
+        self.log_debug('Using MessageBasedDriver for {}', self.resource_name)
+
     def initialize(self):
         super().initialize()
+        self.log_debug('Opening resource {}', self.resource_name)
+        self.log_debug('Setting {}', list(self.resource_kwargs.items()))
         self.resource = get_resource_manager().open_resource(self.resource_name, **self.resource_kwargs)
 
     def finalize(self):
+        self.log_debug('Closing resource {}', self.resource_name)
         self.resource.close()
         super().finalize()
 
@@ -276,7 +346,8 @@ class MessageBasedDriver(Driver):
         :return: number of bytes sent.
 
         """
-        return self.resource.write(command)
+        self.log_debug('Writing {!r}', command)
+        return self.resource.write(command, termination, encoding)
 
     def read(self, termination=None, encoding=None):
         """Receive string from instrument.
@@ -286,4 +357,6 @@ class MessageBasedDriver(Driver):
         :param encoding: encoding to transform bytes to string (overrides class default)
         :return: string encoded from received bytes
         """
-        return self.resource.read(termination, encoding)
+        ret =  self.resource.read(termination, encoding)
+        self.log_debug('Read {!r}', ret)
+        return ret
