@@ -47,7 +47,8 @@ extensions = ['sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'sphinx.ext.intersphi
               ]#'autodriver']
 #	      'sphinxcontrib.spelling']
 
-intersphinx_mapping = {'python': ('http://docs.python.org/3.4', None)}
+intersphinx_mapping = {'python': ('http://docs.python.org/3.4', None),
+                       'pyvisa': ('http://pyvisa.readthedocs.org/en/latest', None)}
 
 autodoc_member_order = 'groupwise'
 autoclass_content = 'both'
@@ -130,7 +131,6 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
               '   pip install sphinx_rtd_theme\n')
         sys.exit(1)
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-    print(html_theme_path)
 
 import driversdoc
 driversdoc.main()
