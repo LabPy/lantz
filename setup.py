@@ -4,7 +4,9 @@
 try:
     from setuptools import setup
 except ImportError:
-    from distutils.core import setup
+    print('Please install or upgrade setuptools or pip to continue')
+    sys.exit(1)
+
 
 import os
 import sys
@@ -75,6 +77,9 @@ setup(name='Lantz',
            'zest.releaser.releaser.after_checkout': [
               'pyroma = lantz:run_pyroma',
            ],
+           'console_scripts': [
+              'lantz-sim = lantz.simulators:main',
+            ]
                    },
       classifiers=[
            'Development Status :: 4 - Beta',
@@ -92,5 +97,5 @@ setup(name='Lantz',
            'Topic :: Software Development :: Libraries'
       ],
       scripts=['scripts/lantz-monitor',
-               'scripts/lantz-sim'],
+               ],
 )
