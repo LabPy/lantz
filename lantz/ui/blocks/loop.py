@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+    lantz.ui.loop
+    ~~~~~~~~~~~~~
+
+    A Loop backend and frontend.
+
+    :copyright: 2014 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
+"""
 
 import time
 import math
@@ -16,6 +25,24 @@ class StopMode(IntEnum):
 
 
 class Loop(Backend):
+    """The Loop backend allows you to execute task periodically.
+
+    Usage:
+
+        from lantz.ui.blocks import Loop, LoopUi
+
+        def measure(counter, iterations, overrun):
+            print(counter, iterations, overrun)
+            data = osci.measure()
+            print(data)
+
+        app = Loop()
+
+        app.body = measure
+
+        start_gui_app(app, LoopUi)
+
+    """
 
     #: Signal emitted before starting a new iteration
     #: Parameters: loop counter, iterations, overrun
@@ -25,16 +52,38 @@ class Loop(Backend):
     #: The parameter is used to inform if the loop was canceled.
     loop_done = QtCore.Signal(bool)
 
+    #: The function to be called. It requires three parameters.
+    #:   counter - the iteration number
+    #:   iterations - total number of iterations
+    #:   overrun - a boolean indicating if the time required for the operation
+    #:            is longer than the interval.
+    #: :type: (int, int, bool) -> None
+    body = None
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.body = None
         self._active = False
         self._internal_func = None
 
     def stop(self):
+        """Request the scanning to be stop.
+        Will stop when the current iteration is finished.
+        """
         self._active = False
 
     def start(self, body, interval=0, iterations=0, timeout=0):
+        """Request the scanning to be started.
+
+        :param body: function to be called at each iteration.
+                     If None, the class body will be used.
+        :param interval: interval between starts of the iteration.
+                         If the body takes too long, the iteration will
+                         be as fast as possible and the overrun flag will be True
+        :param iterations: number of iterations
+        :param timeout: total time in seconds that the scanning will take.
+                        If overdue, the scanning will be stopped.
+                        If 0, there is no timeout.
+        """
         self._active = True
         body = body or self.body
 
@@ -48,6 +97,7 @@ class Loop(Backend):
             body(counter, iterations, overrun)
 
             if iterations and counter + 1 == iterations:
+                self._active = False
                 self.loop_done.emit(False)
                 return
             elif not self._active:
@@ -65,12 +115,18 @@ class Loop(Backend):
 
 
 class LoopUi(Frontend):
+    """The Loop frontend provides a GUI for the Rich Backend
+    """
 
     gui = 'loop.ui'
 
     auto_connect = False
 
+    #: Signal emitted when a start is requested.
+    #: The parameters are None, interval, iterations, duration
     request_start = QtCore.Signal(object, object, object, object)
+
+    #: Signal emitted when a stop is requested.
     request_stop = QtCore.Signal()
 
     def connect_backend(self):
