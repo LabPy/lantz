@@ -55,9 +55,6 @@ class SimVoltmeter(InstrumentHandler):
         if ain not in (0, 1):
             raise SimError
         value = self._get_func[ain]()
-        print(self.vranges)
-        print(self.range)
-        print(ain)
         max_val = self.vranges[self.range[ain]] * 1.2
         if value > max_val or value < -max_val:
             value = max_val
@@ -68,7 +65,7 @@ def main(args=None):
 
     import random
     def measure():
-        return random.random * 10 - 5
+        return random.random() * 10 - 5
 
     return main_generic(args, SimVoltmeter, (measure, measure))
 
