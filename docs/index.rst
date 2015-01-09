@@ -1,5 +1,5 @@
-Welcome to Lantz
-----------------
+Lantz: Simple yet powerful instrumentation in Python
+----------------------------------------------------
 
 .. image:: _static/lantz_logo.png
    :alt: Lantz

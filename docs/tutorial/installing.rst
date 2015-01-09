@@ -4,13 +4,13 @@ Installation guide
 ==================
 
 This guide describes Lantz requirements and provides platform specific
-installation guides. Examples are given for Python 3.2 installing all
+installation guides. Examples are given for Python 3.4 installing all
 optional requirements as site-packages.
 
 Requirements
 ------------
 
-Lantz core requires `Python`_ 3.4+ and::
+Lantz core requires `Python`_ 3.4+ and:
 
     - `PyVISA`_ Python package that enables you to control all kinds of measurement
       devices independently of the interface (e.g. GPIB, RS232, USB, Ethernet) using
@@ -51,12 +51,16 @@ packages, a link to the binary distribution is given. Specifi
 - :ref:`mac`
 - :ref:`windows`
 
+
+
+.. note:: A really simple way that works in all OS is using Anaconda Python Distribution (see below)
+
 .. _linux:
 
 Linux
 -----
 
-Most linux distributions provide packages for Python 3.2, NumPy, PyQt (or PySide).
+Most linux distributions provide packages for Python 3.4, NumPy, PyQt (or PySide).
 There might be some other useful packages. For some distributions, you will find
 specific instructions below.
 
@@ -95,17 +99,17 @@ and continue to to step 5 in OSX
 OSX
 ---
 
-1. Install Python 3.2
+1. Install Python 3.4
 2. (optionally) Install PyQt_, NumPy_
 3. (optionally) Install VISA_
 4. Open a terminal to install pip::
 
-    $ curl http://python-distribute.org/distribute_setup.py | python3.2
-    $ curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py | python3.2
+    $ curl http://python-distribute.org/distribute_setup.py | python3.4
+    $ curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py | python3.4
 
 5. Using pip, install Lantz and its dependencies other optional dependencies::
 
-    $ pip-3.2 install sphinx pyserial colorama lantz
+    $ pip-3.4 install sphinx pyserial colorama lantz
 
 
 .. _windows:
@@ -118,7 +122,7 @@ Windows
 
     We provide a simple script to run all the steps provided below. Download
     `get-lantz`_ to the folder in which you want to create the virtual environment.
-    The run the script using a 32 bit version of `Python`_ 3.2+.
+    The run the script using a 32 bit version of `Python`_ 3.4+.
 
     In some of the steps, an installer application will pop-up. Just select all
     default options.
@@ -129,20 +133,24 @@ Windows
 
 Install `Python`_, `NumPy binaries`_, `PyQt binaries`_ (or `PySide binaries`), `VISA`_.
 
-Download and run with Python 3.2::
+Download and run with Python 3.4::
 
     - http://python-distribute.org/distribute_setup.py
     - https://raw.github.com/pypa/pip/master/contrib/get-pip.py
 
 In the command prompt install using pip all other optional dependencies::
 
-    $ C:\Python3.2\Scripts\pip install sphinx pyserial colorama lantz
+    $ C:\Python3.4\Scripts\pip install sphinx pyserial colorama lantz
 
 
 .. _anaconda:
 
 Anaconda
 --------
+
+Anaconda is a Scientific Oriented Python Distribution. It can be installed in Linux, OSX and Windows; without administrator privileges. It has a binary package manager that makes it really easy to install all the packages that you need to use Lantz (and much more!)
+
+It comes in two flavors: miniconda and anaconda, which is is just miniconda with a lot of predefine packages. Here we show you how to do it with miniconda.
 
 In any OS you can use Anaconda Python Distribution
 
@@ -155,15 +163,11 @@ In any OS you can use Anaconda Python Distribution
 
     2. If you want a minimal environment::
 
-            $ conda install pip numpy sphinx
+            $ conda install pip numpy sphinx pyqt
 
        or if you want everything::
 
             $ conda install anaconda
-
-    3. Install PyQt::
-
-            $ conda install -c asmeurer pyqt
 
     4. Install Lantz::
 

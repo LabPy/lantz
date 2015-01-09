@@ -79,20 +79,20 @@ A basic driver
 --------------
 
 Having look at the instrument, we will now create the driver. Open the project folder that you created in the previous tutorial (:ref:`tutorial-using`). Create a python file named `mydriver.py` (I know is a bad name but it is just to stress that
- it is yours) and change it to look like this::
+ it is yours) and change it to look like this:
 
+
+.. code-block:: python
 
     from lantz import Feat
-    from lantz.network import TCPDriver
+    from lantz.messagebased import MessageBasedDriver
 
-    class LantzSignalGeneratorTCP(TCPDriver):
+    class LantzSignalGenerator(MessageBasedDriver):
         """Lantz Signal Generator.
         """
 
-        ENCODING = 'ascii'
-
-        RECV_TERMINATION = '\n'
-        SEND_TERMINATION = '\n'
+        DEFAULTS = {'COMMON': {'write_termination': '\n',
+                               'read_termination': '\n'}}
 
         @Feat()
         def idn(self):
@@ -100,18 +100,18 @@ Having look at the instrument, we will now create the driver. Open the project f
 
 
     if __name__ == '__main__':
-        with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+        with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
             print('The identification of this instrument is : ' + inst.idn)
 
 
-The code is straight forward. We first import TCPDriver from lantz.network (the Lantz module for network related functions).
-TCPDriver is a base class (derived from Driver) that implements methods to communicate via TCP protocol. Our driver will derive from this.
+The code is straight forward. We first import :class:MessageBasedDriver from :mod:lantz.messagebased (the Lantz module for message based instruments).
+MessageBasedDriver is a base class (derived from :class:Driver) that implements methods to communicate via different protocols. Our driver will derive from this.
 
-We also import Feat from lantz. Feat is the Lantz pimped property and you use Feat just like you use `property`.
+We also import Feat from lantz. Feat is the Lantz pimped property and you use Feat just like you use :py:class:`property`.
 By convention Feats are named using nouns or adjectives.
-Inside the method (in this case is a getter) goes the code to communicate with the instrument. In this case we use `query`, a function present in all based classes for message drivers (TCPDriver, SerialDriver, etc). `query` sends a message to the instrument, waits for a response and returns it. The argument is the command to be sent to the instrument. Lantz takes care of formatting (encoding, endings) and transmitting the command appropriately. That's why we define ENCODING, RECV_TERMINATION, SEND_TERMINATION at the beginning of the class.
+Inside the method (in this case is a getter) goes the code to communicate with the instrument. In this case we use `query`, a method present in :class:MessageBasedDrivers. `query` sends a message to the instrument, waits for a response and returns it. The argument is the command to be sent to the instrument. Lantz takes care of formatting (encoding, endings) and transmitting the command appropriately. That's why we define :ref:_defaults_dictionary at the beginning of the class. You can find more information about in the guides, but for now on, we will just point out that the key **COMMON** is used to tell Lantz that the following keyword arguments are for all instrument types (USB, GPIB, etc). In particular we specify that the read and write termination are `'\n'`.
 
-Finally, inside the `__name__ == '__main__'` we instantiate the SignalGenerator specifying host and port (these are arguments of the TCPDriver constructor, more on this later) and we print the identification.
+Finally, inside the `__name__ == '__main__'` we instantiate the SignalGenerator (as we have seen in :ref:using and we print the identification.
 
 If you have the simulator running, you can test your new driver. From the command line, cd into the project directory and then run the following command::
 
@@ -121,51 +121,21 @@ If you have the simulator running, you can test your new driver. From the comman
           the one in which you have installed Lantz. You might need to use
           `python3` instead of `python`.
 
-You should see `LSG Serial #1234`.
+You should see `LSG Serial #1234` in the console.
 
-Let's see what's its going on under the hood by logging to screen in debug mode::
+Let's allow our driver to control the instruments amplitude:
 
-    from lantz.log import log_to_screen, DEBUG  # <-- This is new
+.. code-block:: python
 
     from lantz import Feat
-    from lantz.network import TCPDriver
+    from lantz.network import MessageBasedDriver
 
-    class LantzSignalGeneratorTCP(TCPDriver):
+    class LantzSignalGenerator(MessageBasedDriver):
         """Lantz Signal Generator.
         """
 
-        ENCODING = 'ascii'
-
-        RECV_TERMINATION = '\n'
-        SEND_TERMINATION = '\n'
-
-        @Feat()
-        def idn(self):
-            """Identification.
-            """
-            return self.query('?IDN')
-
-
-    if __name__ == '__main__':
-        log_to_screen(DEBUG)
-        with LantzSignalGeneratorTCP('localhost', 5678) as inst:
-            print('The identification of this instrument is : ' + inst.idn)
-
-You can adjust the level of information provided by changing the LOGGING_LEVEL. You can also display the logging in another window to avoid cluttering but this comes later.
-
-Let's allow our driver to control the instruments amplitude::
-
-    from lantz import Feat
-    from lantz.network import TCPDriver
-
-    class LantzSignalGeneratorTCP(TCPDriver):
-        """Lantz Signal Generator.
-        """
-
-        ENCODING = 'ascii'
-
-        RECV_TERMINATION = '\n'
-        SEND_TERMINATION = '\n'
+        DEFAULTS = {'COMMON': {'write_termination': '\n',
+                               'read_termination': '\n'}}
 
         @Feat()
         def idn(self):
@@ -190,7 +160,7 @@ Let's allow our driver to control the instruments amplitude::
         from lantz.log import log_to_screen, DEBUG
 
         log_to_screen(DEBUG)
-        with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+        with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
             print('The identification of this instrument is : ' + inst.idn)
             print('Setting amplitude to 3')
             inst.amplitude = 3
@@ -199,13 +169,13 @@ Let's allow our driver to control the instruments amplitude::
             print('Current amplitude: {}'.format(inst.amplitude))
 
 
-We have defined another Feat, now with a getter and a setter. The getter sends `?AMP` and waits for the answer which is converted to float and returned to the caller. The setter send `!AMP` concatenated with the float formatted to string with two decimals. Run the script. Check also the window running `sim-fungen.py`. You should see the amplitude changing!.
+We have defined another Feat, now with a getter and a setter. The getter sends `?AMP` and waits for the answer which is converted to float and returned to the caller. The setter send `!AMP` concatenated with the float formatted to string with two decimals. Run the script. Check also the window running `lantz-sim`. You should see the amplitude changing!.
 
 In the current version of this driver, if we try to set the amplitude to 20 V the command will fill in the instrument but the driver will not know. Lets add some error checking::
 
     # import ...
 
-    class LantzSignalGeneratorTCP(TCPDriver):
+    class LantzSignalGenerator(MessageBasedDriver):
 
         # Code from previous example
         # ...
@@ -227,7 +197,7 @@ Because all commands should be checked for `ERROR`, we will override query to do
     # import ...
     from lantz.errors import InstrumentError
 
-    class LantzSignalGeneratorTCP(TCPDriver):
+    class LantzSignalGenerator(MessageBasedDriver):
 
         # Code from previous example
         # ...
@@ -250,20 +220,20 @@ for errors. In this way we have added error checking for all queries!.
 Putting units to work
 ---------------------
 
-Hoping that the Mars Orbiter story convinced you that using units is worth it, let's modify the driver to use them::
+Hoping that the Mars Orbiter story convinced you that using units is worth it, let's modify the driver to use them:
+
+.. code-block:: python
 
     from lantz import Feat
-    from lantz.network import TCPDriver
+    from lantz.network import MessageBasedDriver
     from lantz.errors import InstrumentError
 
-    class LantzSignalGeneratorTCP(TCPDriver):
+    class LantzSignalGenerator(MessageBasedDriver):
         """Lantz Signal Generator.
         """
 
-        ENCODING = 'ascii'
-
-        RECV_TERMINATION = '\n'
-        SEND_TERMINATION = '\n'
+        DEFAULTS = {'COMMON': {'write_termination': '\n',
+                               'read_termination': '\n'}}
 
         def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
             answer = super().query(command, send_args=send_args, recv_args=recv_args)
@@ -296,7 +266,7 @@ Hoping that the Mars Orbiter story convinced you that using units is worth it, l
         milivolt = Q_(1, 'mV')
 
         log_to_screen(DEBUG)
-        with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+        with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
             print('The identification of this instrument is : ' + inst.idn)
             print('Setting amplitude to 3')
             inst.amplitude = 3 * volt
@@ -322,20 +292,22 @@ When the communication round-trip to the instrument is too long, you might want 
 
 If you provide a value outside the valid range, Lantz will raise a ValueError.
 If the steps parameter is set but you provide a value not compatible with it,
-it will be silently rounded. Let's put this to work for amplitude, frequency and offset::
+it will be silently rounded. Let's put this to work for amplitude, frequency and offset:
+
+
+.. code-block:: python
 
     from lantz import Feat
-    from lantz.network import TCPDriver
+    from lantz.network import MessageBasedDriver
     from lantz.errors import InstrumentError
 
-    class LantzSignalGeneratorTCP(TCPDriver):
+    class LantzSignalGenerator(MessageBasedDriver):
         """Lantz Signal Generator
         """
 
-        ENCODING = 'ascii'
+        DEFAULTS = {'COMMON': {'write_termination': '\n',
+                               'read_termination': '\n'}}
 
-        RECV_TERMINATION = '\n'
-        SEND_TERMINATION = '\n'
 
         def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
             answer = super().query(command, send_args=send_args, recv_args=recv_args)
@@ -388,20 +360,21 @@ Automatic rounding::
 Mapping values
 --------------
 
-We will define offset and frequency like we did with amplitude, and we will also define output enabled and waveform::
+We will define offset and frequency like we did with amplitude, and we will also define output enabled and waveform:
+
+.. code-block:: python
 
     from lantz import Feat, DictFeat
-    from lantz.network import TCPDriver
+    from lantz.network import MessageBasedDriver
     from lantz.errors import InstrumentError
 
-    class LantzSignalGeneratorTCP(TCPDriver):
+    class LantzSignalGenerator(MessageBasedDriver):
         """Lantz Signal Generator
         """
 
-        ENCODING = 'ascii'
+        DEFAULTS = {'COMMON': {'write_termination': '\n',
+                               'read_termination': '\n'}}
 
-        RECV_TERMINATION = '\n'
-        SEND_TERMINATION = '\n'
 
         def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
             answer = super().query(command, send_args=send_args, recv_args=recv_args)
@@ -471,7 +444,7 @@ We will define offset and frequency like we did with amplitude, and we will also
         Hz = Q_(1, 'Hz')
 
         log_to_screen(DEBUG)
-        with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+        with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
             print('The identification of this instrument is : ' + inst.idn)
             print('Setting amplitude to 3')
             inst.amplitude = 3 * volt
@@ -489,6 +462,35 @@ We have provided `output_enabled` a mapping table through the `values` argument.
 This means that we can write the body of the getter/setter expecting a instrument compatible value (1 or 0) but the user actually sees a much more friendly interface (True or False). The same happens with `waveform`. Instead of asking the user to memorize which number corresponds to 'sine' or implement his own mapping, we provide this within the feat.
 
 
+Beautiful Testing
+-----------------
+
+Testing in the command line is extermely useful but sometimes it is desirable to have simple GUI to be used as a test panel. Lantz gives you that with no effort. Just change the main part to this::
+
+    if __name__ == '__main__':
+        from lantz.ui.qtwidgets import start_test_app
+
+        with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
+            start_test_app(inst)
+
+
+and you will get something like this:
+
+    .. image:: ../_static/ui-fungen.png
+        :width: 20%
+
+Cool, right? Using Python amazing introspection capabilites together with Feat annotations inside the driver, Lantz was able to build **on-the-fly** a Graphical User Interface for testing purposes.
+
+Among other things, you get:
+
+    - The right widget, for the right datatype: Check-box for boolean, Combo-box for options, etc.
+    - When a Feat has units, the suffix is displayed.
+      You can also press the `u` key to change the displayed units.
+    - Minimum and Maximum values when a Feat has limits
+
+... and much more! All of this without an extra line of code.
+
+
 Properties with items: DictFeat
 -------------------------------
 
@@ -497,7 +499,7 @@ It is quite common that scientific equipment has many of certain features (such 
 
     # import ...
 
-    class LantzSignalGeneratorTCP(TCPDriver):
+    class LantzSignalGenerator(MessageBasedDriver):
 
         # Code from previous example
         # ...
@@ -523,7 +525,7 @@ By default, any key (in this case, channel) is valid and Lantz leaves to the und
 
     # import ...
 
-    class LantzSignalGeneratorTCP(TCPDriver):
+    class LantzSignalGenerator(MessageBasedDriver):
 
         # Code from previous example
         # ...
@@ -551,7 +553,7 @@ We will create now a read-read only DictFeat for the digital input::
 
     # import ...
 
-    class LantzSignalGeneratorTCP(TCPDriver):
+    class LantzSignalGenerator(MessageBasedDriver):
 
         # Code from previous example
         # ...
@@ -579,7 +581,7 @@ and within the class we will add::
             self.query('!CAL')
 
 
-.. TODO: expand this section and add !CAL to the driver. Add section `Interactive`
+.. TODO: expand this section and add !CAL to the driver.
 
 
 .. rubric::

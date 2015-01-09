@@ -13,4 +13,5 @@ Tutorials
    building
    cli-app
    gui-app
+   rich-app
 

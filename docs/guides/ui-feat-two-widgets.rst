@@ -11,6 +11,8 @@ In many cases you want to have multiple widgets (e.g. different kind) connected 
 
 You can set the frequency using the slider or the double spin box. The slider is named `frequency__slider` and the spin is named `frequency`.
 
+For *educational* purposes, we show you three ways to do this. You will certainly use only the last and shortest way but showing you how it is done allows you to understand what is going on.
+
 
 The long way
 ------------

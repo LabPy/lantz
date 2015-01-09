@@ -3,11 +3,13 @@
 Using Feats
 ===========
 
-Let's query all parameters and print their state in a nice format::
+Let's query all parameters and print their state in a nice format:
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+.. code-block:: python
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    from lantz.drivers.examples import LantzSignalGenerator
+
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         print('idn: {}'.format(inst.idn))
         print('frequency: {}'.format(inst.frequency))
         print('amplitude: {}'.format(inst.amplitude))
@@ -48,21 +50,23 @@ If you run the program you will get something like::
 Valid values
 ------------
 
-You can set property like `output_enabled`::
+You can set property like `output_enabled`:
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+.. code-block:: python
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    from lantz.drivers.examples import LantzSignalGenerator
+
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         print('output_enabled: {}'.format(inst.output_enabled))
         inst.output_enabled = True
         print('output_enabled: {}'.format(inst.output_enabled))
 
-If you check the documentation for lantz.drivers.examples.LantzSignalGeneratorTCP),
+If you check the documentation for lantz.drivers.examples.LantzSignalGenerator),
 `output_enabled` accepts only `True` or `False`. If your provide a different value::
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+    from lantz.drivers.examples import LantzSignalGenerator
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         inst.output_enabled = 'Yes'
 
 you will get an error message::
@@ -77,23 +81,27 @@ Units
 -----
 
 Feats corresponding to physical quantities (magnitude and units), are declared
-with a default unit. If try to set a number to them::
+with a default unit. If try to set a number to them:
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+.. code-block:: python
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    from lantz.drivers.examples import LantzSignalGenerator
+
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         inst.amplitude = 1
 
 Lantz will issue a warning::
 
     DimensionalityWarning: Assuming units `volt` for 1
 
-Lantz uses the Pint_ package to declare units::
+Lantz uses the Pint_ package to declare units:
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+.. code-block:: python
+
+    from lantz.drivers.examples import LantzSignalGenerator
     from lantz import Q_
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         inst.amplitude = Q_(1, 'Volts')
         print('amplitude: {}'.format(inst.amplitude))
 
@@ -103,12 +111,14 @@ the output is::
 
 The nice thing is that this will work even if the instruments and you program
 opeate in different units. The conversion is done internally, minimizing errors
-and allowing better interoperability::
+and allowing better interoperability:
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+.. code-block:: python
+
+    from lantz.drivers.examples import LantzSignalGenerator
     from lantz import Q_
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         inst.amplitude = Q_(.1, 'decivolt')
         print('amplitude: {}'.format(inst.amplitude))
 

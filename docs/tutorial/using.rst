@@ -12,46 +12,56 @@ Following a tutorial about using a driver to communicate with an instrument that
 
 .. note::
    If you are using Windows, it is likely that `lantz-sim` script is not be in
-   the path. You will have to change directory to `C:\\Python32\\Scripts` or
+   the path. You will have to change directory to `C:\\Python34\\Scripts` or
    something similar.
 
 This will start an application (i.e. your instrument) that listens for incoming TCP packages (commands) on port 5678 from `localhost`. In the screen you will see the commands received and sent by the instrument.
 
 Your program and the instrument will communicate by exchanging text commands via TCP. But having a Lantz driver already built for your particular instrument releases you for the burden of sending and receiving the messages. Let's start by finding the driver. Lantz drivers are organized inside packages, each package named after the manufacturer. So the `Coherent Argon Laser Innova` 300C driver is in `lantz.drivers.coherent` under the name `ArgonInnova300C`. We follow Python style guide (PEP8) to name packages and modules (lowercase) and classes (CamelCase).
 
-Make a new folder for your project and create inside a python script named `test_fungen.py`. Copy the following code inside the file::
+Make a new folder for your project and create inside a python script named `test_fungen.py`. Copy the following code inside the file:
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+.. code-block:: python
 
-    inst = LantzSignalGeneratorTCP('localhost', 5678)
+    from lantz.drivers.examples import LantzSignalGenerator
+
+    inst = LantzSignalGenerator('TCPIP::localhost::5678::SOCKET')
     inst.initialize()
     print(inst.idn)
     inst.finalize()
 
 Let's look at the code line-by-line. First we import the class into our script::
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+    from lantz.drivers.examples import LantzSignalGenerator
 
-The driver for our simulated device is under the company `examples` and is named `LantzSignalGeneratorTCP`.
-Then we create an instance of the class, setting the address to localhost and port to 5678::
+Instead of memorizing lot of text based commands and fighting with formatting and parsing, Lantz provides an **object oriented layer** to instrumentation. In this case, the driver for our simulated device is under the company `examples` and is named `LantzSignalGenerator`.
 
-    inst = LantzSignalGeneratorTCP('localhost', 5678)
+Then we create an instance of the class::
 
-This does not connects to the device. To do so, you call the `initialize` method::
+    inst = LantzSignalGenerator('TCPIP::localhost::5678::SOCKET')
+
+The string 'TCPIP::localhost::5678::SOCKET' is called the **Resource Name** and is specified by the `VISA specification`_. It specifies the how you connect to your device. Lantz uses the power of VISA through PyVISA_ where you can also find a description of the :ref:`pyvisa:resource_names`.
+
+Notice that is the resource name, not the driver what specifies the connectivity. This allows easy programming
+of instruments supporting multiple protocols.
+
+We then connect to the device by calling the :meth:`initialize` method::
 
     inst.initialize()
 
-All Lantz drivers have an `initialize` method. Drivers that communicate through a port (e.g. a Serial port) will open the port in this call. Then we query the instrument for it's identification and we print it::
+All Lantz drivers have an :meth:`initialize` method. Drivers that communicate through a port (e.g. a Serial port) will open the port within this call. Then we query the instrument for it's identification and we print it::
 
     print(inst.idn)
 
-At the end, we call the `finalize` method to clean up all resources (e.g. close ports)::
+At the end, we call the :meth:`finalize` method to clean up all resources (e.g. close ports)::
 
     inst.finalize()
 
-Just like the `initialize` method, all Lantz drivers have a `finalize`. Save the python script and run it by::
+Just like the :meth:`initialize` method, all Lantz drivers have a :meth:`finalize`. Save the python script and run it by::
 
     $ python test_fungen.py
+
+(You can also run it in the python console)
 
 .. note:: If you have different versions of python installed, remember to use
           the one in which you have installed Lantz. You might need to use
@@ -61,9 +71,9 @@ and you will get the following output::
 
     FunctionGenerator Serial #12345
 
-In the window where `sim-fungen.py` is running you will see the message exchange. You normally don't see this in real instruments. Having a simulated instrument allow us to peek into it and understand what is going on: when we called `inst.idn`, the driver sent message (`?IDN`) to the instrument and it answered back (`FunctionGenerator Serial #12345`). Notice that end of line characters were stripped by the driver.
+In the window where `lantz-sim` is running you will see the message exchange. You normally don't see this in real instruments. Having a simulated instrument allow us to peek into it and understand what is going on: when we called `inst.idn`, the driver sent message (`?IDN`) to the instrument and it answered back (`FunctionGenerator Serial #12345`). Notice that end of line characters were stripped by the driver.
 
-To find out which other properties and methods are available checkout the documentation. A nice feature of Lantz (thanks to sphinx) is that useful documentation is generated from the driver itself. `idn` is a `Feat` of the driver. Think of a `Feat` as a pimped property. It works just like python properties but it wraps its call with some utilities (more on this later). `idn` is a read-only and as the documentation states it gets the identification information from the device.
+To find out which other properties and methods are available checkout the documentation. A nice feature of Lantz (thanks to sphinx) is that useful documentation is generated from the driver itself. `idn` is a `Feat` of the driver. Think of a `Feat` as a pimped :py:class:`property <python:property>`. It works just like python properties but it wraps its call with some utilities (more on this later). `idn` is a read-only and as the documentation states it gets the identification information from the device. We will see more about this later on when we start :ref:`tutorial-building`
 
 .. _Safely-releasing-resources:
 
@@ -72,18 +82,20 @@ Safely releasing resources
 
 As `idn` is read-only, the following code will raise an exception::
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+    from lantz.drivers.examples import LantzSignalGenerator
 
-    inst = LantzSignalGeneratorTCP('localhost', 5678)
+    inst = LantzSignalGenerator('TCPIP::localhost::5678::SOCKET')
     inst.initialize()
     inst.idn = 'A new identification' # <- This will fail as idn is read-only
     inst.finalize()
 
-The problem is that finalize will never be called possibly leaving resources open. You need to wrap your possible failing code into a try-except-finally structure::
+The problem is that finalize will never be called possibly leaving resources open. You need to wrap your possible failing code into a try-except-finally structure:
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+.. code-block:: python
 
-    inst = LantzSignalGeneratorTCP('localhost', 5678)
+    from lantz.drivers.examples import LantzSignalGenerator
+
+    inst = LantzSignalGenerator('TCPIP::localhost::5678::SOCKET')
     inst.initialize()
     try:
         inst.idn = 'A new identification' # <- This will fail as idn is read-only
@@ -92,11 +104,13 @@ The problem is that finalize will never be called possibly leaving resources ope
     finally:
         inst.finalize()
 
-All lantz drivers are also context managers and there fore you can write this in a much more compact way::
+All lantz drivers are also context managers and there fore you can write this in a much more compact way:
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+.. code-block:: python
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    from lantz.drivers.examples import LantzSignalGenerator
+
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         # inst.initialize is called as soon as you enter this block
         inst.idn = 'A new identification' # <- This will fail as idn is read-only
         # inst.finalize is called as soon as you leave this block,
@@ -113,40 +127,48 @@ At any point in your code you can obtain the root Lantz logger::
     from lantz import LOGGER
 
 But additionally, Lantz has some convenience functions to display the log
-output in a nice format::
+output in a nice format:
+
+.. code-block:: python
 
     from lantz.log import log_to_screen, DEBUG, INFO, CRITICAL
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+    from lantz.drivers.examples import LantzSignalGenerator
 
     # This directs the lantz logger to the console.
     log_to_screen(DEBUG)
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         print(inst.idn)
         print(inst.waveform)
 
 Run this script to see the generated log information (it should be colorized
 in your screen)::
 
-    16:25:03 INFO     Created LantzSignalGeneratorTCP0
-    16:25:03 DEBUG    Opening port ('localhost', 5678)
-    16:25:03 INFO     Getting idn
-    16:25:03 DEBUG    Sending b'?IDN\n'
-    16:25:03 DEBUG    Received 'FunctionGenerator Serial #12345\n' (len=32)
-    16:25:03 DEBUG    (raw) Got FunctionGenerator Serial #12345 for idn
-    16:25:03 INFO     Got FunctionGenerator Serial #12345 for idn
+    14:38:43 INFO     Created LantzSignalGenerator0
+    14:38:43 DEBUG    Using MessageBasedDriver for TCPIP::localhost::5678::SOCKET
+    14:38:43 INFO     Calling initialize
+    14:38:43 INFO     initialize returned None
+    14:38:43 DEBUG    Opening resource TCPIP::localhost::5678::SOCKET
+    14:38:43 DEBUG    Setting [('write_termination', '\n'), ('read_termination', '\n')]
+    14:38:43 INFO     Getting idn
+    14:38:43 DEBUG    Writing '?IDN'
+    14:38:43 DEBUG    Read 'FunctionGenerator Serial #12345'
+    14:38:43 DEBUG    (raw) Got FunctionGenerator Serial #12345 for idn
+    14:38:43 INFO     Got FunctionGenerator Serial #12345 for idn
+    14:38:43 INFO     Getting waveform
+    14:38:43 DEBUG    Writing '?WVF'
+    14:38:43 DEBUG    Read '0'
+    14:38:43 DEBUG    (raw) Got 0 for waveform
+    14:38:43 INFO     Got sine for waveform
+    14:38:43 DEBUG    Closing resource TCPIP::localhost::5678::SOCKET
+    14:38:43 INFO     Calling finalize
+    14:38:43 INFO     finalize returned None
     FunctionGenerator Serial #12345
-    16:25:03 INFO     Getting waveform
-    16:25:03 DEBUG    Sending b'?WVF\n'
-    16:25:03 DEBUG    Received '0\n' (len=2)
-    16:25:03 DEBUG    (raw) Got 0 for waveform
-    16:25:03 INFO     Got sine for waveform
     sine
-    16:25:03 DEBUG    Closing port ('localhost', 5678)
 
 The first line shows the creation of the driver instance. As no name was
-provided, Lantz assigns one (`LantzSignalGeneratorTCP0`). Line 2 shows that
+provided, Lantz assigns one (`LantzSignalGenerator0`). Line 2 shows that
 the port was opened (in the implicit call to initialize in the `with` statement).
 We then request the `idn` (line 3), which is done by sending the command via
 the TCP port (line 4). 32 bytes are received from the instrument (line 5)
@@ -162,19 +184,20 @@ the `with` block).
 
 The lines without the time are the result of the print function.
 
-Change `INFO` to `DEBUG` or to `CRITICAL` and run it again to see the different
+You can change the name of the instrument when you instantiate it.
+Also change `DEBUG` to `INFO`  run it again to see the different
 levels of information you can get.
 
-You can change the name of the instrument when you instantiate it::
+.. code-block:: python
 
     from lantz.log import log_to_screen, DEBUG, INFO, CRITICAL
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+    from lantz.drivers.examples import LantzSignalGenerator
 
     # This directs the lantz logger to the console.
-    log_to_screen(DEBUG)
+    log_to_screen(INFO)
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET', name='my-device') as inst:
         print(inst.idn)
         print(inst.waveform)
 
@@ -183,16 +206,18 @@ The cache
 ---------
 
 As you have seen before, logging provides a look into the Lantz internals.
-Let's duplicate some code::
+Let's duplicate some code:
+
+.. code-block:: python
 
     from lantz.log import log_to_screen, DEBUG
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+    from lantz.drivers.examples import LantzSignalGenerator
 
     # This directs the lantz logger to the console.
     log_to_screen(DEBUG)
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         print(inst.idn)
         print(inst.idn)
         print(inst.waveform)
@@ -200,90 +225,112 @@ Let's duplicate some code::
 
 If you see the log output::
 
-    16:34:40 INFO     Created LantzSignalGeneratorTCP0
-    16:34:40 DEBUG    Opening port ('localhost', 5678)
-    16:34:40 INFO     Getting idn
-    16:34:40 DEBUG    Sending b'?IDN\n'
-    16:34:40 DEBUG    Received 'FunctionGenerator Serial #12345\n' (len=32)
-    16:34:40 DEBUG    (raw) Got FunctionGenerator Serial #12345 for idn
-    16:34:40 INFO     Got FunctionGenerator Serial #12345 for idn
+    14:42:32 INFO     Created LantzSignalGenerator0
+    14:42:32 DEBUG    Using MessageBasedDriver for TCPIP::localhost::5678::SOCKET
+    14:42:32 INFO     Calling initialize
+    14:42:32 INFO     initialize returned None
+    14:42:32 DEBUG    Opening resource TCPIP::localhost::5678::SOCKET
+    14:42:32 DEBUG    Setting [('read_termination', '\n'), ('write_termination', '\n')]
+    14:42:32 INFO     Getting idn
+    14:42:32 DEBUG    Writing '?IDN'
+    14:42:32 DEBUG    Read 'FunctionGenerator Serial #12345'
+    14:42:32 DEBUG    (raw) Got FunctionGenerator Serial #12345 for idn
+    14:42:32 INFO     Got FunctionGenerator Serial #12345 for idn
+    14:42:32 INFO     Getting waveform
+    14:42:32 DEBUG    Writing '?WVF'
+    14:42:32 DEBUG    Read '0'
+    14:42:32 DEBUG    (raw) Got 0 for waveform
+    14:42:32 INFO     Got sine for waveform
+    14:42:32 INFO     Getting waveform
+    14:42:32 DEBUG    Writing '?WVF'
+    14:42:32 DEBUG    Read '0'
+    14:42:32 DEBUG    (raw) Got 0 for waveform
+    14:42:32 INFO     Got sine for waveform
+    14:42:32 DEBUG    Closing resource TCPIP::localhost::5678::SOCKET
+    14:42:32 INFO     Calling finalize
+    14:42:32 INFO     finalize returned None
     FunctionGenerator Serial #12345
     FunctionGenerator Serial #12345
-    16:34:40 INFO     Getting waveform
-    16:34:40 DEBUG    Sending b'?WVF\n'
-    16:34:40 DEBUG    Received '0\n' (len=2)
-    16:34:40 DEBUG    (raw) Got 0 for waveform
-    16:34:40 INFO     Got sine for waveform
     sine
-    16:34:40 INFO     Getting waveform
-    16:34:40 DEBUG    Sending b'?WVF\n'
-    16:34:40 DEBUG    Received '0\n' (len=2)
-    16:34:40 DEBUG    (raw) Got 0 for waveform
-    16:34:40 INFO     Got sine for waveform
     sine
-    16:34:40 DEBUG    Closing port ('localhost', 5678)
 
 `idn` is only requested once, but waveform twice as you except. The reason
 is that `idn` is marked `read_once` in the driver as it does not change.
 The value is cached, preventing unnecessary communication with the instrument.
 
-The cache is specially useful with setters::
+The cache is specially useful with setters:
+
+.. code-block:: python
 
     from lantz.log import log_to_screen, DEBUG
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+    from lantz.drivers.examples import LantzSignalGenerator
 
     # This directs the lantz logger to the console.
     log_to_screen(DEBUG)
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         inst.waveform = 'sine'
         inst.waveform = 'sine'
 
 the log output::
 
-    16:40:08 INFO     Created LantzSignalGeneratorTCP0
-    16:40:08 DEBUG    Opening port ('localhost', 5678)
-    16:40:08 INFO     Setting waveform = sine (current=MISSING, force=False)
-    16:40:08 DEBUG    (raw) Setting waveform = 0
-    16:40:08 DEBUG    Sending b'!WVF 0\n'
-    16:40:08 DEBUG    Received 'OK\n' (len=3)
-    16:40:08 INFO     waveform was set to sine
-    16:40:08 INFO     No need to set waveform = sine (current=sine, force=False)
-    16:40:08 DEBUG    Closing port ('localhost', 5678)
+    14:44:09 INFO     Created LantzSignalGenerator0
+    14:44:09 DEBUG    Using MessageBasedDriver for TCPIP::localhost::5678::SOCKET
+    14:44:09 INFO     Calling initialize
+    14:44:09 INFO     initialize returned None
+    14:44:09 DEBUG    Opening resource TCPIP::localhost::5678::SOCKET
+    14:44:09 DEBUG    Setting [('write_termination', '\n'), ('read_termination', '\n')]
+    14:44:09 INFO     Setting waveform = sine (current=MISSING, force=False)
+    14:44:09 DEBUG    (raw) Setting waveform = 0
+    14:44:09 DEBUG    Writing '!WVF 0'
+    14:44:09 DEBUG    Read 'OK'
+    14:44:09 INFO     waveform was set to sine
+    14:44:09 INFO     No need to set waveform = sine (current=sine, force=False)
+    14:44:09 DEBUG    Closing resource TCPIP::localhost::5678::SOCKET
+    14:44:09 INFO     Calling finalize
+    14:44:09 INFO     finalize returned None
 
 Lantz prevents setting the waveform to the same value, a useful feature to speed
 up communication with instruments in programs build upon decoupled parts.
 
 If you have a good reason to force the change of the value, you can do it with
-the `update` method::
+the `update` method:
+
+.. code-block:: python
 
     from lantz.log import log_to_screen, DEBUG, INFO, CRITICAL
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+    from lantz.drivers.examples import LantzSignalGenerator
 
     # This directs the lantz logger to the console.
     log_to_screen(DEBUG)
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         inst.waveform = 'sine'
         inst.update(waveform='sine', force=True)
 
 the log output (notice `force=True`)::
-
-    16:41:03 INFO     Created LantzSignalGeneratorTCP0
-    16:41:03 DEBUG    Opening port ('localhost', 5678)
-    16:41:03 INFO     Setting waveform = sine (current=MISSING, force=False)
-    16:41:03 DEBUG    (raw) Setting waveform = 0
-    16:41:03 DEBUG    Sending b'!WVF 0\n'
-    16:41:03 DEBUG    Received 'OK\n' (len=3)
-    16:41:03 INFO     waveform was set to sine
-    16:41:03 INFO     Setting waveform = sine (current=sine, force=True)
-    16:41:03 DEBUG    (raw) Setting waveform = 0
-    16:41:03 DEBUG    Sending b'!WVF 0\n'
-    16:41:03 DEBUG    Received 'OK\n' (len=3)
-    16:41:03 INFO     waveform was set to sine
-    16:41:03 DEBUG    Closing port ('localhost', 5678)
+    
+    14:44:44 INFO     Created LantzSignalGenerator0
+    14:44:44 DEBUG    Using MessageBasedDriver for TCPIP::localhost::5678::SOCKET
+    14:44:44 INFO     Calling initialize
+    14:44:44 INFO     initialize returned None
+    14:44:44 DEBUG    Opening resource TCPIP::localhost::5678::SOCKET
+    14:44:44 DEBUG    Setting [('read_termination', '\n'), ('write_termination', '\n')]
+    14:44:44 INFO     Setting waveform = sine (current=MISSING, force=False)
+    14:44:44 DEBUG    (raw) Setting waveform = 0
+    14:44:44 DEBUG    Writing '!WVF 0'
+    14:44:44 DEBUG    Read 'OK'
+    14:44:44 INFO     waveform was set to sine
+    14:44:44 INFO     Setting waveform = sine (current=sine, force=True)
+    14:44:44 DEBUG    (raw) Setting waveform = 0
+    14:44:44 DEBUG    Writing '!WVF 0'
+    14:44:44 DEBUG    Read 'OK'
+    14:44:44 INFO     waveform was set to sine
+    14:44:44 DEBUG    Closing resource TCPIP::localhost::5678::SOCKET
+    14:44:44 INFO     Calling finalize
+    14:44:44 INFO     finalize returned None
 
 
 Cache related methods: update, refresh and recall
@@ -335,16 +382,18 @@ to get all values.
 
 In some cases you need the value of some attribute of the instrument that
 you have not changed since the last time you got/set. The `recall` method returns
-the value stored in the cache::
+the value stored in the cache:
+
+.. code-block:: python
 
     from lantz.log import log_to_screen, DEBUG
 
-    from lantz.drivers.examples import LantzSignalGeneratorTCP
+    from lantz.drivers.examples import LantzSignalGenerator
 
     # This directs the lantz logger to the console.
     log_to_screen(DEBUG)
 
-    with LantzSignalGeneratorTCP('localhost', 5678) as inst:
+    with LantzSignalGenerator('TCPIP::localhost::5678::SOCKET') as inst:
         print(inst.waveform)
         print(inst.recall('waveform'))
 
@@ -352,3 +401,8 @@ the value stored in the cache::
 .. rubric::
    You can use the the driver that you have created in you projects.
    Learn more in the next part of the tutorial: :ref:`tutorial-using-feats`.
+
+
+.. _`VISA specification`:
+       http://www.ivifoundation.org/Downloads/Specifications.htm
+.. _`PyVISA`: http://pyvisa.readthedocs.org/
