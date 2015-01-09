@@ -11,7 +11,7 @@ the program finishes it can lead to deadlocks.
 Lantz provides context managers to ensure that that these methods are called.
 For example::
 
-    with A2023a.from_serial_port(1) as fungen:
+    with A2023a.via_serial(1) as fungen:
 
         print(fungen.idn)
         fungen.frequency = Q_(20, 'MHz')
@@ -25,7 +25,7 @@ exits the block even in the case of an unhandled exception as explained in :ref:
 This approach is very useful but inconvenient if the number of instruments
 is large. For three instruments is still fine::
 
-    with FrequenceMeter.from_serial_port(1) as fmeter, \
+    with FrequenceMeter.via_serial(1) as fmeter, \
          A2023a.from_serial_port(2) as fungen, \
          SR844.from_serial_port(3) as lockin:
 
@@ -42,7 +42,7 @@ Lantz provides `initialize_many` and `finalize_many` to solve this problem.
 
 The previous example will look like this::
 
-    drivers = (FrequenceMeter.from_serial_port(1), A2023a.from_serial_port(2), SR844.from_serial_port(3))
+    drivers = (FrequenceMeter.via_serial(1), A2023a.via_serial(2), SR844.via_serial(3))
 
     initialize_many(drivers)
 

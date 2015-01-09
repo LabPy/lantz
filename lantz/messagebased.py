@@ -244,7 +244,8 @@ class MessageBasedDriver(Driver):
         """Return a Driver with an underlying TCP Instrument resource.
 
 
-        :param port: The ip address or hostname of the instrument.
+        :param hostname: The ip address or hostname of the instrument.
+        :param port: the port of the instrument.
         :param name: Unique name given within Lantz to the instrument for logging purposes.
                      Defaults to one generated based on the class name if not provided.
         :param kwargs: keyword arguments passed to the Resource constructor on initialize.
@@ -258,7 +259,8 @@ class MessageBasedDriver(Driver):
     def via_tcpip_socket(cls, hostname, port, name=None, **kwargs):
         """Return a Driver with an underlying TCP Socket resource.
 
-        :param port: The ip address or hostname of the instrument.
+        :param hostname: The ip address or hostname of the instrument.
+        :param port: the port of the instrument.
         :param name: Unique name given within Lantz to the instrument for logging purposes.
                      Defaults to one generated based on the class name if not provided.
         :param kwargs: keyword arguments passed to the Resource constructor on initialize.

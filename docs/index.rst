@@ -30,6 +30,8 @@ When you use Lantz you get:
 
     - Tools to quickly build beautiful, responsive and composable applications.
 
+    - Rapid application development primitives.
+
     - An awesome and supporting community.
 
 
