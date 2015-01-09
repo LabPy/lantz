@@ -5,6 +5,7 @@ _past*
 *.pyc
 .DS_Store
 docs/_build/
+docs/_snippets/
 docs/drivers
 .idea
 _test*

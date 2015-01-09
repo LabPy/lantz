@@ -13,10 +13,15 @@
 import logging
 import socket
 import socketserver
+
 try:
-    from lantz.serial import SerialDriver
+    from lantz.drivers.legacy.serial import SerialDriver
 except ImportError:
-    pass
+    class SerialDriver:
+
+        def __init__(self, *args, **kwargs):
+            raise Exception('Please install PySerial to use the Serial Simulator.')
+
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s',
                     datefmt='%Y-%d-%m %H:%M:%S')
@@ -146,3 +151,37 @@ def main_tcp(instrument, args):
     server = socketserver.TCPServer((args.host, args.port), Handler)
     server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     return server
+
+
+def main_generic(args, instrument, instrument_args=(), instrument_kwargs=None):
+    import argparse
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('connection', choices=['serial', 'tcp'])
+    args, pending = parser.parse_known_args(args)
+
+    if args.connection == 'serial':
+        subparser = argparse.ArgumentParser()
+        subparser.add_argument('-p', '--port', type=str, default='1',
+                                help='Serial port')
+        func = main_serial
+
+    else:
+        subparser = argparse.ArgumentParser()
+        subparser.add_argument('-H', '--host', type=str, default='localhost',
+                               help='TCP hostname')
+        subparser.add_argument('-p', '--port', type=int, default=5678,
+                                help='TCP port')
+        func = main_tcp
+
+    args2 = subparser.parse_args(pending)
+
+    server = func(instrument(*instrument_args, **(instrument_kwargs or {})), args2)
+
+    logging.info('interrupt the program with Ctrl-C')
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        logging.info('Ending')
+    finally:
+        server.shutdown()

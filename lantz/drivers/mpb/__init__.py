@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     lantz.drivers.mpb
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~
 
     :company: MPB Communications Inc.
     :description: Laser products.

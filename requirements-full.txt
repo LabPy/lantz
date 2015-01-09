@@ -1,6 +1,5 @@
 colorama
-sphinx
 pyserial
 pyusb
 numpy
-lantz
+-r requirements-doc.txt

@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
+
 import unittest
 from time import sleep
 
-from lantz import Driver, Feat, DictFeat, Action, Q_
-from lantz.feat import MISSING
+from lantz import Driver, Feat, Action, Q_
 from lantz.driver import Self
 
 SLEEP = .1

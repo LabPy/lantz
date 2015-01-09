@@ -14,6 +14,6 @@
 
 """
 
-from .powermeter1830c import powermeter1830c
+from .powermeter1830c import PowerMeter1830c
 
-__all__ = ['powermeter1830c']
+__all__ = ['PowerMeter1830c']

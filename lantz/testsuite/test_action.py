@@ -1,8 +1,8 @@
-import unittest
-from time import sleep
+# -*- coding: utf-8 -*-
 
-from lantz import Driver, Feat, DictFeat, Action, Q_
-from lantz.feat import MISSING
+import unittest
+from lantz import Driver, Action, Q_
+
 
 class aDriver(Driver):
 

@@ -1,4 +1,0 @@
-
-
-.. automodule:: lantz.visalib
-   :members:

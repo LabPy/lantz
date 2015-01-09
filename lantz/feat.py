@@ -90,6 +90,7 @@ class Feat(object):
 
     """
 
+    __original_doc__ = ''
 
     def __init__(self, fget=MISSING, fset=None, doc=None, *,
                  values=None, units=None, limits=None, procs=None,

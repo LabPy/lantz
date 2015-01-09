@@ -2,18 +2,10 @@
 Interfacing to instruments
 ==========================
 
-.. automodule:: lantz.serial
-   :members:
-   :show-inheritance:
-
-.. automodule:: lantz.network
+.. automodule:: lantz.messagebased
    :members:
    :show-inheritance:
 
 .. automodule:: lantz.foreign
-   :members:
-   :show-inheritance:
-
-.. automodule:: lantz.visa
    :members:
    :show-inheritance:

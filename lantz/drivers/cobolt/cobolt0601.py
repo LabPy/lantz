@@ -1,35 +1,36 @@
 # -*- coding: utf-8 -*-
 """
     lantz.drivers.cobolt.cobolt0601
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     :copyright: 2014 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz import Action, Feat, DictFeat
-from lantz.serial import SerialDriver
-from lantz.errors import InstrumentError
+from pyvisa import constants
+
+from lantz import Action, Feat
+from lantz.messagebased import MessageBasedDriver
 
 
-class Cobolt0601(SerialDriver):
+class Cobolt0601(MessageBasedDriver):
     """Driver for any Cobolt 06-01 Series laser.
     """
 
-    ENCODING = 'ascii'
+    DEFAULTS = {'ASRL': {'write_termination': '\r',
+                         'read_termination': '\r',
+                         'baud_rate': 115200,
+                         'bytesize': 8,
+                         'parity': constants.Parity.none,
+                         'stop_bits': constants.StopBits.one,
+                         'encoding': 'ascii',
+                         }}
 
-    RECV_TERMINATION = '\r'
-    SEND_TERMINATION = '\r'
-
-    BAUDRATE = 115200
-    BYTESIZE = 8
-    PARITY = 'none'
-    STOPBITS = 1
-
-    #: flow control flags
-    RTSCTS = False
-    DSRDTR = False
-    XONXOFF = False
+    #TODO: add this in PyVISA
+    # flow control flags
+    #RTSCTS = False
+    #DSRDTR = False
+    #XONXOFF = False
 
     @Feat(read_once=True)
     def idn(self):
@@ -214,7 +215,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     lantz.log.log_to_screen(lantz.log.DEBUG)
-    with Cobolt0601(args.port) as inst:
+    with Cobolt0601.from_serial_port(args.port) as inst:
         if args.interactive:
             from lantz.ui.qtwidgets import start_test_app
             start_test_app(inst)

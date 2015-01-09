@@ -14,6 +14,7 @@ import time
 import json
 import inspect
 
+from lantz.utils import is_building_docs
 from lantz.utils.qt import QtCore, QtGui
 
 __PRINT_TRACEBACK__ = True
@@ -75,8 +76,13 @@ def register_wrapper(cls):
     for wrapped in cls._WRAPPED:
         if wrapped in cls._WRAPPERS:
             logger.warn('{} is already registered to {}.'.format(wrapped, cls._WRAPPERS[wrapped]))
-        cls._WRAPPERS[wrapped] = type(wrapped.__name__ + 'Wrapped',
-                                      (cls, wrapped), {'_IS_LANTZ_WRAPPER': True})
+
+        if is_building_docs:
+            cls._WRAPPERS[wrapped] = type(wrapped.__name__ + 'Wrapped',
+                                          (cls, ), {'_IS_LANTZ_WRAPPER': True})
+        else:
+            cls._WRAPPERS[wrapped] = type(wrapped.__name__ + 'Wrapped',
+                                          (cls, wrapped), {'_IS_LANTZ_WRAPPER': True})
 
     return cls
 
@@ -285,13 +291,14 @@ class WidgetMixin(object):
 
 class FeatWidget(object):
     """Widget to show a Feat.
-
-    :param parent: parent widget.
-    :param target: driver object to connect.
-    :param feat: Feat to connect.
     """
 
     def __new__(cls, parent, target, feat):
+        """
+        :param parent: parent widget.
+        :param target: driver object to connect.
+        :param feat: Feat to connect.
+        """
         widget = WidgetMixin.from_feat(feat, parent)
         widget.bind_feat(feat)
         widget.lanz_target = target
@@ -715,11 +722,11 @@ class ChildrenWidgets(object):
         pending = [self.parent, ]
         qualname = {self.parent: self.parent.objectName()}
         while pending:
-            object = pending.pop()
-            for child in object.children():
+            obj = pending.pop()
+            for child in obj.children():
                 if not isinstance(child, QtGui.QWidget):
                     continue
-                qualname[child] = qualname[object] + '.' + child.objectName()
+                qualname[child] = qualname[obj] + '.' + child.objectName()
                 pending.append(child)
                 yield child.objectName(), qualname[child], child
 

@@ -62,7 +62,7 @@ Slow operations such as numerical calculations are done using libraries such as 
 How do I start?
 ---------------
 
-The :ref:`tutorial` is a good place.
+The :ref:`tutorials` is a good place.
 
 
 I want to help. What can I do?

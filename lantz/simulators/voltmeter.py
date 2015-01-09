@@ -12,7 +12,7 @@
 import time
 import logging
 
-from .instrument import SimError, InstrumentHandler, main_tcp, main_serial
+from .instrument import SimError, InstrumentHandler, main_tcp, main_serial, main_generic
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s',
                     datefmt='%Y-%d-%m %H:%M:%S')
@@ -55,9 +55,6 @@ class SimVoltmeter(InstrumentHandler):
         if ain not in (0, 1):
             raise SimError
         value = self._get_func[ain]()
-        print(self.vranges)
-        print(self.range)
-        print(ain)
         max_val = self.vranges[self.range[ain]] * 1.2
         if value > max_val or value < -max_val:
             value = max_val
@@ -65,37 +62,13 @@ class SimVoltmeter(InstrumentHandler):
 
 
 def main(args=None):
-    import argparse
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
-
-    subparser = subparsers.add_parser('serial')
-    subparser.add_argument('-p', '--port', type=str, default='1',
-                            help='Serial port')
-    subparser.set_defaults(func=main_serial)
-
-    subparser = subparsers.add_parser('tcp')
-    subparser.add_argument('-H', '--host', type=str, default='localhost',
-                           help='TCP hostname')
-    subparser.add_argument('-p', '--port', type=int, default=5679,
-                            help='TCP port')
-    subparser.set_defaults(func=main_tcp)
 
     import random
     def measure():
-        return random.random * 10 - 5
+        return random.random() * 10 - 5
 
-    instrument = SimVoltmeter(measure, measure)
-    args = parser.parse_args(args)
-    server = args.func(instrument, args)
+    return main_generic(args, SimVoltmeter, (measure, measure))
 
-    logging.info('interrupt the program with Ctrl-C')
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        logging.info('Ending')
-    finally:
-        server.shutdown()
 
 from . import SIMULATORS
 

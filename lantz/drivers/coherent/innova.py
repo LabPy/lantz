@@ -22,9 +22,12 @@
 
 """
 
-from ... import Q_, Feat, DictFeat, Action
-from ...serial import SerialDriver
-from ...errors import InvalidCommand
+from pyvisa import constants
+
+from lantz import Feat, DictFeat, Action
+from lantz.errors import InvalidCommand
+
+from lantz.messagebased import MessageBasedDriver
 
 
 def make_feat(command, **kwargs):
@@ -43,19 +46,20 @@ def make_feat(command, **kwargs):
     return Feat(get, set, **kwargs)
 
 
-class Innova300C(SerialDriver):
+class Innova300C(MessageBasedDriver):
     """Innova300 C Series.
     """
 
-    ENCODING = 'ascii'
 
-    SEND_TERMINATION = '\r\n'
-    RECV_TERMINATION = '\r\n'
+    DEFAULTS = {'ASRL': {'write_termination': '\r\n',
+                         'read_termination': '\r\n',
+                         'baud_rate': 1200,
+                         'bytesize': 8,
+                         'parity': constants.Parity.none,
+                         'stop_bits': constants.StopBits.one,
+                         'encoding': 'ascii',
+                        }}
 
-
-    def __init__(self, port=1, baudrate=1200, **kwargs):
-        super().__init__(port, baudrate, bytesize=8, parity='None',
-                         stopbits=1, **kwargs)
 
     def initialize(self):
         super().initialize()
@@ -67,9 +71,6 @@ class Innova300C(SerialDriver):
 
         :param command: command to be sent to the instrument
         :type command: string
-
-        :param send_args: (termination, encoding) to override class defaults
-        :param recv_args: (termination, encoding) to override class defaults
         """
         ans = super().query(command, send_args=send_args, recv_args=recv_args)
         # TODO: Echo handling
@@ -377,7 +378,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     lantz.log.log_to_socket(lantz.log.DEBUG)
-    with Innova300C(args.port) as inst:
+    with Innova300C.from_serial_port(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
             start_test_app(inst)

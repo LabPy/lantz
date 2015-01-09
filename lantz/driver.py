@@ -8,23 +8,18 @@
     :copyright: 2013 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-import time
 import copy
 import atexit
 import logging
 import threading
-
 from functools import wraps
 from concurrent import futures
 from collections import defaultdict
 
 from .utils.qt import MetaQObject, SuperQObject, QtCore
-
 from .feat import Feat, DictFeat, MISSING, FeatProxy
 from .action import Action, ActionProxy
 from .stats import RunningStats
-from .errors import LantzTimeoutError
-from .processors import ParseProcessor
 from .log import get_logger
 
 logger = get_logger('lantz.driver', False)
@@ -155,7 +150,7 @@ class _DriverType(MetaQObject):
 
         return super().__new__(cls, classname, bases, class_dict)
 
-    def __init__(cls, classname, bases, class_dict):
+    def __init__(self, classname, bases, class_dict):
         super().__init__(classname, bases, class_dict)
 
         feats = {}
@@ -176,10 +171,10 @@ class _DriverType(MetaQObject):
         # We create async versions of each Action if it does not exists.
 
         for key, action in actions.items():
-            if not hasattr(cls, key + '_async'):
+            if not hasattr(self, key + '_async'):
                 async_action = repartial_submit(key)
                 async_action.__doc__ = '(Async) ' + action.__doc__ if action.__doc__ else ''
-                setattr(cls, key + '_async', async_action)
+                setattr(self, key + '_async', async_action)
 
         # We update the feat an actions dictionaries with the ones
         # from the base clases
@@ -192,8 +187,8 @@ class _DriverType(MetaQObject):
                 if isinstance(value, Action) and key not in actions:
                     actions[key] = value
 
-        cls._lantz_features = feats
-        cls._lantz_actions = actions
+        self._lantz_features = feats
+        self._lantz_actions = actions
 
 
 _REGISTERED = defaultdict(int)
@@ -220,6 +215,8 @@ class Driver(SuperQObject, metaclass=_DriverType):
     _lantz_features = {}
     _lantz_actions = {}
 
+    __name = ''
+
     def __new__(cls, *args, **kwargs):
         inst = SuperQObject.__new__(cls)
         name = kwargs.pop('name', None)
@@ -229,7 +226,7 @@ class Driver(SuperQObject, metaclass=_DriverType):
         inst.__unfinished_tasks = 0
         inst.timing = RunningStats()
 
-        if hasattr(inst, 'name'):
+        if hasattr(inst, 'name') and inst.name:
             pass
         elif name:
             inst.name = name
@@ -468,151 +465,6 @@ class Driver(SuperQObject, metaclass=_DriverType):
     @property
     def actions(self):
         return Proxy(self, self._lantz_actions, ActionProxy)
-
-
-class TextualMixin(object):
-    """Mixin class for classes that communicate with instruments
-    exchanging text messages.
-
-    Ideally, transport classes should provide receive methods
-    that support:
-    1. query the number of available bytes
-    2. read chunks of bytes (with and without timeout)
-    3. read until certain character is found (with and without timeout)
-
-    Most transport layers support 1 and 2 but not all support 3 (or only
-    for a defined set of characters) and TextualMixin provides fallback
-    a method.
-    """
-
-    #: Encoding to transform string to bytes and back as defined in
-    #: http://docs.python.org/py3k/library/codecs.html#standard-encodings
-    ENCODING = 'ascii'
-    #: Termination characters for receiving data, if not given RECV_CHUNK
-    #: number of bytes will be read.
-    RECV_TERMINATION = ''
-    #: Termination characters for sending data
-    SEND_TERMINATION = ''
-    #: Timeout in seconds of the complete read operation.
-    TIMEOUT = 1
-    #: Parsers
-    PARSERS = {}
-    #: Size in bytes of the receive chunk (-1 means all bytes in buffer)
-    RECV_CHUNK = 1
-
-    #: String containing the part of the message after RECV_TERMINATION
-    #: Used in software based finding of termination character when
-    #: RECV_CHUNK > 1
-    _received = ''
-
-    def raw_recv(self, size):
-        """Receive raw bytes from the instrument. No encoding or termination
-        character should be applied.
-
-        This method must be implemented by base classes.
-
-        :param size: number of bytes to receive.
-        :return: received bytes, eom
-        :rtype: bytes, bool
-        """
-        raise NotImplemented
-
-    def raw_send(self, data):
-        """Send raw bytes to the instrument. No encoding or termination
-        character should be applied.
-
-        This method must be implemented by base classes.
-
-        :param data: bytes to be sent to the instrument.
-        :param data: bytes.
-        """
-        raise NotImplemented
-
-    def send(self, command, termination=None, encoding=None):
-        """Send command to the instrument.
-
-        :param command: command to be sent to the instrument.
-        :type command: string.
-
-        :param termination: termination character to override class defined
-                            default.
-        :param encoding: encoding to transform string to bytes to override class
-                         defined default.
-
-        :return: number of bytes sent.
-
-        """
-        if termination is None:
-            termination = self.SEND_TERMINATION
-        if encoding is None:
-            encoding = self.ENCODING
-
-        message = bytes(command + termination, encoding)
-        self.log_debug('Sending {}', message)
-        return self.raw_send(message)
-
-    def recv(self, termination=None, encoding=None, recv_chunk=None):
-        """Receive string from instrument.
-
-        :param termination: termination character (overrides class default)
-        :type termination: str
-        :param encoding: encoding to transform bytes to string (overrides class default)
-        :param recv_chunk: number of bytes to receive (overrides class default)
-        :return: string encoded from received bytes
-        """
-
-        termination = termination or self.RECV_TERMINATION
-        encoding = encoding or self.ENCODING
-        recv_chunk = recv_chunk or self.RECV_CHUNK
-
-        if not termination:
-            return str(self.raw_recv(recv_chunk), encoding)
-
-        if self.TIMEOUT is None or self.TIMEOUT < 0:
-            stop = float('+inf')
-        else:
-            stop = time.time() + self.TIMEOUT
-
-        received = self._received
-        eom = False
-        while not (termination in received or eom):
-            if time.time() > stop:
-                raise LantzTimeoutError
-            raw_received = self.raw_recv(recv_chunk)
-            received += str(raw_received, encoding)
-
-        self.log_debug('Received {!r} (len={})', received, len(received))
-
-        received, self._received = received.split(termination, 1)
-
-        return received
-
-    def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
-        """Send query to the instrument and return the answer
-
-        :param command: command to be sent to the instrument
-        :type command: string
-
-        :param send_args: (termination, encoding) to override class defaults
-        :param recv_args: (termination, encoding) to override class defaults
-        """
-
-        self.send(command, *send_args)
-        return self.recv(*recv_args)
-
-    def parse_query(self, command, *,
-                    send_args=(None, None), recv_args=(None, None),
-                    format=None):
-        """Send query to the instrument, parse the output using format
-        and return the answer.
-
-        .. seealso:: TextualMixin.query and stringparser
-        """
-        ans = self.query(command, send_args=send_args, recv_args=recv_args)
-        if format:
-            parser = self.PARSERS.setdefault(format, ParseProcessor(format))
-            ans = parser(ans)
-        return ans
 
 
 def _solve_dependencies(dependencies, all_members=None):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    lantz.drivers.example.foreign
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    lantz.drivers.example.foreign_example
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Foreign library example.
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     lantz.log.log_to_socket(lantz.log.DEBUG)
-    with ForeignExample() as inst:
+    with ForeignTemplate() as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
             start_test_app(inst)

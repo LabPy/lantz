@@ -28,8 +28,8 @@
 """
 
 from lantz import Feat, Action
-from lantz.serial import SerialDriver
 from lantz.errors import InstrumentError
+from lantz.messagebased import MessageBasedDriver
 
 def between(s, before, after):
     ndx1 = s.index(before)
@@ -37,13 +37,12 @@ def between(s, before, after):
     return s[ndx1+len(before):ndx2]
 
 
-class HRI(SerialDriver):
+class HRI(MessageBasedDriver):
     """Kentech High Repetition Rate Image Intensifier.
     """
 
-    SEND_TERMINATION = '\r'
-    RECV_TERMINATION = '\n'
-    ENCODING = 'ascii'
+    DEFAULTS = {'COMMON': {'write_termination': '\r',
+                           'read_termination': '\n'}}
 
     def query(self, command, *, send_args=(None, None), recv_args=(None, None)):
         """Send query to the instrument and return the answer.
@@ -54,8 +53,18 @@ class HRI(SerialDriver):
             self.remote = True
         return super().query(command, send_args=send_args, recv_args=recv_args)
 
-    def query_expect(self, command, recv_termination=None, expected='ok'):
-        ans = self.query(command, recv_args=(recv_termination, HRI.ENCODING))
+    def query_expect(self, command, read_termination=None, expected='ok'):
+        """Send a query and check that the answer contains the string.
+
+        :type command: str
+        :type read_termination: str | None
+        :type expected: str | None
+        """
+        if command and not self.recall('remote'):
+            self.log_info('Setting Remote.')
+            self.remote = True
+        self.resource.write(command)
+        ans = self.read(read_termination)
         if expected and not expected in ans:
             raise InstrumentError("'{}' not in '{}'".format(expected, ans))
         return ans
@@ -64,7 +73,7 @@ class HRI(SerialDriver):
     def clear(self):
         """Clear the buffer.
         """
-        self.send('\r\r')
+        self.write('\r\r')
 
     @Feat(None, values={True, False})
     def remote(self, value):
@@ -73,7 +82,7 @@ class HRI(SerialDriver):
         if value:
             #self.query_expect('', None, None)
             self.query_expect('\r', expected=None)
-            self.recv()
+            self.read()
         else:
             return self.query_expect('LOCAL', chr(0), None)
 
@@ -86,7 +95,7 @@ class HRI(SerialDriver):
         if 'UNDEFINED' in ans:
             ans = '1.0'
         else:
-            ans = self.recv()
+            ans = self.read()
             ans = ans.split()[1]
             return ans
 
@@ -264,7 +273,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     lantz.log.log_to_socket(lantz.log.DEBUG)
-    with HRI(args.port, baudrate=9600) as inst:
+    with HRI.from_serial_port(args.port, baudrate=9600) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
             start_test_app(inst)

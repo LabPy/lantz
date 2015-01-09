@@ -1,10 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-    
-        
+    lantz.drivers.labjack
+    ~~~~~~~~~~~~~~~~~~~~~
 
-	    :copyright: 2013 by Lantz Authors, see AUTHORS for more details.
-	    :license: BSD, see LICENSE for more details.
+    :company: LabJack
+    :description: LabJacks are USB/Ethernet based measurement and automation
+    devices which provide analog inputs/outputs, digital inputs/outputs, and more.
+    They serve as an inexpensive and easy to use interface between computers and
+    the physical world.
+    :website: http://www.labjack.com/
+
+    ----
+
+    :copyright: 2013 by Lantz Authors, see AUTHORS for more details.
+    :license: BSD, see LICENSE for more details.
 """
 
 
@@ -12,7 +21,19 @@ from lantz import Feat, Action, DictFeat
 from lantz import Driver
 from lantz.errors import InstrumentError
 
-from _internal import u12 as _u12
+try:
+    from ._internal import u12 as _u12
+except Exception as ex:
+    from lantz.utils import is_building_docs
+    if not is_building_docs:
+        raise ex
+
+    class _u12:
+
+        @staticmethod
+        def U12(board_id):
+            raise ex
+
 
 class U12(Driver):
     """
@@ -21,6 +42,7 @@ class U12(Driver):
         For details about the commands, refer to the users guide.
     """
     def __init__(self, board_id):
+        super().__init__()
         self._internal = _u12.U12(board_id) 
 
     def initialize(self):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import logging
 from PyQt4 import QtCore
@@ -158,7 +159,7 @@ class LogRecordModel(QtCore.QAbstractTableModel):
                     col = viscols[index.column()]
                     try:
                         v = getattr(record, col.name)
-                    except AttributeError as e:
+                    except AttributeError:
                         try:
                             v = ("%(" + col.name + ")s") % record
                         except:
