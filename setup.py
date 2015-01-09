@@ -57,6 +57,7 @@ setup(name='Lantz',
       url='http://lantz.glugcen.dc.uba.ar/',
       packages=['lantz',
                 'lantz.ui',
+                'lantz.ui.blocks',
                 'lantz.simulators',
                 'lantz.utils',
                 'lantz.drivers'] +
