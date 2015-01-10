@@ -24,25 +24,21 @@ and cloning an editable package.
 Assuming that you have installed all the requirements described in
 :ref:`tutorial-installing`, in OSX/Linux::
 
-    $ pip-3.2 install virtualenv
+    $ pip-3.4 install virtualenv
     $ cd ~
-    $ virtualenv -p python3.2 --system-site-packages lantzenv
+    $ virtualenv -p python3.4 --system-site-packages lantzenv
     $ cd lantzenv
     $ source bin/activate
 
 and in Windows::
 
-    C:\Python3.2\Scripts\pip install virtualenv
+    C:\Python34\Scripts\pip install virtualenv
     cd 	%USERPROFILE%\Desktop
-    C:\Python32\Scripts\virtualenv --system-site-packages lantzenv
+    C:\Python34\Scripts\virtualenv --system-site-packages lantzenv
     cd lantzenv\Scripts
     activate
 
-and then install an editable package::
-
-    $ pip install -e git+gitolite@glugcen.dc.uba.ar:lantz.git#egg=lantz
-
-or from `Lantz at Github`_::
+and then install an editable package from `Lantz at Github`_::
 
     $ pip install -e git+git://github.com/hgrecco/lantz.git#egg=lantz
 

@@ -48,3 +48,13 @@ GUI (low-level)
    :maxdepth: 1
 
    ui-no-frontend
+
+
+
+Other guides
+============
+
+.. toctree::
+    :maxdepth: 1
+
+    upgrading
