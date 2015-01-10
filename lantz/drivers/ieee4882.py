@@ -5,7 +5,7 @@
 
     Implements a IEEE-488.2 commands.
 
-    :copyright: 2013 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 

@@ -7,7 +7,7 @@
 
     Loosely based on Python Sun RPC Demo and Alex Forencich python-vx11
 
-    :copyright: 2013 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 

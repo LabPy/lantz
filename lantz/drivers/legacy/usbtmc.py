@@ -8,7 +8,7 @@
     Loosely based on PyUSBTMC:python module to handle USB-TMC(Test and Measurement class)　devices.
     by Noboru Yamamot, Accl. Lab, KEK, JAPAN
 
-    :copyright: 2013 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 

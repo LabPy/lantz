@@ -6,7 +6,7 @@
     An simple framework to wrap a simulated instrument into
     a Serial or TCP receiver.
 
-    :copyright: 2012 by The Lantz Authors
+    :copyright: 2015 by The Lantz Authors
     :license: BSD, see LICENSE for more details.
 """
 

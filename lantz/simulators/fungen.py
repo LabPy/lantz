@@ -6,7 +6,7 @@
     A simulated function generator.
     See specification in the Lantz documentation.
 
-    :copyright: 2012 by The Lantz Authors
+    :copyright: 2015 by The Lantz Authors
     :license: BSD, see LICENSE for more details.
 """
 
