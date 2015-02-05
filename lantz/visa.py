@@ -35,7 +35,10 @@ class VisaDriver(object):
 
     def __new__(cls, resource_name, *args, **kwargs):
         library_path = kwargs.get('library_path', None)
-        manager = visa.ResourceManager(library_path)
+        if library_path:
+            manager = visa.ResourceManager(library_path)
+        else:
+            manager = visa.ResourceManager()
         name = manager.resource_info(resource_name).resource_name
         if name.startswith('GPIB'):
             return GPIBVisaDriver(resource_name, *args, **kwargs)
@@ -69,7 +72,10 @@ class MessageVisaDriver(TextualMixin, Driver):
         self._init_attributes = {}
 
         library_path = kwargs.get('library_path', None)
-        self.resource_manager = visa.ResourceManager(library_path)
+        if library_path:
+            self.resource_manager = visa.ResourceManager(library_path)
+        else:
+            self.resource_manager = visa.ResourceManager()
 
         self.resource = None
 
