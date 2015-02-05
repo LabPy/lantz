@@ -5,34 +5,26 @@
 
     Implements the drivers to control an oscilloscope.
 
-    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
     
     Source: Tektronix Manual
 """
 
-from numpy import array, arange
+import numpy as np
 
 from lantz.feat import Feat
 from lantz.action import Action
-from lantz.serial import SerialDriver
+from lantz.messagebased import MessageBasedDriver
 from lantz.errors import InvalidCommand
 
-class TDS1012(SerialDriver):
+
+class TDS1012(MessageBasedDriver):
     """Tektronix TDS1012 100MHz 2 Channel Digital Storage Oscilloscope
     """
-    ENCODING = 'ascii'
 
-    RECV_TERMINATION = '\n'
-    SEND_TERMINATION = '\n'
-    TIMEOUT = -1    # Avoids timeout while acquiring a curve. May not be the 
-                    # best option.
-    
-    def __init__(self, port):
-       # super().TIMEOUT = 20
-        super().__init__(port)
-        super().initialize() # Automatically open the port
-        
+    MANUFACTURER_ID = '0x699'
+
     @Action()
     def initiate(self):
         """ Initiates the acquisition in the osciloscope.
@@ -102,10 +94,10 @@ class TDS1012(SerialDriver):
         self.send('DAT:STOP {}'.format(stop))
         data = self.query('CURV?')
         data = data.split(',')
-        data = array(list(map(float,data)))
+        data = np.array(list(map(float,data)))
         ydata = (data - parameters['YOF']) * parameters['YMU']\
                 + parameters['YZE']
-        xdata = arange(len(data))*parameters['XIN'] + parameters['XZE']
+        xdata = np.arange(len(data))*parameters['XIN'] + parameters['XZE']
         return list(xdata), list(ydata)
         
     

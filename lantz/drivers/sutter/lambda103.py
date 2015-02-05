@@ -9,28 +9,30 @@
 
         - Sutter Instruments manual.
 
-    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
 from lantz import Feat, DictFeat, Action
-from lantz.serial import SerialDriver
+from lantz.messagebased import MessageBasedDriver
+
 
 def logged(func):
     return func
 
 
-class Lambda103(SerialDriver):
+class Lambda103(MessageBasedDriver):
     """High performance, microprocessor-controlled multi-filter wheel system
     for imaging applications requiring up to 3 filter wheels.
     """
 
-    RECV_TERMINATION = ''
-    SEND_TERMINATION = ''
+    DEFAULTS = {'ASRL': {'write_termination': '',
+                         'read_termination': '',
+                        }}
 
-    def __init__(self, port=11, baudrate=9600, timeout=1, *args, **kwargs):
-        super().__init__(port, baudrate, timeout, *args, **kwargs)
 
+    def initialize(self):
+        super().initialize()
         self.speed = 1
 
     @Feat(None, values={True: chr(170), False: chr(172)})

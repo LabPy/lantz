@@ -7,6 +7,5 @@ Support
 
    stats
    processors
-   visalib
    stringparser
 

@@ -14,7 +14,7 @@ Lantz explains itself by contextually displaying documentation. Core functionali
 
 Lantz works well with Linux, Mac and Windows. It is written in Python and Qt4 for the user interface.
 
-Lantz profits from Python's batteries-included philosophy and it's extensive library in many different fields from text parsing to database communication.
+Lantz profits from Python's batteries-included philosophy and its extensive library in many different fields from text parsing to database communication.
 
 Lantz builds on the giant shoulders. By using state-of-the art libraries, it delivers tested robustness and performance.
 

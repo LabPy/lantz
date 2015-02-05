@@ -306,6 +306,7 @@ def list_drivers(key, module):
 
 def list_packages(root_package):
     packages = {}
+    failed_packages = []
     path, prefix = root_package.__path__, root_package.__name__ + "."
     for importer, modname, ispkg in pkgutil.iter_modules(path, prefix):
         if not ispkg:
@@ -315,12 +316,13 @@ def list_packages(root_package):
             packages[package.__name__] = package
             print('+ Imported {}'.format(modname))
         except Exception as e:
+            failed_packages.append(modname)
             print('- Cannot import {}: {}'.format(modname, e))
-    return packages
+    return packages, failed_packages
 
 def main():
     print('\nGenerating documentation for drivers ...')
-    packages = list_packages(drivers)
+    packages, failed_packages = list_packages(drivers)
     class opts:
         pass
     opts.dryrun = False
@@ -341,6 +343,8 @@ def main():
         fp.write('   *\n')
         last = ''
         for key in sorted(packages.keys()):
+            if key == 'legacy':
+                continue
             try:
                 company = company_parser(packages[key].__doc__).strip()
             except Exception as e:
@@ -354,6 +358,12 @@ def main():
 
             module = packages[key]
             fp.write(list_drivers(key, module))
+
+        if failed_packages:
+            fp.write(format_heading(1, 'Failed to generate the docs for the following subpackages'))
+            fp.write('\n')
+            for key in sorted(failed_packages):
+                fp.write('- {}\n'.format(key))
 
 if __name__ == '__main__':
     main()

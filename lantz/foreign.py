@@ -5,7 +5,7 @@
 
     Implements classes and methods to interface to foreign functions.
 
-    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -70,7 +70,7 @@ class Library(object):
         if self.prefix:
             try:
                 return getattr(self.internal, self.prefix + name)
-            except Exception:
+            except:
                 pass
 
         try:

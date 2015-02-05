@@ -4,15 +4,14 @@
     ~~~~~~~~~~~~~~~~~~~~~
 
     :company: LabJack
-    :description: LabJacks are USB/Ethernet based measurement and automation 
-    devices which provide analog inputs/outputs, digital inputs/outputs, and more. 
-    They serve as an inexpensive and easy to use interface between computers and
-    the physical world.
+    :description: LabJacks are USB/Ethernet based measurement and automation
+                  devices which provide analog inputs/outputs, digital inputs/outputs, and more.
+
     :website: http://www.labjack.com/
 
     ----
 
-    :copyright: 2013 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 

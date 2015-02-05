@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     lantz.drivers.mpb
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~
 
     :company: MPB Communications Inc.
     :description: Laser products.
@@ -9,7 +9,7 @@
 
     ----
 
-    :copyright: 2014 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 

@@ -16,16 +16,17 @@
 
         - MDSnC Manual
 
-    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
 #TODO: Implement calibrated power.
 
 from lantz import Feat, DictFeat
-from lantz.serial import SerialDriver
+from lantz.messagebased import MessageBasedDriver
 
-class MDSnC(SerialDriver):
+
+class MDSnC(MessageBasedDriver):
     """MDSnC synthesizer for AOTF.nC
     """
 
@@ -35,31 +36,31 @@ class MDSnC(SerialDriver):
     def main_enabled(self, value):
         """Enable the
         """
-        self.send("I{}".format(value))
+        self.write("I{}".format(value))
 
     @DictFeat(None, keys=CHANNELS)
     def enabled(self, channel, value):
         """Enable single channels.
         """
-        self.send("L{}O{}".format(channel, value))
+        self.write("L{}O{}".format(channel, value))
 
     @DictFeat(None, keys=CHANNELS)
     def frequency(self, channel, value):
         """RF frequency for a given channel.
         """
-        self.send("L{}F{}".format(channel, value))
+        self.write("L{}F{}".format(channel, value))
 
     @DictFeat(None, keys=CHANNELS)
     def powerdb(self, channel, value):
         """Power for a given channel (in db).
         """
-        self.send("L{}D{}".format(channel, value))
+        self.write("L{}D{}".format(channel, value))
 
     @DictFeat(None, keys=CHANNELS, limits=(0, 1023, 1))
     def power(self, channel, value):
         """Power for a given channel (in digital units).
         """
-        self.send("L{}P{:04d}".format(channel, value))
+        self.write("L{}P{:04d}".format(channel, value))
 
 
 if __name__ == '__main__':
@@ -74,7 +75,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     lantz.log.log_to_socket(lantz.log.DEBUG)
-    with MDSnC(args.port) as inst:
+    with MDSnC.from_serial_port(args.port) as inst:
         if args.interactive:
             from lantz.ui.app import start_test_app
             start_test_app(inst)

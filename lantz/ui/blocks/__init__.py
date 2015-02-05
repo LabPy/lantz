@@ -3,10 +3,14 @@
     lantz.ui.blocks
     ~~~~~~~~~~~~~~~
 
-    Just some fake drivers to show how the backend, frontend works.
+    Building blocks for rich applications.
 
-    :copyright: 2014 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
 from .loop import Loop, LoopUi
+from .scan import Scan, ScanUi
+from .featscan import FeatScan, FeatScanUi
+from .chart import ChartUi
+from .layouts import HorizonalUi, VerticalUi

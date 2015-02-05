@@ -15,6 +15,20 @@ import sys, os
 import pkg_resources
 import datetime
 
+os.environ['QT_API'] = 'mock'
+os.environ['LANTZ_BUILDING_DOCS'] = 'True'
+
+from unittest.mock import MagicMock
+
+class Mock(MagicMock):
+
+    @classmethod
+    def __getattr__(cls, name):
+        return Mock()
+
+MOCK_MODULES = ['numpy', ]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -29,10 +43,12 @@ sys.path.insert(0, os.path.abspath('../'))
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.viewcode', 'sphinx.ext.autodoc', 'sphinx.ext.intersphinx',
+              'sphinxcontrib.images',
               ]#'autodriver']
 #	      'sphinxcontrib.spelling']
 
-intersphinx_mapping = {'python': ('http://docs.python.org/3.2', None)}
+intersphinx_mapping = {'python': ('http://docs.python.org/3.4', None),
+                       'pyvisa': ('http://pyvisa.readthedocs.org/en/latest', None)}
 
 autodoc_member_order = 'groupwise'
 autoclass_content = 'both'
@@ -57,7 +73,11 @@ author = 'Hernan E. Grecco'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 
-version = pkg_resources.get_distribution(project).version
+try:
+    version = pkg_resources.get_distribution(project).version
+except:
+    version = 'unknown'
+
 release = version
 this_year = datetime.date.today().year
 copyright = '%s, %s' % (this_year, author)
@@ -96,24 +116,29 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 modindex_common_prefix = ['lantz.']
 
+# -- Options for HTML output ---------------------------------------------------
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+html_theme = 'sphinx_rtd_theme'
+
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+if not on_rtd:  # only import and set the theme if we're building docs locally
+    try:
+        import sphinx_rtd_theme
+    except ImportError:
+        print('\n\nTheme not found. Please install Sphinx Read The Docs Themes using:\n\n'
+              '   pip install sphinx_rtd_theme\n')
+        sys.exit(1)
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 import driversdoc
 driversdoc.main()
 
-# -- Options for HTML output ---------------------------------------------------
-sys.path.append(os.path.abspath('_themes'))
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-html_theme = 'lantz'
-
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
-html_theme_options = {'collapsiblesidebar': True}
-
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = ['_themes']
+html_theme_options = {}
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

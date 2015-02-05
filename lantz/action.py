@@ -6,7 +6,7 @@
     Implements the Action class to wrap driver bound methods with Lantz's
     data handling, logging, timing.
 
-    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -77,7 +77,7 @@ class Action(object):
                                    'limits': limits,
                                    'processors': procs}
         self.func = func
-        self.args = None
+        self.args = ()
 
     def __call__(self, func):
         self.func = func
@@ -102,7 +102,10 @@ class Action(object):
         # This part calls to the underlying function wrapping
         # and timing, logging and error handling
         with instance._lock:
-            instance.log_info('Calling {} with ({}, {}))', name, args, kwargs)
+            if args or kwargs:
+                instance.log_info('Calling {} with ({}, {}))', name, args, kwargs)
+            else:
+                instance.log_info('Calling {}', name)
 
             try:
                 values = inspect.getcallargs(self.func, *(instance, ) + args, **kwargs)
@@ -115,20 +118,20 @@ class Action(object):
             except Exception as e:
                 instance.log_error('While pre-processing ({}, {}) for {}: {}', args, kwargs, name, e)
                 raise e
-            instance.log_debug('(raw) Setting {} = {}', name, t_values)
+
+            if args or kwargs:
+                instance.log_debug('(raw) Calling {} with {}', name, t_values)
 
             try:
                 tic = time.time()
                 out = self.func(instance, *t_values)
+                instance.timing.add(name, time.time() - tic)
+                instance.log_info('{} returned {}', name, out)
+
+                return out
             except Exception as e:
                 instance.log_error('While calling {} with {}. {}', name, t_values, e)
                 raise e
-
-            instance.timing.add(name, time.time() - tic)
-
-            instance.log_info('{} returned {}', name, out)
-
-        return out
 
     def pre_action(self, value, instance=None):
         procs = _dget(self.action_processors, instance)

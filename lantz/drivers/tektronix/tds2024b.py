@@ -5,23 +5,24 @@
 
     Implements the drivers to control an oscilloscope.
 
-    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
-from numpy import array, arange
+import struct
+
+import numpy as np
 
 from lantz.feat import Feat
 from lantz.action import Action
-from lantz.visa import VisaDriver
+from lantz.messagebased import MessageBasedDriver
 
-class TDS2024(VisaDriver):
+
+class TDS2024(MessageBasedDriver):
     """Tektronix TDS2024 200 MHz 4 Channel Digital Real-Time Oscilloscope
     """
 
-    def __init__(self, port):
-        super().__init__(port)
-        timeout=10
+    MANUFACTURER_ID = '0x699'
 
     @Action()
     def autoconf(self):
@@ -105,14 +106,14 @@ class TDS2024(VisaDriver):
         length = bytecount / 2
         data = struct.unpack("{}H".format(length), data[0:2*length])
         params = self.acqparams()
-        data = array(list(map(float, data)))
+        data = np.array(list(map(float, data)))
         yoff = params['YOFF?']
         ymu = params['YMU?']
         yze = params['YZE?']
         xin = params['XIN?']
         xze = params['XZE?']
         ydata = ( data - yoff) * ymu + yze
-        xdata = arange(len(data)) * xin + xze
+        xdata = np.arange(len(data)) * xin + xze
         return list(xdata), list(data)
 
     def _measure(self, type, source):

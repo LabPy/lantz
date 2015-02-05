@@ -3,7 +3,7 @@
 
 """
     lantz.drivers.andor.ccd
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~
 
     Low level driver wrapping library for CCD and Intensified CCD cameras.
     Only functions for iXon EMCCD cameras were tested.
@@ -17,7 +17,7 @@
 
         - Andor SDK 2.96 Manual
 
-    :copyright: 2014 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 import numpy as np
@@ -114,7 +114,6 @@ _ERRORS = {
     20121: 'DRV_ERROR_NOHANDLE',
     20130: 'DRV_GATING_NOT_AVAILABLE',
     20131: 'DRV_FPGA_VOLTAGE_ERROR',
-    20099: 'DRV_BINNING_ERROR',
     20100: 'DRV_INVALID_AMPLIFIER',
     20101: 'DRV_INVALID_COUNTCONVERT_MODE'
 }
@@ -239,10 +238,10 @@ class CCD(LibraryDriver):
         SetCurrentCamera function.
         The number of cameras can be obtained using the GetAvailableCameras
         function.
-        Parameters
-        long cameraIndex: index of any of the installed cameras. Valid values:
-            0 to NumberCameras-1 where NumberCameras is the value returned by
-            the GetAvailableCameras function.
+
+        :param index: index of any of the installed cameras.
+                      Valid values: 0 to NumberCameras-1 where NumberCameras
+                      is the value returned by the GetAvailableCameras function.
         """
         index = ct.c_long(index)
         handle = ct.c_long()
@@ -338,7 +337,8 @@ class CCD(LibraryDriver):
         """This function will retrieve the type of PCI controller card included
         in your system. This function is not applicable for USB systems. The
         maximum number of characters that can be returned from this function is
-        10."""
+        10.
+        """
 
         model = ct.c_wchar_p()
         self.lib.GetControllerCardModel(ct.pointer(model))
@@ -363,7 +363,7 @@ class CCD(LibraryDriver):
 
     @Feat(read_once=True)
     def px_size(self):
-        """ This function returns the dimension of the pixels in the detector
+        """This function returns the dimension of the pixels in the detector
         in microns.
         """
         xp, yp = ct.c_float(), ct.c_float()
@@ -373,7 +373,7 @@ class CCD(LibraryDriver):
         return (xp.value, yp.value)
 
     def QE(self, wl):
-        """ Returns the percentage QE for a particular head model at a user
+        """Returns the percentage QE for a particular head model at a user
         specified wavelength.
         """
         hname = (ct.c_char * 100)()
@@ -387,14 +387,16 @@ class CCD(LibraryDriver):
         return qe.value
 
     def sensitivity(self, ad, amp, i, pa):
-        """ This function returns the sensitivity for a particular speed."""
+        """This function returns the sensitivity for a particular speed.
+        """
+
         sens = ct.c_float()
         ad, amp, i, pa = ct.c_int(ad), ct.c_int(amp), ct.c_int(i), ct.c_int(pa)
         self.lib.GetSensitivity(ad, amp, i, pa, ct.pointer(sens))
         return sens.value
 
     def count_convert_available(self, mode):
-        """ This function checks if the hardware and current settings permit
+        """This function checks if the hardware and current settings permit
         the use of the specified Count Convert mode.
         """
         mode = ct.c_int(mode)
@@ -407,7 +409,7 @@ class CCD(LibraryDriver):
     ### SHUTTER     # I couldn't find a better way to do this... sorry
     @Action()
     def shutter(self, typ, mode, ext_closing, ext_opening, ext_mode):
-        """ This function expands the control offered by SetShutter to allow an
+        """This function expands the control offered by SetShutter to allow an
         external shutter and internal shutter to be controlled independently
         (only available on some cameras – please consult your Camera User
         Guide). The typ parameter allows the user to control the TTL signal
@@ -423,18 +425,14 @@ class CCD(LibraryDriver):
         “Open” and set the mode parameter to “Auto”.
         To not use any shutter in the experiment, set both shutter modes to
         permanently open.
-        Parameters
-            Int typ:
-                0 Output TTL low signal to open shutter
-                1 Output TTL high signal to open shutter
-            int mode:
-                0 Fully Auto
-                1 Permanently Open
-                2 Permanently Closed
-                4 Open for FVB series
-                5 Open for any series
-            int closingtime: time shutter takes to close (milliseconds)
-            int openingtime: Time shutter takes to open (milliseconds)
+
+        :param typ: 0 (or 1) Output TTL low (or high) signal to open shutter.
+        :param mode: Internal shutter: 0 Fully Auto, 1 Permanently Open,
+                     2 Permanently Closed, 4 Open for FVB series, 5 Open for any series.
+        :param ext_closing: Time shutter takes to close (milliseconds)
+        :param ext_opening: Time shutter takes to open (milliseconds)
+        :param ext_mode: External shutter: 0 Fully Auto, 1 Permanently Open,
+                         2 Permanently Closed, 4 Open for FVB series, 5 Open for any series.
         """
         self.lib.SetShutterEx(ct.c_int(typ), ct.c_int(mode),
                               ct.c_int(ext_closing), ct.c_int(ext_opening),
@@ -459,7 +457,7 @@ class CCD(LibraryDriver):
 
     @Feat(read_once=True, units='degC')
     def min_temperature(self):
-        """ This function returns the valid range of temperatures in centigrads
+        """This function returns the valid range of temperatures in centigrads
         to which the detector can be cooled.
         """
         mini, maxi = ct.c_int(), ct.c_int()
@@ -468,7 +466,7 @@ class CCD(LibraryDriver):
 
     @Feat(read_once=True, units='degC')
     def max_temperature(self):
-        """ This function returns the valid range of temperatures in centigrads
+        """This function returns the valid range of temperatures in centigrads
         to which the detector can be cooled.
         """
         mini, maxi = ct.c_int(), ct.c_int()
@@ -477,7 +475,7 @@ class CCD(LibraryDriver):
 
     @Feat()
     def temperature_status(self):
-        """ This function returns the temperature of the detector to the
+        """This function returns the temperature of the detector to the
         nearest degree. It also gives the status of cooling process.
         """
         temp = ct.c_float()
@@ -486,7 +484,7 @@ class CCD(LibraryDriver):
 
     @Feat(units='degC')
     def temperature(self):
-        """ This function returns the temperature of the detector to the
+        """This function returns the temperature of the detector to the
         nearest degree. It also gives the status of cooling process.
         """
         temp = ct.c_float()
@@ -518,7 +516,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={True: 1, False: 0})
     def cooled_on_shutdown(self):
-        """ This function determines whether the cooler is switched off when
+        """This function determines whether the cooler is switched off when
         the camera is shut down.
         """
         return self.cooled_on_shutdown_value
@@ -531,7 +529,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={'onfull': 0, 'onlow': 1, 'off': 2})
     def fan_mode(self):
-        """ Allows the user to control the mode of the camera fan. If the
+        """Allows the user to control the mode of the camera fan. If the
         system is cooled, the fan should only be turned off for short periods
         of time. During this time the body of the camera will warm up which
         could compromise cooling capabilities.
@@ -551,7 +549,7 @@ class CCD(LibraryDriver):
 
     @Feat()
     def averaging_factor(self):
-        """ Averaging factor to be used with the recursive filter. For
+        """Averaging factor to be used with the recursive filter. For
         information on the various data averaging filters available see
         DATA AVERAGING FILTERS in the Special Guides section of the manual.
         """
@@ -565,7 +563,7 @@ class CCD(LibraryDriver):
 
     @Feat()
     def averaging_frame_count(self):
-        """ Number of frames to be used when using the frame averaging filter.
+        """Number of frames to be used when using the frame averaging filter.
         """
         fc = ct.c_uint()
         self.lib.Filter_GetAveragingFrameCount(ct.pointer(fc))
@@ -577,7 +575,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={'NAF': 0, 'RAF': 5, 'FAF': 6})
     def averaging_mode(self):
-        """ Current averaging mode.
+        """Current averaging mode.
         Valid options are:
         0 – No Averaging Filter
         5 – Recursive Averaging Filter
@@ -593,7 +591,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={'NF': 0, 'MF': 1, 'LAF': 2, 'IRF': 3, 'NTF': 4})
     def noise_filter_mode(self):
-        """ Set the Noise Filter to use; For information on the various
+        """Set the Noise Filter to use; For information on the various
         spurious noise filters available see SPURIOUS NOISE FILTERS in the
         Special Guides section of the manual.
         Valid options are:
@@ -613,7 +611,7 @@ class CCD(LibraryDriver):
 
     @Feat()
     def filter_threshold(self):
-        """ Sets the threshold value for the Noise Filter. For information on
+        """Sets the threshold value for the Noise Filter. For information on
         the various spurious noise filters available see SPURIOUS NOISE FILTERS
         in the Special Guides section of the manual.
         Valid values are:
@@ -630,7 +628,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={True: 2, False: 0})
     def cr_filter_enabled(self):
-        """ This function will set the state of the cosmic ray filter mode for
+        """This function will set the state of the cosmic ray filter mode for
         future acquisitions. If the filter mode is on, consecutive scans in an
         accumulation will be compared and any cosmic ray-like features that are
         only present in one scan will be replaced with a scaled version of the
@@ -648,7 +646,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={True: 1, False: 0})   # FIXME: untested
     def photon_counting_mode(self):
-        """ This function activates the photon counting option.
+        """This function activates the photon counting option.
         """
         return self.photon_counting_mode_state
 
@@ -660,7 +658,7 @@ class CCD(LibraryDriver):
 
     @Feat(read_once=True)
     def n_photon_counting_div(self):
-        """ Available in some systems is photon counting mode. This function
+        """Available in some systems is photon counting mode. This function
         gets the number of photon counting divisions available. The functions
         SetPhotonCounting and SetPhotonCountingThreshold can be used to specify
         which of these divisions is to be used.
@@ -671,14 +669,14 @@ class CCD(LibraryDriver):
 
     @Action()       # untested
     def set_photon_counting_divs(self, n, thres):
-        """ This function sets the thresholds for the photon counting option.
+        """This function sets the thresholds for the photon counting option.
         """
         thres = ct.c_long(thres)
         self.lib.SetPhotonCountingDivisions(ct.c_ulong(n), ct.pointer(thres))
 
     @Action()
     def set_photon_counting_thres(self, mini, maxi):
-        """ This function sets the minimum and maximum threshold in counts
+        """This function sets the minimum and maximum threshold in counts
         (1-65535) for the photon counting option.
         """
         self.lib.SetPhotonCountingThreshold(ct.c_long(mini), ct.c_long(maxi))
@@ -702,7 +700,7 @@ class CCD(LibraryDriver):
     @Feat(values={'Single Scan': 1, 'Accumulate': 2, 'Kinetics': 3,
                   'Fast Kinetics': 4, 'Run till abort': 5})
     def acquisition_mode(self):
-        """ This function will set the acquisition mode to be used on the next
+        """This function will set the acquisition mode to be used on the next
         StartAcquisition.
         NOTE: In Mode 5 the system uses a “Run Till Abort” acquisition mode. In
         Mode 5 only, the camera continually acquires data until the
@@ -719,7 +717,7 @@ class CCD(LibraryDriver):
 
     @Action()
     def prepare_acquisition(self):
-        """ This function reads the current acquisition setup and allocates and
+        """This function reads the current acquisition setup and allocates and
         configures any memory that will be used during the acquisition. The
         function call is not required as it will be called automatically by the
         StartAcquisition function if it has not already been called externally.
@@ -735,7 +733,7 @@ class CCD(LibraryDriver):
 
     @Action()
     def start_acquisition(self):
-        """ This function starts an acquisition. The status of the acquisition
+        """This function starts an acquisition. The status of the acquisition
         can be monitored via GetStatus().
         """
         self.lib.StartAcquisition()
@@ -748,7 +746,7 @@ class CCD(LibraryDriver):
 
     @Action()
     def wait_for_acquisition(self):
-        """ WaitForAcquisition can be called after an acquisition is started
+        """WaitForAcquisition can be called after an acquisition is started
         using StartAcquisition to put the calling thread to sleep until an
         Acquisition Event occurs. This can be used as a simple alternative to
         the functionality provided by the SetDriverEvent function, as all Event
@@ -776,7 +774,7 @@ class CCD(LibraryDriver):
 
     @Feat()
     def acquisition_progress(self):
-        """ This function will return information on the progress of the
+        """This function will return information on the progress of the
         current acquisition. It can be called at any time but is best used in
         conjunction with SetDriverEvent.
         The values returned show the number of completed scans in the current
@@ -797,7 +795,7 @@ class CCD(LibraryDriver):
 
     @Feat()
     def status(self):
-        """ This function will return the current status of the Andor SDK
+        """This function will return the current status of the Andor SDK
         system. This function should be called before an acquisition is started
         to ensure that it is IDLE and during an acquisition to monitor the
         process.
@@ -824,14 +822,14 @@ class CCD(LibraryDriver):
 
     @Feat()
     def n_exposures_in_ring(self):
-        """ Gets the number of exposures in the ring at this moment."""
+        """Gets the number of exposures in the ring at this moment."""
         n = ct.c_int()
         self.lib.GetNumberRingExposureTimes(ct.pointer(n))
         return n.value
 
     @Feat()
     def buffer_size(self):
-        """ This function will return the maximum number of images the circular
+        """This function will return the maximum number of images the circular
         buffer can store based on the current acquisition settings.
         """
         n = ct.c_long()
@@ -840,7 +838,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={True: 1, False: 0})
     def exposing(self):
-        """ This function will return if the system is exposing or not. The
+        """This function will return if the system is exposing or not. The
         status of the firepulse will be returned.
         NOTE  This is only supported by the CCI23 card.
         """
@@ -850,7 +848,7 @@ class CCD(LibraryDriver):
 
     @Feat()
     def n_images_acquired(self):
-        """ This function will return the total number of images acquired since
+        """This function will return the total number of images acquired since
         the current acquisition started. If the camera is idle the value
         returned is the number of images acquired during the last acquisition.
         """
@@ -860,15 +858,15 @@ class CCD(LibraryDriver):
 
     @Action()
     def set_image(self, shape=None, binned=(1, 1), p_0=(1, 1)):
-        """ This function will set the horizontal and vertical binning to be
+        """This function will set the horizontal and vertical binning to be
         used when taking a full resolution image.
-        Parameters
-            int hbin: number of pixels to bin horizontally.
-            int vbin: number of pixels to bin vertically.
-            int hstart: Start column (inclusive).
-            int hend: End column (inclusive).
-            int vstart: Start row (inclusive).
-            int vend: End row (inclusive).
+
+        :param hbin: number of pixels to bin horizontally.
+        :param vbin: number of pixels to bin vertically.
+        :param hstart: Start column (inclusive).
+        :param hend: End column (inclusive).
+        :param vstart: Start row (inclusive).
+        :param vend: End row (inclusive).
         """
 
         if shape is None:
@@ -885,7 +883,7 @@ class CCD(LibraryDriver):
     @Feat(values={'FVB': 0, 'Multi-Track': 1, 'Random-Track': 2,
                   'Single-Track': 3, 'Image': 4})
     def readout_mode(self):
-        """ This function will set the readout mode to be used on the subsequent
+        """This function will set the readout mode to be used on the subsequent
         acquisitions.
         """
         return self.readout_mode_mode
@@ -898,7 +896,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={True: 1, False: 0})
     def readout_packing(self):
-        """ This function will configure whether data is packed into the readout
+        """This function will configure whether data is packed into the readout
         register to improve frame rates for sub-images.
         Note: It is important to ensure that no light falls outside of the
         sub-image area otherwise the acquired data will be corrupted. Only
@@ -916,14 +914,13 @@ class CCD(LibraryDriver):
 
     @Feat(read_once=True)
     def min_image_length(self):
-        """ This function will return the minimum number of pixels that can be
+        """This function will return the minimum number of pixels that can be
         read out from the chip at each exposure. This minimum value arises due
         the way in which the chip is read out and will limit the possible sub
         image dimensions and binning sizes that can be applied.
-        Parameters
-            int* MinImageLength: Will contain the minimum number of super
-            pixels on return.
         """
+
+        # Will contain the minimum number of super pixels on return.
         px = ct.c_int()
         self.lib.GetMinimumImageLength(ct.pointer(px))
 
@@ -939,7 +936,7 @@ class CCD(LibraryDriver):
         self.lib.FreeInternalMemory()
 
     def acquired_data(self, shape):
-        """ This function will return the data from the last acquisition. The
+        """This function will return the data from the last acquisition. The
         data are returned as long integers (32-bit signed integers). The
         “array” must be large enough to hold the complete data set.
         """
@@ -951,7 +948,7 @@ class CCD(LibraryDriver):
         return arr
 
     def acquired_data16(self, shape):
-        """ 16-bit version of the GetAcquiredData function. The “array” must be
+        """16-bit version of the GetAcquiredData function. The “array” must be
         large enough to hold the complete data set.
         """
         size = np.array(shape).prod()
@@ -961,7 +958,7 @@ class CCD(LibraryDriver):
         return arr.reshape(shape)
 
     def oldest_image(self, shape):
-        """ This function will update the data array with the oldest image in
+        """This function will update the data array with the oldest image in
         the circular buffer. Once the oldest image has been retrieved it no
         longer is available. The data are returned as long integers (32-bit
         signed integers). The "array" must be exactly the same size as the full
@@ -974,7 +971,7 @@ class CCD(LibraryDriver):
         return array.reshape(shape)
 
     def oldest_image16(self, shape):
-        """ 16-bit version of the GetOldestImage function.
+        """16-bit version of the GetOldestImage function.
         """
         size = np.array(shape).prod()
         array = np.ascontiguousarray(np.zeros(size, dtype=np.int16))
@@ -983,7 +980,7 @@ class CCD(LibraryDriver):
         return array.reshape(shape)
 
     def most_recent_image(self, shape):
-        """ This function will update the data array with the most recently
+        """This function will update the data array with the most recently
         acquired image in any acquisition mode. The data are returned as long
         integers (32-bit signed integers). The "array" must be exactly the same
         size as the complete image.
@@ -995,7 +992,7 @@ class CCD(LibraryDriver):
         return arr.reshape(shape)
 
     def most_recent_image16(self, shape):
-        """ 16-bit version of the GetMostRecentImage function.
+        """16-bit version of the GetMostRecentImage function.
         """
         size = np.array(shape).prod()
         arr = np.ascontiguousarray(np.zeros(size, dtype=np.int16))
@@ -1004,17 +1001,17 @@ class CCD(LibraryDriver):
         return arr.reshape(shape)
 
     def images(self, first, last, shape, validfirst, validlast):
-        """ This function will update the data array with the specified series
+        """This function will update the data array with the specified series
         of images from the circular buffer. If the specified series is out of
         range (i.e. the images have been overwritten or have not yet been
         acquired) then an error will be returned.
-        Parameters:
-            long first: index of first image in buffer to retrieve.
-            long last: index of last image in buffer to retrieve.
-            at_32* arr: pointer to data storage allocated by the user.
-            unsigned long size: total number of pixels.
-            long* validfirst: index of the first valid image.
-            long* validlast: index of the last valid image.
+
+        :param first: index of first image in buffer to retrieve.
+        :param flast: index of last image in buffer to retrieve.
+        :param farr: pointer to data storage allocated by the user.
+        :param size: total number of pixels.
+        :param fvalidfirst: index of the first valid image.
+        :param fvalidlast: index of the last valid image.
         """
         size = shape[0] * shape[1] * (1 + last - first)
         array = np.ascontiguousarray(np.zeros(size, dtype=np.int32))
@@ -1026,7 +1023,7 @@ class CCD(LibraryDriver):
         return array.reshape(-1, shape[0], shape[1])
 
     def images16(self, first, last, shape, validfirst, validlast):
-        """ 16-bit version of the GetImages function.
+        """16-bit version of the GetImages function.
         """
         size = shape[0] * shape[1] * (1 + last - first)
         array = np.ascontiguousarray(np.zeros(size, dtype=np.int16))
@@ -1040,7 +1037,7 @@ class CCD(LibraryDriver):
 
     @Feat()
     def new_images_index(self):
-        """ This function will return information on the number of new images
+        """This function will return information on the number of new images
         (i.e. images which have not yet been retrieved) in the circular buffer.
         This information can be used with GetImages to retrieve a series of the
         latest images. If any images are overwritten in the circular buffer
@@ -1055,7 +1052,7 @@ class CCD(LibraryDriver):
 
     @Feat()     # TODO: test this
     def available_images_index(self):
-        """ This function will return information on the number of available
+        """This function will return information on the number of available
         images in the circular buffer. This information can be used with
         GetImages to retrieve a series of images. If any images are overwritten
         in the circular buffer they no longer can be retrieved and the
@@ -1068,7 +1065,7 @@ class CCD(LibraryDriver):
         return (first.value, last.value)
 
     def set_dma_parameters(self, n_max_images, s_per_dma):
-        """ In order to facilitate high image readout rates the controller card
+        """In order to facilitate high image readout rates the controller card
         may wait for multiple images to be acquired before notifying the SDK
         that new data is available. Without this facility, there is a chance
         that hardware interrupts may be lost as the operating system does not
@@ -1078,33 +1075,36 @@ class CCD(LibraryDriver):
         There are 3 settings involved in determining how many images will be
         acquired for each notification (DMA Interrupt) of the controller card
         and they are as follows:
-            1. The size of the DMA buffer gives an upper limit on the number of
-            images that can be stored within it and is usually set to the size
-            of one full image when installing the software. This will usually
-            mean that if you acquire full frames there will never be more than
-            one image per DMA.
-            2. A second setting that is used is the minimum amount of time
-            (SecondsPerDMA) that should expire between interrupts. This can be
-            used to give an indication of the reponsiveness of the operating
-            system to interrupts. Decreasing this value will allow more
-            interrupts per second and should only be done for faster pcs. The
-            default value is 0.03s (30ms), finding the optimal value for your
-            pc can only be done through experimentation.
-            3. The third setting is an overide to the number of images
-            calculated using the previous settings. If the number of images per
-            dma is calculated to be greater than MaxImagesPerDMA then it will
-            be reduced to MaxImagesPerDMA. This can be used to, for example,
-            ensure that there is never more than 1 image per DMA by setting
-            MaxImagesPerDMA to 1. Setting MaxImagesPerDMA to zero removes this
-            limit. Care should be taken when modifying these parameters as
-            missed interrupts may prevent the acquisition from completing.
+
+        1. The size of the DMA buffer gives an upper limit on the number of
+        images that can be stored within it and is usually set to the size
+        of one full image when installing the software. This will usually
+        mean that if you acquire full frames there will never be more than
+        one image per DMA.
+
+        2. A second setting that is used is the minimum amount of time
+        (SecondsPerDMA) that should expire between interrupts. This can be
+        used to give an indication of the reponsiveness of the operating
+        system to interrupts. Decreasing this value will allow more
+        interrupts per second and should only be done for faster pcs. The
+        default value is 0.03s (30ms), finding the optimal value for your
+        pc can only be done through experimentation.
+
+        3. The third setting is an overide to the number of images
+        calculated using the previous settings. If the number of images per
+        dma is calculated to be greater than MaxImagesPerDMA then it will
+        be reduced to MaxImagesPerDMA. This can be used to, for example,
+        ensure that there is never more than 1 image per DMA by setting
+        MaxImagesPerDMA to 1. Setting MaxImagesPerDMA to zero removes this
+        limit. Care should be taken when modifying these parameters as
+        missed interrupts may prevent the acquisition from completing.
         """
         self.lib.SetDMAParameters(ct.c_int(n_max_images),
                                   ct.c_float(s_per_dma))
 
     @Feat()
     def max_images_per_dma(self):
-        """ This function will return the maximum number of images that can be
+        """This function will return the maximum number of images that can be
         transferred during a single DMA transaction.
         """
         n = ct.c_ulong()
@@ -1113,7 +1113,7 @@ class CCD(LibraryDriver):
 
     @Action()
     def save_raw(self, filename, typ):
-        """ This function saves the last acquisition as a raw data file.
+        """This function saves the last acquisition as a raw data file.
         See self.savetypes for the file type keys.
         """
         self.lib.SaveAsRaw(ct.c_char_p(str.encode(filename)),
@@ -1123,7 +1123,7 @@ class CCD(LibraryDriver):
 
     @Feat()
     def acquisition_timings(self):
-        """ This function will return the current “valid” acquisition timing
+        """This function will return the current “valid” acquisition timing
         information. This  function should be used after all the acquisitions
         settings have been set, e.g. SetExposureTime, SetKineticCycleTime and
         SetReadMode etc. The values returned are the actual times used in
@@ -1143,7 +1143,7 @@ class CCD(LibraryDriver):
 
     @Action()
     def set_exposure_time(self, time):
-        """ This function will set the exposure time to the nearest valid value
+        """This function will set the exposure time to the nearest valid value
         not less than the given value, in seconds. The actual exposure time
         used is obtained by GetAcquisitionTimings. Please refer to
         SECTION 5 – ACQUISITION MODES for further information.
@@ -1157,7 +1157,7 @@ class CCD(LibraryDriver):
 
     @Action()
     def set_accum_time(self, time):
-        """ This function will set the accumulation cycle time to the nearest
+        """This function will set the accumulation cycle time to the nearest
         valid value not less than the given value. The actual cycle time used
         is obtained by GetAcquisitionTimings. Please refer to
         SECTION 5 – ACQUISITION MODES for further information.
@@ -1171,7 +1171,7 @@ class CCD(LibraryDriver):
 
     @Action()
     def set_kinetic_cycle_time(self, time):
-        """ This function will set the kinetic cycle time to the nearest valid
+        """This function will set the kinetic cycle time to the nearest valid
         value not less than the given value. The actual time used is obtained
         by GetAcquisitionTimings. . Please refer to
         SECTION 5 – ACQUISITION MODES for further information.
@@ -1186,7 +1186,7 @@ class CCD(LibraryDriver):
 
     @Action()
     def set_n_kinetics(self, n):
-        """ This function will set the number of scans (possibly accumulated
+        """This function will set the number of scans (possibly accumulated
         scans) to be taken during a single acquisition sequence. This will only
         take effect if the acquisition mode is Kinetic Series.
         """
@@ -1194,7 +1194,7 @@ class CCD(LibraryDriver):
 
     @Action()
     def set_n_accum(self, n):
-        """ This function will set the number of scans accumulated in memory.
+        """This function will set the number of scans accumulated in memory.
         This will only take effect if the acquisition mode is either Accumulate
         or Kinetic Series.
         """
@@ -1202,7 +1202,7 @@ class CCD(LibraryDriver):
 
     @Feat(units='s')
     def keep_clean_time(self):
-        """ This function will return the time to perform a keep clean cycle.
+        """This function will return the time to perform a keep clean cycle.
         This function should be used after all the acquisitions settings have
         been set, e.g. SetExposureTime, SetKineticCycleTime and SetReadMode
         etc. The value returned is the actual times used in subsequent
@@ -1214,7 +1214,7 @@ class CCD(LibraryDriver):
 
     @Feat(units='s')
     def readout_time(self):
-        """ This function will return the time to readout data from a sensor.
+        """This function will return the time to readout data from a sensor.
         This function should be used after all the acquisitions settings have
         been set, e.g. SetExposureTime, SetKineticCycleTime and SetReadMode
         etc. The value returned is the actual times used in subsequent
@@ -1226,7 +1226,7 @@ class CCD(LibraryDriver):
 
     @Feat(read_once=True, units='s')
     def max_exposure(self):
-        """ This function will return the maximum Exposure Time in seconds that
+        """This function will return the maximum Exposure Time in seconds that
         is settable by the SetExposureTime function.
         """
         exp = ct.c_float()
@@ -1235,7 +1235,7 @@ class CCD(LibraryDriver):
 
     @Feat(read_once=True)
     def n_max_nexposure(self):
-        """ This function will return the maximum number of exposures that can
+        """This function will return the maximum number of exposures that can
         be configured in the SetRingExposureTimes SDK function.
         """
         n = ct.c_int()
@@ -1243,7 +1243,7 @@ class CCD(LibraryDriver):
         return n.value
 
     def true_exposure_times(self, n):       # FIXME: bit order? something
-        """ This function will return the actual exposure times that the camera
+        """This function will return the actual exposure times that the camera
         will use. There may be differences between requested exposures and the
         actual exposures.
         ntimes:  Numbers of times requested.
@@ -1261,7 +1261,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={True: 1, False: 0})
     def frame_transfer_mode(self):
-        """ This function will set whether an acquisition will readout in Frame
+        """This function will set whether an acquisition will readout in Frame
         Transfer Mode. If the acquisition mode is Single Scan or Fast Kinetics
         this call will have no affect.
         """
@@ -1277,7 +1277,7 @@ class CCD(LibraryDriver):
 
     @Feat(read_once=True)
     def n_preamps(self):
-        """ Available in some systems are a number of pre amp gains that can be
+        """Available in some systems are a number of pre amp gains that can be
         applied to the data as it is read out. This function gets the number of
         these pre amp gains available. The functions GetPreAmpGain and
         SetPreAmpGain can be used to specify which of these gains is to be
@@ -1288,7 +1288,7 @@ class CCD(LibraryDriver):
         return n.value
 
     def preamp_available(self, channel, amp, index, preamp):
-        """ This function checks that the AD channel exists, and that the
+        """This function checks that the AD channel exists, and that the
         amplifier, speed and gain are available for the AD channel.
         """
         channel = ct.c_int(channel)
@@ -1302,7 +1302,7 @@ class CCD(LibraryDriver):
         return bool(status.value)
 
     def preamp_descr(self, index):
-        """ This function will return a string with a pre amp gain description.
+        """This function will return a string with a pre amp gain description.
         The pre amp gain is selected using the index. The SDK has a string
         associated with each of its pre amp gains. The maximum number of
         characters needed to store the pre amp gain descriptions is 30. The
@@ -1316,7 +1316,7 @@ class CCD(LibraryDriver):
         return str(descr.value)[2:-1]
 
     def true_preamp(self, index):
-        """ For those systems that provide a number of pre amp gains to apply
+        """For those systems that provide a number of pre amp gains to apply
         to the data as it is read out; this function retrieves the amount of
         gain that is stored for a particular index. The number of gains
         available can be obtained by calling the GetNumberPreAmpGains function
@@ -1329,7 +1329,7 @@ class CCD(LibraryDriver):
 
     @Feat()
     def preamp(self):
-        """ This function will set the pre amp gain to be used for subsequent
+        """This function will set the pre amp gain to be used for subsequent
         acquisitions. The actual gain factor that will be applied can be found
         through a call to the GetPreAmpGain function.
         The number of Pre Amp Gains available is found by calling the
@@ -1364,7 +1364,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={'DAC255': 0, 'DAC4095': 1, 'Linear': 2, 'RealGain': 3})
     def EM_gain_mode(self):
-        """ Set the EM Gain mode to one of the following possible settings.
+        """Set the EM Gain mode to one of the following possible settings.
             Mode 0: The EM Gain is controlled by DAC settings in the range
             0-255. Default mode.
             1: The EM Gain is controlled by DAC settings in the range 0-4095.
@@ -1418,7 +1418,7 @@ class CCD(LibraryDriver):
         return n.value
 
     def amp_available(self, iamp):
-        """ This function checks if the hardware and current settings permit
+        """This function checks if the hardware and current settings permit
         the use of the specified amplifier."""
         ans = self.lib.IsAmplifierAvailable(ct.c_int(iamp))
         if ans == 20002:
@@ -1427,7 +1427,7 @@ class CCD(LibraryDriver):
             return False
 
     def amp_descr(self, index):
-        """ This function will return a string with an amplifier description.
+        """This function will return a string with an amplifier description.
         The amplifier is selected using the index. The SDK has a string
         associated with each of its amplifiers. The maximum number of
         characters needed to store the amplifier descriptions is 21. The user
@@ -1441,7 +1441,7 @@ class CCD(LibraryDriver):
         return str(descr.value)[2:-1]
 
     def readout_flipped(self, iamp):
-        """ On cameras with multiple amplifiers the frame readout may be
+        """On cameras with multiple amplifiers the frame readout may be
         flipped. This function can be used to determine if this is the case.
         """
         flipped = ct.c_int()
@@ -1450,7 +1450,7 @@ class CCD(LibraryDriver):
         return bool(flipped.value)
 
     def amp_max_hspeed(self, index):
-        """ This function will return the maximum available horizontal shift
+        """This function will return the maximum available horizontal shift
         speed for the amplifier selected by the index parameter.
         """
         hspeed = ct.c_float()
@@ -1458,15 +1458,12 @@ class CCD(LibraryDriver):
         return hspeed.value
 
     def n_horiz_shift_speeds(self, channel=0, typ=None):
-        """ As your Andor SDK system is capable of operating at more than one
+        """As your Andor SDK system is capable of operating at more than one
         horizontal shift speed this function will return the actual number of
         speeds available.
-        Parameters
-            int channel: the AD channel.
-            int typ: output amplification.
-                Valid values: 0 electron multiplication.
-                              1 conventional.
-            int* speeds: number of allowed horizontal speeds
+
+        :param channel: the AD channel.
+        :param typ: output amplification. 0 electron multiplication. 1 conventional.
         """
         if typ is None:
             typ = self.amp_typ
@@ -1485,20 +1482,13 @@ class CCD(LibraryDriver):
 
         GetHSSpeed(int channel, int typ, int index, float* speed)
 
-        Parameters
-            int channel: the AD channel.
-
-            int typ: output amplification.
-                Valid values:
+        :param typ: output amplification.
                     0 electron multiplication/Conventional(clara)
                     1 conventional/Extended NIR Mode(clara).
-
-            int index: speed required
-                Valid values
-                0 to NumberSpeeds-1 where NumberSpeeds is value returned in
-                first parameter after a call to GetNumberHSSpeeds().
-
-            float* speed: speed in in MHz.
+        :param index: speed required
+                      0 to NumberSpeeds-1 where NumberSpeeds is value returned in
+                      first parameter after a call to GetNumberHSSpeeds().
+        :param ad: the AD channel.
         """
 
         if typ is None:
@@ -1517,19 +1507,17 @@ class CCD(LibraryDriver):
 
     @horiz_shift_speed.setter
     def horiz_shift_speed(self, index):
-        """ This function will set the speed at which the pixels are shifted
+        """This function will set the speed at which the pixels are shifted
         into the output node during the readout phase of an acquisition.
         Typically your camera will be capable of operating at several
         horizontal shift speeds. To get the actual speed that an index
         corresponds to use the GetHSSpeed function.
-        Parameters
-            int typ: output amplification.
-                Valid values:
+
+        :param typ: output amplification.
                     0 electron multiplication/Conventional(clara).
                     1 conventional/Extended NIR mode(clara).
-            int index: the horizontal speed to be used
-                Valid values
-                    0 to GetNumberHSSpeeds() - 1
+        :param index: the horizontal speed to be used
+                      0 to GetNumberHSSpeeds() - 1
         """
         ans = self.lib.SetHSSpeed(ct.c_int(self.amp_typ), ct.c_int(index))
         if ans == 20002:
@@ -1537,7 +1525,7 @@ class CCD(LibraryDriver):
 
     @Feat()
     def fastest_recommended_vsspeed(self):
-        """ As your Andor SDK system may be capable of operating at more than
+        """As your Andor SDK system may be capable of operating at more than
         one vertical shift speed this function will return the fastest
         recommended speed available. The very high readout speeds, may require
         an increase in the amplitude of the Vertical Clock Voltage using
@@ -1552,7 +1540,7 @@ class CCD(LibraryDriver):
 
     @Feat(read_once=True)
     def n_vert_clock_amps(self):
-        """ This function will normally return the number of vertical clock
+        """This function will normally return the number of vertical clock
         voltage amplitudes that the camera has.
         """
         n = ct.c_int()
@@ -1560,11 +1548,10 @@ class CCD(LibraryDriver):
         return n.value
 
     def vert_amp_index(self, string):
-        """ This Function is used to get the index of the Vertical Clock
+        """This Function is used to get the index of the Vertical Clock
         Amplitude that corresponds to the string passed in.
-        Parameters
-            char* text: String to test
-                Valid values: "Normal" , "+1" , "+2" , "+3" , "+4"
+
+        :param string: "Normal" , "+1" , "+2" , "+3" , "+4"
         """
         index = ct.c_int()
         string = ct.c_char_p(str.encode(string))
@@ -1572,11 +1559,11 @@ class CCD(LibraryDriver):
         return index.value
 
     def vert_amp_string(self, index):
-        """ This Function is used to get the Vertical Clock Amplitude string
+        """This Function is used to get the Vertical Clock Amplitude string
         that corresponds to the index passed in.
-        Parameters
-            int index: Index of VS amplitude required
-                Valid values 0 to GetNumberVSAmplitudes() - 1
+
+        :param index: Index of VS amplitude required
+                      Valid values 0 to GetNumberVSAmplitudes() - 1
         """
         index = ct.c_int(index)
         string = (ct.c_char * 6)()
@@ -1584,11 +1571,11 @@ class CCD(LibraryDriver):
         return str(string.value)[2:-1]
 
     def true_vert_amp(self, index):
-        """ This Function is used to get the value of the Vertical Clock
+        """This Function is used to get the value of the Vertical Clock
         Amplitude found at the index passed in.
-        Parameters
-            int index: Index of VS amplitude required
-                Valid values 0 to GetNumberVSAmplitudes() - 1
+
+        :param index: Index of VS amplitude required
+                      Valid values 0 to GetNumberVSAmplitudes() - 1
         """
         index = ct.c_int(index)
         amp = ct.c_int()
@@ -1597,15 +1584,11 @@ class CCD(LibraryDriver):
 
     @Action()
     def set_vert_clock(self, index):
-        """ If you choose a high readout speed (a low readout time), then you
+        """If you choose a high readout speed (a low readout time), then you
         should also consider increasing the amplitude of the Vertical Clock
         Voltage.
         There are five levels of amplitude available for you to choose from:
-             Normal
-             +1
-             +2
-             +3
-             +4
+        - Normal, +1, +2, +3, +4
         Exercise caution when increasing the amplitude of the vertical clock
         voltage, since higher clocking voltages may result in increased
         clock-induced charge (noise) in your signal. In general, only the very
@@ -1616,7 +1599,7 @@ class CCD(LibraryDriver):
 
     @Feat(read_once=True)
     def n_vert_shift_speeds(self):
-        """ As your Andor system may be capable of operating at more than one
+        """As your Andor system may be capable of operating at more than one
         vertical shift speed this function will return the actual number of
         speeds available.
         """
@@ -1639,7 +1622,7 @@ class CCD(LibraryDriver):
 
     @vert_shift_speed.setter
     def vert_shift_speed(self, index):
-        """ This function will set the vertical speed to be used for subsequent
+        """This function will set the vertical speed to be used for subsequent
         acquisitions.
         """
         self.vert_shift_speed_index = index
@@ -1649,7 +1632,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={True: 1, False: 0})
     def baseline_clamp(self):
-        """ This function returns the status of the baseline clamp
+        """This function returns the status of the baseline clamp
         functionality. With this feature enabled the baseline level of each
         scan in a kinetic series will be more consistent across the sequence.
         """
@@ -1664,7 +1647,7 @@ class CCD(LibraryDriver):
 
     @Feat(limits=(-1000, 1100, 100))
     def baseline_offset(self):
-        """ This function allows the user to move the baseline level by the
+        """This function allows the user to move the baseline level by the
         amount selected. For example “+100” will add approximately 100 counts
         to the default baseline value. The value entered should be a multiple
         of 100 between -1000 and +1000 inclusively.
@@ -1680,7 +1663,7 @@ class CCD(LibraryDriver):
     ### BIT DEPTH
 
     def bit_depth(self, ch):
-        """ This function will retrieve the size in bits of the dynamic range
+        """This function will retrieve the size in bits of the dynamic range
         for any available AD channel.
         """
         ch = ct.c_int(ch)
@@ -1692,7 +1675,7 @@ class CCD(LibraryDriver):
 
     @Feat(values={True: 1, False: 0})
     def adv_trigger_mode(self):
-        """ This function will set the state for the iCam functionality that
+        """This function will set the state for the iCam functionality that
         some cameras are capable of. There may be some cases where we wish to
         prevent the software using the new functionality and just do it the way
         it was previously done.
@@ -1706,7 +1689,7 @@ class CCD(LibraryDriver):
             self.adv_trigger_mode_state = state
 
     def trigger_mode_available(self, modestr):
-        """ This function checks if the hardware and current settings permit
+        """This function checks if the hardware and current settings permit
         the use of the specified trigger mode.
         """
         index = self.triggers[modestr]
@@ -1720,7 +1703,7 @@ class CCD(LibraryDriver):
                   'External Exposure': 7, 'External FVB EM': 9,
                   'Software Trigger': 10, 'External Charge Shifting': 12})
     def trigger_mode(self):
-        """ This function will set the trigger mode that the camera will
+        """This function will set the trigger mode that the camera will
         operate in.
         """
         return self.trigger_mode_index
@@ -1733,24 +1716,25 @@ class CCD(LibraryDriver):
 
     @Action()
     def send_software_trigger(self):
-        """ This function sends an event to the camera to take an acquisition
+        """This function sends an event to the camera to take an acquisition
         when in Software Trigger mode. Not all cameras have this mode available
         to them. To check if your camera can operate in this mode check the
         GetCapabilities function for the Trigger Mode
         AC_TRIGGERMODE_CONTINUOUS. If this mode is physically possible and
         other settings are suitable (IsTriggerModeAvailable) and the camera is
         acquiring then this command will take an acquisition.
+
         NOTES:
-            The settings of the camera must be as follows:
-                ReadOut mode is full image
-                RunMode is Run Till Abort
-                TriggerMode is 10
+        The settings of the camera must be as follows:
+        - ReadOut mode is full image
+        - RunMode is Run Till Abort
+        - TriggerMode is 10
         """
         self.lib.SendSoftwareTrigger()
 
     @Action()
     def trigger_level(self, value):
-        """ This function sets the trigger voltage which the system will use.
+        """This function sets the trigger voltage which the system will use.
         """
         self.lib.SetTriggerLevel(ct.c_float(value))
 
@@ -1758,7 +1742,7 @@ class CCD(LibraryDriver):
 
     @DictFeat(values={True: not(0), False: 0}, keys=list(range(1, 5)))
     def in_aux_port(self, port):
-        """ This function returns the state of the TTL Auxiliary Input Port on
+        """This function returns the state of the TTL Auxiliary Input Port on
         the Andor plug-in card.
         """
         port = ct.c_int(port)
@@ -1768,7 +1752,7 @@ class CCD(LibraryDriver):
 
     @DictFeat(values={True: 1, False: 0}, keys=list(range(1, 5)))
     def out_aux_port(self, port):
-        """ This function sets the TTL Auxiliary Output port (P) on the Andor
+        """This function sets the TTL Auxiliary Output port (P) on the Andor
         plug-in card to either ON/HIGH or OFF/LOW.
         """
         return self.auxout[port - 1]

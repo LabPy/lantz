@@ -6,25 +6,72 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>219</width>
-    <height>253</height>
+    <width>218</width>
+    <height>258</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QFormLayout" name="formLayout">
-   <item row="2" column="0">
-    <widget class="QLabel" name="startLabel_3">
+   <property name="fieldGrowthPolicy">
+    <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+   </property>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>Start</string>
+      <string>Mode</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="mode">
+     <item>
+      <property name="text">
+       <string>Step size</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Step count</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Steps:</string>
      </property>
     </widget>
    </item>
    <item row="2" column="1">
-    <widget class="QDoubleSpinBox" name="start_3">
+    <widget class="QSpinBox" name="step_count">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="minimum">
+      <number>1</number>
+     </property>
+     <property name="maximum">
+      <number>100000000</number>
+     </property>
+     <property name="value">
+      <number>10</number>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="startLabel_3">
+     <property name="text">
+      <string>Start:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QDoubleSpinBox" name="start">
      <property name="suffix">
-      <string> Hz</string>
+      <string/>
      </property>
      <property name="maximum">
       <double>100000.000000000000000</double>
@@ -34,17 +81,17 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
+   <item row="4" column="0">
     <widget class="QLabel" name="stopLabel_3">
      <property name="text">
-      <string>Stop</string>
+      <string>Stop:</string>
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
-    <widget class="QDoubleSpinBox" name="stop_3">
+   <item row="4" column="1">
+    <widget class="QDoubleSpinBox" name="stop">
      <property name="suffix">
-      <string> Hz</string>
+      <string/>
      </property>
      <property name="maximum">
       <double>100000.000000000000000</double>
@@ -54,17 +101,17 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="5" column="0">
     <widget class="QLabel" name="stepLabel_3">
      <property name="text">
-      <string>Step</string>
+      <string>Step size:</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QDoubleSpinBox" name="step_3">
+   <item row="5" column="1">
+    <widget class="QDoubleSpinBox" name="step_size">
      <property name="suffix">
-      <string> Hz</string>
+      <string/>
      </property>
      <property name="maximum">
       <double>100000.000000000000000</double>
@@ -74,15 +121,15 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="6" column="0">
     <widget class="QLabel" name="waitLabel_3">
      <property name="text">
-      <string>Wait</string>
+      <string>Wait:</string>
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
-    <widget class="QDoubleSpinBox" name="wait_3">
+   <item row="6" column="1">
+    <widget class="QDoubleSpinBox" name="wait">
      <property name="suffix">
       <string> s</string>
      </property>
@@ -97,8 +144,8 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="0">
-    <widget class="QPushButton" name="Start">
+   <item row="7" column="0">
+    <widget class="QPushButton" name="start_stop">
      <property name="text">
       <string>Start</string>
      </property>
@@ -107,7 +154,7 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="1">
+   <item row="7" column="1">
     <widget class="QProgressBar" name="progress_bar">
      <property name="maximum">
       <number>100</number>
@@ -115,37 +162,6 @@
      <property name="value">
       <number>0</number>
      </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Points</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QSpinBox" name="spinBox"/>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Mode</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QComboBox" name="comboBox">
-     <item>
-      <property name="text">
-       <string>Points</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Steps</string>
-      </property>
-     </item>
     </widget>
    </item>
   </layout>

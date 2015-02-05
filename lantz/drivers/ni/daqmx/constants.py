@@ -5,11 +5,11 @@
 
     Constants and types for DAQmx
 
-    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
-from lantz.visalib import RichEnum
+from lantz.drivers.legacy.visalib import RichEnum
 
 class Constants(metaclass=RichEnum):
 

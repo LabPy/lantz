@@ -8,7 +8,7 @@
     therefore allowing code to catch them via lantz excepts without
     breaking specific ones.
 
-    :copyright: 2012 by The Lantz Authors
+    :copyright: 2015 by The Lantz Authors
     :license: BSD, see LICENSE for more details.
 """
 
@@ -21,3 +21,5 @@ class LantzTimeoutError(Exception):
 class InstrumentError(Exception):
     pass
 
+class NotSupportedError(Exception):
+    pass

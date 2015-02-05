@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
-import logging
 import unittest
 
 
@@ -13,8 +11,18 @@ def testsuite():
 
 
 def main():
-    """Runs the testsuite as command line application."""
+    """Runs the testsuite as command line application.
+    """
     try:
         unittest.main()
     except Exception as e:
         print('Error: %s' % e)
+
+
+def run():
+    """Run all tests.
+
+    :return: a :class:`unittest.TestResult` object
+    """
+    test_runner = unittest.TextTestRunner()
+    return test_runner.run(testsuite())

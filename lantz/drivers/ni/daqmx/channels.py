@@ -5,7 +5,7 @@
 
     Implementation of specialized channel classes.
 
-    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -397,7 +397,7 @@ class LinearEncoderChannel(Channel):
         if units_val != Constants.Val_FromCustomScale:
             customScaleName = None
 
-        return CALL(
+        CALL(
             'CreateCILinEncoderChan',
             self,
             counter,

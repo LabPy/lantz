@@ -5,7 +5,7 @@
 
     Implements a IEEE-488.2 commands.
 
-    :copyright: 2013 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -85,7 +85,7 @@ class IEEE4882Driver(Driver):
 
     @service_request_enabled.setter
     def service_request_enabled(self, value):
-        return self.query('*SRE {0:d}', value)
+        self.query('*SRE {0:d}'.format(value))
 
     event_status_reg = Feat()
 

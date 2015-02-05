@@ -3,15 +3,11 @@
     lantz.processors
     ~~~~~~~~~~~~~~~~
 
-    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
-import inspect
-import logging
 import warnings
-
-from functools import wraps, partial
 
 from . import Q_
 from .log import LOGGER as _LOG
@@ -391,7 +387,7 @@ def get_mapping(container):
         >>> getter = get_mapping({'A': 42, 'B': 43})
         >>> getter('A')
         42
-        >>> checker(0)
+        >>> getter(0)
         Traceback (most recent call last):
         ...
         ValueError: 0 not in ('A', 'B')

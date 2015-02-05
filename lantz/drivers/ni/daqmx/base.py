@@ -6,7 +6,7 @@
     Implementation of base classes for Channels, Tasks and Devices
 
 
-    :copyright: 2012 by Lantz Authors, see AUTHORS for more details.
+    :copyright: 2015 by Lantz Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -1199,7 +1199,7 @@ class Task(_Base):
         if value is None:
             self.lib.ResetSampClkRate()
         else:
-            return self.lib.SetSampClkRate(value)
+            self.lib.SetSampClkRate(value)
 
     @Feat()
     def convert_clock_rate(self):
@@ -1225,7 +1225,7 @@ class Task(_Base):
         if value is None:
             self.lib.ResetAIConvRate()
         else:
-            return self.lib.SetAIConvRate(value)
+            self.lib.SetAIConvRate(value)
 
     def sample_clock_max_rate(self):
         """Maximum Sample Clock rate supported by the task,

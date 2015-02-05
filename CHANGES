@@ -2,8 +2,41 @@ Lantz Changelog
 ===============
 
 
+0.3 (unreleased)
+----------------
 
-Version 0.2   (2013-01-01)
---------------------------
+- Introduced MessageBasedDriver, a class to rule them all.
+- Moved drivers
+- Moved old base classes (serial, usb, tcp, visa) to legacy package.
+- Moved instrument drivers based on legacy classes to legacy package.
+- Migrated instrument classes to MessageBasedDriver.
+- Improved logging to avoid duplication and useless info.
+- Frontend and Backend for application development.
+- Implemented Chart block.
+- Implemented Scan block.
+- Implemented FeatScan block.
+- Implemented Loop block.
+- Implemented Layout block.
+- Online documentation now shows the drivers classes.
+- Stub classes to enable documentation building without required packages.
+- Moved simulator from script to console-script.
+- Changed sphinx theme to read the docs.
+- Introduced `start_gui` helper function to start an app with a ui file
+  and an instrument or instruments.
+- Introduced `start_test_app` helper function to start the test panel.
+- Introduced `start_gui_app` takes a backend and fronted and shows the app.
+- Moved get-lantz script to a gist.
+- Removed lantz-shell, equivalent functionality was contributed to PyVISA.
+- Support simultaneous values and units in Feat.
+  (Issue #25)
+- Use Qt import scheme from IPython.
+- Helper functions for multiple initialization: initialize_many and finalize_many.
+- GUI support for initialize_many and finalize_many.
+- New instrument drivers.
+
+
+
+0.2 (2013-01-01)
+----------------
 
 - first public release.
