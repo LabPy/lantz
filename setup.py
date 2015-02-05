@@ -47,7 +47,7 @@ legacy_companies = [path for path in paths
 
 
 setup(name='Lantz',
-      version='0.3.dev2',
+      version='0.3',
       license='BSD',
       description='Instrumentation framework',
       long_description=long_description,
