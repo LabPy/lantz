@@ -1,10 +1,16 @@
 include LICENSE AUTHORS README CHANGES
-recursive-include tests *
+recursive-include lantz/testsuite *
 recursive-include examples *
 recursive-include docs *
 recursive-include lantz/drivers *
 recursive-include lantz/simulators *
 recursive-include lantz/ui *
+
+include *.txt
+include .travis.yml
+recursive-include lantz *.c
+recursive-include lantz *.h
+
 global-exclude *.pyc *.pyo .DS_Store
 prune docs/_build
 prune docs/_themes/.git
