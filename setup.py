@@ -70,10 +70,6 @@ setup(name='Lantz',
                        ] + requirements,
       zip_safe=False,
       platforms='any',
-      extra_require={'colorama':  ['colorama'],
-                     'numpy': ['numpy'],
-                     'ui': ['sip', 'pyqt4']
-                    },
       entry_points={
            'zest.releaser.releaser.after_checkout': [
               'pyroma = lantz:run_pyroma',
